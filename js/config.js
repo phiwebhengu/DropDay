@@ -1,5 +1,6 @@
-export const RAWG_API_KEY = "YOUR_RAWG_API_KEY";
-export const TMDB_READ_ACCESS_TOKEN = "YOUR_TMDB_READ_ACCESS_TOKEN";
+export const RAWG_API_KEY = "987bcaf1e64845db8f9628c97b96452b";
+export const TMDB_READ_ACCESS_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NTAwZGRhZTAzOTYwZGMyYjI5OTk0NmZjNjExYTNjOCIsIm5iZiI6MTc5MjQzNzc4Mi4zMjksInN1YiI6IjZhZDY2ZTE2YzE3YTdkZDMxOWMwMTZjZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.FLcgx9_86G0zdQjNb46GXud30rt-BdmAtEjtxP5DzLs";
 
 export const RAWG_BASE_URL = "https://api.rawg.io/api";
 export const TMDB_BASE_URL = "https://api.themoviedb.org/3";

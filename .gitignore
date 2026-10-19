@@ -11,3 +11,6 @@ desktop.ini
 
 # Local scratch
 *.log
+
+# Editor extension output
+state/
