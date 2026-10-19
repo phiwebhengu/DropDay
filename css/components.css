@@ -201,7 +201,8 @@
   border-radius: var(--radius-pill);
   font: var(--text-label-m);
   text-decoration: none;
-  transition: background-color var(--duration-fast) var(--ease-out),
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out);
 }
 
@@ -228,8 +229,6 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* Toast region (toasts themselves are added by js/ui/toast.js) */
 
 .toast-region {
   position: fixed;
