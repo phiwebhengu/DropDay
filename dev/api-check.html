@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-ZA">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>API check · Drop Day</title>
+    <link rel="stylesheet" href="../css/tokens.css">
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+      main { display: grid; gap: var(--space-6); padding-block: var(--space-8); }
+      .check { padding: var(--space-4); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); }
+      .check h2 { font: var(--text-label-m); }
+      .check[data-status="pass"] h2::before { content: "✓ "; color: var(--color-status-success); }
+      .check[data-status="fail"] h2::before { content: "✕ "; color: var(--color-status-error); }
+      .check pre { margin-top: var(--space-2); color: var(--color-text-secondary); font-size: 0.8125rem; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <div>
+        <h1>API check</h1>
+        <p>Developer-only page. Confirms the keys in <code>js/config.js</code> work and the normaliser returns clean Release objects.</p>
+      </div>
+      <div id="checks"></div>
+      <button class="button button--outline" id="clear-cache" type="button">Clear API cache and rerun</button>
+    </main>
+
+    <script type="module">
+      import * as rawg from '../js/api/rawg.js';
+      import * as tmdb from '../js/api/tmdb.js';
+      import { getQuickRange } from '../js/utils/dates.js';
+
+      const range = getQuickRange('month');
+      const checks = [
+        ['RAWG · games this month', () => rawg.getGames(range)],
+        ['RAWG · featured game', () => rawg.getFeaturedGame()],
+        ['RAWG · genres', () => rawg.getGenres()],
+        ['TMDB · movies this month', () => tmdb.getMovies(range)],
+        ['TMDB · TV this month', () => tmdb.getShows(range)],
+        ['TMDB · anime this month', () => tmdb.getAnime(range)],
+      ];
+
+      function summarise(result) {
+        if (Array.isArray(result)) return `${result.length} items\n${JSON.stringify(result.slice(0, 2), null, 2)}`;
+        if (result.results) return `${result.count} total · first of ${result.results.length}:\n${JSON.stringify(result.results[0], null, 2)}`;
+        return JSON.stringify(result, null, 2);
+      }
+
+      async function runChecks() {
+        const container = document.getElementById('checks');
+        container.replaceChildren();
+        for (const [label, run] of checks) {
+          const section = document.createElement('section');
+          section.className = 'check';
+          section.innerHTML = `<h2>${label}</h2><pre>Running…</pre>`;
+          container.append(section);
+          try {
+            const result = await run();
+            section.dataset.status = 'pass';
+            section.querySelector('pre').textContent = summarise(result);
+          } catch (error) {
+            section.dataset.status = 'fail';
+            section.querySelector('pre').textContent = `${error.name}: ${error.message}`;
+          }
+        }
+      }
+
+      document.getElementById('clear-cache').addEventListener('click', () => {
+        Object.keys(sessionStorage)
+          .filter((key) => key.startsWith('dropday.cache.'))
+          .forEach((key) => sessionStorage.removeItem(key));
+        runChecks();
+      });
+
+      runChecks();
+    </script>
+  </body>
+</html>
