@@ -188,6 +188,18 @@
   gap: var(--space-2);
 }
 
+.site-footer__tmdb {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-height: var(--touch-target);
+}
+
+.site-footer__tmdb img {
+  height: 12px;
+  width: auto;
+}
+
 /* Buttons */
 
 .button {
