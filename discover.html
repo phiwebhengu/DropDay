@@ -96,14 +96,98 @@
     </header>
 
     <main class="site-main" id="main">
-      <div class="container">
-        <section class="page-intro">
-          <p class="page-intro__eyebrow">Release radar</p>
-          <h1>Discover</h1>
-          <p class="page-intro__text">
-            Category tabs, quick ranges, filters and the release grid land here
-            in milestone 2.
-          </p>
+      <div class="discover container">
+        <header class="discover__header">
+          <h1 class="discover__title">Discover releases</h1>
+          <p
+            class="discover__summary"
+            id="discover-summary"
+            aria-live="polite"
+          ></p>
+        </header>
+
+        <div class="category-tabs" role="tablist" aria-label="Category">
+          <button
+            class="category-tab category-tab--games"
+            id="tab-games"
+            type="button"
+            role="tab"
+            data-cat="games"
+            aria-controls="discover-results"
+          >
+            <span class="category-tab__dot" aria-hidden="true"></span>Games
+          </button>
+          <button
+            class="category-tab category-tab--movies"
+            id="tab-movies"
+            type="button"
+            role="tab"
+            data-cat="movies"
+            aria-controls="discover-results"
+          >
+            <span class="category-tab__dot" aria-hidden="true"></span>Movies
+          </button>
+          <button
+            class="category-tab category-tab--tv"
+            id="tab-tv"
+            type="button"
+            role="tab"
+            data-cat="tv"
+            aria-controls="discover-results"
+          >
+            <span class="category-tab__dot" aria-hidden="true"></span>TV
+          </button>
+          <button
+            class="category-tab category-tab--anime"
+            id="tab-anime"
+            type="button"
+            role="tab"
+            data-cat="anime"
+            aria-controls="discover-results"
+          >
+            <span class="category-tab__dot" aria-hidden="true"></span>Anime
+          </button>
+        </div>
+
+        <div
+          class="quick-range"
+          role="group"
+          aria-labelledby="quick-range-label"
+        >
+          <span class="quick-range__label" id="quick-range-label">When</span>
+          <button
+            class="quick-range__option"
+            type="button"
+            data-range="week"
+            aria-pressed="false"
+          >
+            This week
+          </button>
+          <button
+            class="quick-range__option"
+            type="button"
+            data-range="month"
+            aria-pressed="false"
+          >
+            This month
+          </button>
+          <button
+            class="quick-range__option"
+            type="button"
+            data-range="quarter"
+            aria-pressed="false"
+          >
+            <span class="quick-range__extra">Next </span>3 months
+          </button>
+        </div>
+
+        <section
+          class="discover__results"
+          id="discover-results"
+          role="tabpanel"
+          aria-labelledby="tab-games"
+        >
+          <ul class="release-grid" id="release-grid" role="list"></ul>
         </section>
       </div>
     </main>
@@ -183,5 +267,7 @@
     </nav>
 
     <div class="toast-region" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/pages/discover.js"></script>
   </body>
 </html>
