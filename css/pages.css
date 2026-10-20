@@ -20,3 +20,49 @@
 .page-intro__text {
   color: var(--color-text-secondary);
 }
+
+/* Discover */
+
+.discover {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.discover__header {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.discover__title {
+  font: var(--text-display-xl);
+}
+
+.discover__summary {
+  color: var(--color-text-secondary);
+  font: var(--text-body-l);
+}
+
+.release-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .release-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .release-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .release-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

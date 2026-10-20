@@ -10,6 +10,7 @@
 
 html {
   color-scheme: dark;
+  background: var(--color-bg-page);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
