@@ -488,3 +488,134 @@
     animation: none;
   }
 }
+
+/* Category tabs */
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.category-tab {
+  --tab-accent: var(--color-category-games);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-surface);
+  font: var(--text-label-m);
+  transition: background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.category-tab--movies {
+  --tab-accent: var(--color-category-movies);
+}
+
+.category-tab--tv {
+  --tab-accent: var(--color-category-tv);
+}
+
+.category-tab--anime {
+  --tab-accent: var(--color-category-anime);
+}
+
+.category-tab__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tab-accent);
+}
+
+.category-tab[aria-selected="true"] {
+  border-color: var(--tab-accent);
+  box-shadow: inset 0 0 0 1px var(--tab-accent);
+  background: var(--color-bg-raised);
+}
+
+/* The tick is the non-colour cue for the selected tab. */
+.category-tab[aria-selected="true"]::before {
+  content: "✓";
+  content: "✓" / "";
+}
+
+.category-tab:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .category-tab[aria-selected="false"]:hover {
+    border-color: var(--tab-accent);
+  }
+}
+
+/* Quick range */
+
+.quick-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.quick-range__label {
+  margin-inline-end: var(--space-1);
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+}
+
+.quick-range__option {
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-6);
+  border: 2px solid var(--color-action-primary-hover);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: var(--text-label-m);
+  transition: background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.quick-range__option[aria-pressed="true"] {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+}
+
+.quick-range__option:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quick-range__option[aria-pressed="false"]:hover {
+    background: rgb(108 77 255 / 0.12);
+  }
+}
+
+@media (max-width: 479px) {
+  .quick-range__option {
+    padding-inline: var(--space-4);
+  }
+
+  .quick-range__label,
+  .quick-range__extra {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-tab:active,
+  .quick-range__option:active {
+    transform: none;
+  }
+}
