@@ -89,6 +89,7 @@
 
   /* Motion */
   --duration-fast: 150ms;
+  --duration-base: 250ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
