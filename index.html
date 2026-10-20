@@ -1,19 +1,25 @@
 <!doctype html>
 <html lang="en-ZA">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Drop Day · Upcoming games, movies, TV and anime</title>
-    <meta name="description" content="See what drops next across games, movies, TV and anime, and keep an honest log of the games you play.">
-    <meta name="theme-color" content="#0b0d14">
-    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
-    <link rel="stylesheet" href="css/tokens.css">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/pages.css">
+    <meta
+      name="description"
+      content="See what drops next across games, movies, TV and anime, and keep an honest log of the games you play."
+    />
+    <meta name="theme-color" content="#0b0d14" />
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+    />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/pages.css" />
   </head>
   <body data-page="home">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -27,20 +33,64 @@
 
         <nav class="site-nav" aria-label="Main">
           <ul class="site-nav__list" role="list">
-            <li><a class="site-nav__link" href="index.html" aria-current="page">Home</a></li>
+            <li>
+              <a class="site-nav__link" href="index.html" aria-current="page"
+                >Home</a
+              >
+            </li>
             <li><a class="site-nav__link" href="discover.html">Discover</a></li>
-            <li><a class="site-nav__link" href="library.html">My Library</a></li>
+            <li>
+              <a class="site-nav__link" href="library.html">My Library</a>
+            </li>
           </ul>
         </nav>
 
         <form class="search" role="search" action="discover.html">
-          <label class="visually-hidden" for="site-search">Search games, films and shows</label>
-          <svg class="search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="search__input" id="site-search" name="q" type="search" placeholder="Search games, films, shows" autocomplete="off">
+          <label class="visually-hidden" for="site-search"
+            >Search games, films and shows</label
+          >
+          <svg
+            class="search__icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            class="search__input"
+            id="site-search"
+            name="q"
+            type="search"
+            placeholder="Search games, films, shows"
+            autocomplete="off"
+          />
         </form>
 
-        <a class="site-header__search-link" href="discover.html#search" aria-label="Search">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <a
+          class="site-header__search-link"
+          href="discover.html#search"
+          aria-label="Search"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
         </a>
       </div>
     </header>
@@ -50,15 +100,27 @@
         <section class="page-intro">
           <p class="page-intro__eyebrow">Featured launch</p>
           <h1>Drop Day</h1>
-          <p class="page-intro__text">Countdown hero, “Dropping this month” and “Continue your Backlog” land here in milestone 4.</p>
+          <p class="page-intro__text">
+            Countdown hero, “Dropping this month” and “Continue your Backlog”
+            land here in milestone 4.
+          </p>
         </section>
       </div>
     </main>
 
     <footer class="site-footer">
       <div class="site-footer__inner container">
-        <p>Game data: <a href="https://rawg.io">RAWG</a> · Film, TV and anime data: <a href="https://www.themoviedb.org">TMDB</a></p>
-        <p>This product uses the TMDB API but is not endorsed or certified by TMDB. Your Library is saved on this device only.</p>
+        <a class="site-footer__tmdb" href="https://www.themoviedb.org">
+          <img src="assets/icons/tmdb-logo.svg" alt="TMDB" />
+        </a>
+        <p>
+          Game data: <a href="https://rawg.io">RAWG</a> · Film, TV and anime
+          data: <a href="https://www.themoviedb.org">TMDB</a>
+        </p>
+        <p>
+          This product uses the TMDB API but is not endorsed or certified by
+          TMDB. Your Library is saved on this device only.
+        </p>
       </div>
     </footer>
 
@@ -66,19 +128,54 @@
       <ul class="bottom-nav__list" role="list">
         <li>
           <a class="bottom-nav__link" href="index.html" aria-current="page">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z" />
+            </svg>
             Home
           </a>
         </li>
         <li>
           <a class="bottom-nav__link" href="discover.html">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="m15.5 8.5-2 5-5 2 2-5z" />
+            </svg>
             Discover
           </a>
         </li>
         <li>
           <a class="bottom-nav__link" href="library.html">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <path d="M8 9h8M8 13h8M8 17h5" />
+            </svg>
             Library
           </a>
         </li>
