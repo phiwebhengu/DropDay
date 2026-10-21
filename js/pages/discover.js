@@ -4,6 +4,7 @@ import { RAWG_PLATFORMS } from '../config.js';
 import { formatTime, getMonthRange, getQuickRange, toMonthKey } from '../utils/dates.js';
 import { createReleaseCard, createCardSkeleton } from '../ui/card.js';
 import { createStateMessage } from '../ui/states.js';
+import { openQuickView } from '../ui/quick-view.js';
 
 const SKELETON_COUNT = 10;
 const MONTHS_AHEAD = 12;
@@ -395,6 +396,9 @@ monthSelect.addEventListener('change', () => {
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
 loadMoreButton.addEventListener('click', loadMore);
+grid.addEventListener('release:quickview', (event) => {
+  openQuickView(event.detail.release, event.target.querySelector('.release-card__link'));
+});
 // Desktop uses the header field and phones use the one on the page; only one is visible at a time.
 function focusVisibleSearch() {
   const input = searchForms.map((form) => form.elements.q).find((field) => field.offsetParent !== null);

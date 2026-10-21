@@ -50,7 +50,8 @@ export async function getGames({
     genres,
     search,
     search_precise: search ? true : undefined,
-    ordering: search ? undefined : ordering,
+    // Search defaults to RAWG's relevance order, which ranks fan games above the real thing; most added comes first instead.
+    ordering: search ? "-added" : ordering,
     page,
     page_size: PAGE_SIZE,
   });

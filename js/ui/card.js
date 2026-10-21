@@ -31,7 +31,7 @@ const PAST_PREFIXES = {
   anime: 'Premiered',
 };
 
-function getDateText({ type, date, tba, season }) {
+export function getDateText({ type, date, tba, season }) {
   if (tba) return 'Release date TBA';
 
   const today = toIsoDate(new Date());
@@ -51,7 +51,7 @@ function getTags({ type, platforms }) {
   return extra > 0 ? [...names.slice(0, MAX_PLATFORM_TAGS), `+${extra}`] : names;
 }
 
-function getSaveText(type, saved) {
+export function getSaveText(type, saved) {
   if (type === 'game') return saved ? '✓ In Backlog' : '+ Backlog';
   return saved ? '✓ On Radar' : '+ Radar';
 }
