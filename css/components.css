@@ -353,7 +353,7 @@
   overflow: hidden;
   font: var(--text-h3);
   /* base.css balances headings, which spreads short titles over too many lines before the clamp. */
-  text-wrap: pretty;
+  text-wrap: wrap;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
