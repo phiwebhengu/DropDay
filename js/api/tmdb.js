@@ -1,4 +1,5 @@
 import {
+  LIST_CACHE_TTL,
   TMDB_BASE_URL,
   TMDB_READ_ACCESS_TOKEN,
   TMDB_REGION,
@@ -130,12 +131,24 @@ export function getShows({ start, end, genres, page = 1 } = {}) {
 }
 
 // TMDB has no anime genre, so anime is approximated as Japanese animation and labelled "Anime (from TMDB)" in the UI.
-export function getAnime({ start, end, page = 1 } = {}) {
+export function getAnime({ start, end, genres, page = 1 } = {}) {
+  const withGenres = genres
+    ? `${ANIMATION_GENRE_ID},${genres}`
+    : ANIMATION_GENRE_ID;
   return getSeasonDrops(
     "anime",
-    { with_genres: ANIMATION_GENRE_ID, with_origin_country: "JP" },
+    { with_genres: withGenres, with_origin_country: "JP" },
     { start, end, page },
   );
+}
+
+// kind is "movie" or "tv"; TMDB keeps a separate genre list for each.
+export async function getGenres(kind) {
+  const { data } = await cachedFetch(buildUrl(`/genre/${kind}/list`), {
+    headers,
+    maxAge: LIST_CACHE_TTL,
+  });
+  return data.genres.map(({ id, name }) => ({ id, name }));
 }
 
 function toQuickView(data, type) {

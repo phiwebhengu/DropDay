@@ -99,7 +99,11 @@ export async function getPlatforms() {
     buildUrl("/platforms", { page_size: 40 }),
     { maxAge: LIST_CACHE_TTL },
   );
-  return data.results.map(({ id, name }) => ({ id, name }));
+  return data.results.map(({ id, name, games_count }) => ({
+    id,
+    name,
+    gamesCount: games_count,
+  }));
 }
 
 export async function getGenres() {
