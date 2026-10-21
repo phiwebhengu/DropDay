@@ -78,3 +78,9 @@
     grid-template-columns: repeat(3, minmax(0, 260px));
   }
 }
+
+.discover__more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
