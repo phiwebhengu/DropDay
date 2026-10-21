@@ -47,28 +47,95 @@ export function getMovies({ start, end, genres, page = 1 } = {}) {
   return getPage(url, "movie", page);
 }
 
-export function getShows({ start, end, genres, page = 1 } = {}) {
-  const url = buildUrl("/discover/tv", {
-    "air_date.gte": start,
-    "air_date.lte": end,
-    with_genres: genres,
-    without_genres: ANIMATION_GENRE_ID,
-    sort_by: "popularity.desc",
-    page,
-  });
-  return getPage(url, "tv", page);
+const MIN_SHOW_RESULTS = 12;
+const MAX_SHOW_PAGES = 3;
+
+function isInRange(isoDate, start, end) {
+  return Boolean(isoDate) && isoDate >= start && isoDate <= end;
 }
 
+// /discover/tv returns any show with an episode in range, so long-running shows (soaps, talk shows)
+// come back with premiere dates from decades ago. Only keep real drops: a brand-new show or a
+// season premiere inside the range, and use that date on the card.
+async function getSeasonDrop(id, start, end) {
+  const { data } = await cachedFetch(buildUrl(`/tv/${id}`), { headers });
+  if (isInRange(data.first_air_date, start, end)) {
+    return { date: data.first_air_date, season: 1 };
+  }
+  const premiere = [data.next_episode_to_air, data.last_episode_to_air].find(
+    (episode) =>
+      episode?.episode_number === 1 && isInRange(episode.air_date, start, end),
+  );
+  return premiere
+    ? { date: premiere.air_date, season: premiere.season_number }
+    : null;
+}
+
+// Filtering leaves fewer results per TMDB page, so keep reading pages until there are enough to fill the grid.
+async function getSeasonDrops(type, filters, { start, end, page = 1 }) {
+  const results = [];
+  let current = page;
+  let totalPages = page;
+  let savedAt = Date.now();
+  let isStale = false;
+
+  while (
+    results.length < MIN_SHOW_RESULTS &&
+    current < page + MAX_SHOW_PAGES &&
+    current <= totalPages
+  ) {
+    const url = buildUrl("/discover/tv", {
+      ...filters,
+      "air_date.gte": start,
+      "air_date.lte": end,
+      sort_by: "popularity.desc",
+      page: current,
+    });
+    const response = await cachedFetch(url, { headers });
+    totalPages = response.data.total_pages;
+    savedAt = Math.min(savedAt, response.savedAt);
+    isStale ||= response.isStale;
+
+    const items = response.data.results;
+    const drops = await Promise.all(
+      items.map((item) => getSeasonDrop(item.id, start, end).catch(() => null)),
+    );
+    items.forEach((item, index) => {
+      if (!drops[index]) return;
+      results.push({
+        ...normaliseTmdbItem(item, type),
+        ...drops[index],
+        tba: false,
+      });
+    });
+    current += 1;
+  }
+
+  return {
+    results,
+    count: null,
+    page: current - 1,
+    hasMore: current <= totalPages,
+    savedAt,
+    isStale,
+  };
+}
+
+export function getShows({ start, end, genres, page = 1 } = {}) {
+  return getSeasonDrops(
+    "tv",
+    { with_genres: genres, without_genres: ANIMATION_GENRE_ID },
+    { start, end, page },
+  );
+}
+
+// TMDB has no anime genre, so anime is approximated as Japanese animation and labelled "Anime (from TMDB)" in the UI.
 export function getAnime({ start, end, page = 1 } = {}) {
-  const url = buildUrl("/discover/tv", {
-    "air_date.gte": start,
-    "air_date.lte": end,
-    with_genres: ANIMATION_GENRE_ID,
-    with_origin_country: "JP",
-    sort_by: "popularity.desc",
-    page,
-  });
-  return getPage(url, "anime", page);
+  return getSeasonDrops(
+    "anime",
+    { with_genres: ANIMATION_GENRE_ID, with_origin_country: "JP" },
+    { start, end, page },
+  );
 }
 
 function toQuickView(data, type) {
