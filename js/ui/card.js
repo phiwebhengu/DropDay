@@ -51,9 +51,17 @@ function getTags({ type, platforms }) {
   return extra > 0 ? [...names.slice(0, MAX_PLATFORM_TAGS), `+${extra}`] : names;
 }
 
-export function getSaveText(type, saved) {
-  if (type === 'game') return saved ? '✓ In Backlog' : '+ Backlog';
-  return saved ? '✓ On Radar' : '+ Radar';
+const SAVED_TEXT = {
+  played: '✓ Played',
+  playing: '✓ Playing',
+  backlog: '✓ In Backlog',
+  radar: '✓ On Radar',
+};
+
+// status is the item's Library status, or null when it isn't saved.
+export function getSaveText(type, status) {
+  if (status) return SAVED_TEXT[status];
+  return type === 'game' ? '+ Backlog' : '+ Radar';
 }
 
 // Games open their own page; movies, TV and anime open the Quick view drawer (PRD sitemap rules).
@@ -65,11 +73,12 @@ function renderTitle(release) {
   return `<button class="release-card__link" type="button">${title}</button>`;
 }
 
-export function createReleaseCard(release, { saved = false } = {}) {
+export function createReleaseCard(release, { status = null } = {}) {
   const card = document.createElement('article');
   card.className = `release-card release-card--${release.type}`;
-  card.classList.toggle('release-card--saved', saved);
+  card.classList.toggle('release-card--saved', Boolean(status));
   card.dataset.id = release.id;
+  card.dataset.type = release.type;
 
   const tags = getTags(release)
     .map((tag) => `<li class="tag">${escapeHtml(tag)}</li>`)
@@ -84,8 +93,8 @@ export function createReleaseCard(release, { saved = false } = {}) {
       <h3 class="release-card__title">${renderTitle(release)}</h3>
       <p class="release-card__date">${getDateText(release)}</p>
       ${tags ? `<ul class="release-card__tags" role="list">${tags}</ul>` : ''}
-      <button class="button button--outline release-card__save" type="button" aria-pressed="${saved}">
-        ${getSaveText(release.type, saved)}
+      <button class="button button--outline release-card__save" type="button" aria-pressed="${Boolean(status)}">
+        ${getSaveText(release.type, status)}
         <span class="visually-hidden">: ${escapeHtml(release.title)}</span>
       </button>
     </div>
@@ -110,11 +119,11 @@ export function createReleaseCard(release, { saved = false } = {}) {
   return card;
 }
 
-export function setCardSaved(card, type, saved) {
-  card.classList.toggle('release-card--saved', saved);
+export function setCardStatus(card, status) {
+  card.classList.toggle('release-card--saved', Boolean(status));
   const button = card.querySelector('.release-card__save');
-  button.setAttribute('aria-pressed', String(saved));
-  button.firstChild.textContent = `${getSaveText(type, saved)}\n`;
+  button.setAttribute('aria-pressed', String(Boolean(status)));
+  button.firstChild.textContent = `${getSaveText(card.dataset.type, status)}\n`;
 }
 
 export function createCardSkeleton() {
