@@ -84,3 +84,13 @@
   justify-content: center;
   margin-top: var(--space-8);
 }
+
+.discover__note {
+  margin-bottom: var(--space-4);
+  color: var(--color-status-warning);
+  font: var(--text-body-s);
+}
+
+.discover__state {
+  padding-block: var(--space-8);
+}
