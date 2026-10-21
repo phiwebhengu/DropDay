@@ -134,6 +134,23 @@
   }
 }
 
+/* On phones the header only has a search icon, so Discover carries its own field. 16px text stops iOS zooming in. */
+.search--page {
+  display: block;
+  max-width: none;
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+
+.search--page .search__input {
+  font: var(--text-body-m);
+}
+
+@media (min-width: 1024px) {
+  .search--page {
+    display: none;
+  }
+}
+
 /* Bottom navigation (mobile) */
 
 .bottom-nav {
