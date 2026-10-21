@@ -185,19 +185,19 @@
         <div class="discover-filters">
           <div class="field">
             <label class="field__label" for="filter-month">Month</label>
-            <select class="field__select" id="filter-month" name="month">
+            <select class="field__select" id="filter-month" name="month" autocomplete="off">
               <option value="">Pick a month</option>
             </select>
           </div>
           <div class="field" id="platform-field">
             <label class="field__label" for="filter-platform">Platform</label>
-            <select class="field__select" id="filter-platform" name="platform">
+            <select class="field__select" id="filter-platform" name="platform" autocomplete="off">
               <option value="">All platforms</option>
             </select>
           </div>
           <div class="field">
             <label class="field__label" for="filter-genre">Genre</label>
-            <select class="field__select" id="filter-genre" name="genre">
+            <select class="field__select" id="filter-genre" name="genre" autocomplete="off">
               <option value="">All genres</option>
             </select>
           </div>
@@ -210,6 +210,11 @@
           aria-labelledby="tab-games"
         >
           <ul class="release-grid" id="release-grid" role="list"></ul>
+          <div class="discover__more">
+            <button class="button button--outline" id="load-more" type="button" hidden>
+              Load more
+            </button>
+          </div>
         </section>
       </div>
     </main>

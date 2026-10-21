@@ -10,10 +10,10 @@ const OLDER_PLATFORM_COUNT = 8;
 const FILTER_DELAY = 300;
 
 const CATEGORIES = {
-  games: { label: 'Games', load: rawg.getGames, loadGenres: rawg.getGenres },
-  movies: { label: 'Movies', load: tmdb.getMovies, loadGenres: () => tmdb.getGenres('movie') },
-  tv: { label: 'TV shows', load: tmdb.getShows, loadGenres: () => tmdb.getGenres('tv') },
-  anime: { label: 'Anime', load: tmdb.getAnime, loadGenres: () => tmdb.getGenres('tv') },
+  games: { label: 'Games', one: 'game', many: 'games', load: rawg.getGames, loadGenres: rawg.getGenres },
+  movies: { label: 'Movies', one: 'movie', many: 'movies', load: tmdb.getMovies, loadGenres: () => tmdb.getGenres('movie') },
+  tv: { label: 'TV shows', one: 'TV show', many: 'TV shows', load: tmdb.getShows, loadGenres: () => tmdb.getGenres('tv') },
+  anime: { label: 'Anime', one: 'anime', many: 'anime', load: tmdb.getAnime, loadGenres: () => tmdb.getGenres('tv') },
 };
 
 const RANGES = {
@@ -36,9 +36,12 @@ const platformField = document.getElementById('platform-field');
 const panel = document.getElementById('discover-results');
 const grid = document.getElementById('release-grid');
 const summary = document.getElementById('discover-summary');
+const loadMoreButton = document.getElementById('load-more');
 
 // Bumped on every request, so a slow response for an old view can't overwrite the current one.
 let requestId = 0;
+let resultCount = null;
+let nextPage = null;
 let genresFor = null;
 let filterTimer;
 
@@ -76,11 +79,21 @@ function selectedText(select) {
   return select.value ? select.selectedOptions[0]?.textContent : '';
 }
 
+const countFormat = new Intl.NumberFormat('en-ZA');
+
+// The count is only known once results arrive; TV and anime are filtered after fetching, so they have no total.
+function getSubject(cat) {
+  const { label, one, many } = CATEGORIES[cat];
+  if (resultCount === null) return label;
+  if (resultCount === 0) return `No ${many}`;
+  return `${countFormat.format(resultCount)} ${resultCount === 1 ? one : many}`;
+}
+
 function renderSummary(state) {
   const when = state.month ? `in ${selectedText(monthSelect) || state.month}` : RANGES[state.range];
   const platform = selectedText(platformSelect);
   const genre = selectedText(genreSelect);
-  let text = `${CATEGORIES[state.cat].label} dropping ${when}`;
+  let text = `${getSubject(state.cat)} dropping ${when}`;
   if (platform) text += ` on ${platform}`;
   if (genre) text += ` · ${genre}`;
   summary.textContent = text;
@@ -149,20 +162,35 @@ function wrapInListItem(element) {
   return item;
 }
 
+function getQuery(state, page) {
+  return { ...getDates(state), platforms: state.platform, genres: state.genre, page };
+}
+
+function appendCards(results) {
+  grid.append(...results.map((release) => wrapInListItem(createReleaseCard(release))));
+}
+
+function setNextPage(response) {
+  nextPage = response.hasMore ? response.page + 1 : null;
+  loadMoreButton.hidden = nextPage === null;
+}
+
 async function loadReleases(state) {
   const id = ++requestId;
+  resultCount = null;
+  setNextPage({ hasMore: false });
   renderSummary(state);
   grid.setAttribute('aria-busy', 'true');
   grid.replaceChildren(...Array.from({ length: SKELETON_COUNT }, () => wrapInListItem(createCardSkeleton())));
 
   try {
-    const { results } = await CATEGORIES[state.cat].load({
-      ...getDates(state),
-      platforms: state.platform,
-      genres: state.genre,
-    });
+    const response = await CATEGORIES[state.cat].load(getQuery(state, 1));
     if (id !== requestId) return;
-    grid.replaceChildren(...results.map((release) => wrapInListItem(createReleaseCard(release))));
+    grid.replaceChildren();
+    appendCards(response.results);
+    resultCount = response.count ?? (response.hasMore ? null : response.results.length);
+    setNextPage(response);
+    renderSummary(state);
   } catch {
     // Proper error and empty states (with Retry) come in #11.
     if (id !== requestId) return;
@@ -170,6 +198,25 @@ async function loadReleases(state) {
     summary.textContent = 'We could not load releases. Check your connection and try again.';
   } finally {
     if (id === requestId) grid.setAttribute('aria-busy', 'false');
+  }
+}
+
+async function loadMore() {
+  const id = requestId;
+  const state = readState();
+  loadMoreButton.setAttribute('aria-busy', 'true');
+  loadMoreButton.disabled = true;
+
+  try {
+    const response = await CATEGORIES[state.cat].load(getQuery(state, nextPage));
+    if (id !== requestId) return;
+    appendCards(response.results);
+    setNextPage(response);
+  } catch {
+    // Leave the button in place so the user can simply try again.
+  } finally {
+    loadMoreButton.removeAttribute('aria-busy');
+    loadMoreButton.disabled = false;
   }
 }
 
@@ -216,6 +263,7 @@ monthSelect.addEventListener('change', () => {
 });
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
+loadMoreButton.addEventListener('click', loadMore);
 
 fillMonthOptions();
 fillPlatformOptions()

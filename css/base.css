@@ -26,6 +26,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Component display rules (e.g. .button { display: inline-flex }) would otherwise beat the hidden attribute. */
+[hidden] {
+  display: none !important;
+}
+
 img,
 picture,
 svg,
