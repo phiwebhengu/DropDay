@@ -142,6 +142,61 @@ export function getAnime({ start, end, genres, page = 1 } = {}) {
   );
 }
 
+export function searchMovies({ query, page = 1 } = {}) {
+  const url = buildUrl("/search/movie", { query, region: TMDB_REGION, page });
+  return getPage(url, "movie", page);
+}
+
+function isAnime(item) {
+  return (
+    item.genre_ids?.includes(ANIMATION_GENRE_ID) &&
+    item.origin_country?.includes("JP")
+  );
+}
+
+// TMDB search has one TV list, so TV and anime are split here. Like getSeasonDrops,
+// keep reading pages until there are enough results to show.
+async function searchTv(type, keep, { query, page = 1 }) {
+  const results = [];
+  let current = page;
+  let totalPages = page;
+  let savedAt = Date.now();
+  let isStale = false;
+
+  while (
+    results.length < MIN_SHOW_RESULTS &&
+    current < page + MAX_SHOW_PAGES &&
+    current <= totalPages
+  ) {
+    const url = buildUrl("/search/tv", { query, page: current });
+    const response = await cachedFetch(url, { headers });
+    totalPages = response.data.total_pages;
+    savedAt = Math.min(savedAt, response.savedAt);
+    isStale ||= response.isStale;
+    response.data.results
+      .filter(keep)
+      .forEach((item) => results.push(normaliseTmdbItem(item, type)));
+    current += 1;
+  }
+
+  return {
+    results,
+    count: null,
+    page: current - 1,
+    hasMore: current <= totalPages,
+    savedAt,
+    isStale,
+  };
+}
+
+export function searchShows(options) {
+  return searchTv("tv", (item) => !isAnime(item), options);
+}
+
+export function searchAnime(options) {
+  return searchTv("anime", isAnime, options);
+}
+
 // kind is "movie" or "tv"; TMDB keeps a separate genre list for each.
 export async function getGenres(kind) {
   const { data } = await cachedFetch(buildUrl(`/genre/${kind}/list`), {
