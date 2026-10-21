@@ -10,12 +10,41 @@ const MONTHS_AHEAD = 12;
 const OLDER_PLATFORM_COUNT = 8;
 const FILTER_DELAY = 300;
 const SCROLL_KEY_PREFIX = 'dropday.discover.scroll.';
+const MAX_QUERY_LENGTH = 100;
 
 const CATEGORIES = {
-  games: { label: 'Games', one: 'game', many: 'games', load: rawg.getGames, loadGenres: rawg.getGenres },
-  movies: { label: 'Movies', one: 'movie', many: 'movies', load: tmdb.getMovies, loadGenres: () => tmdb.getGenres('movie') },
-  tv: { label: 'TV shows', one: 'TV show', many: 'TV shows', load: tmdb.getShows, loadGenres: () => tmdb.getGenres('tv') },
-  anime: { label: 'Anime', one: 'anime', many: 'anime', load: tmdb.getAnime, loadGenres: () => tmdb.getGenres('tv') },
+  games: {
+    label: 'Games',
+    one: 'game',
+    many: 'games',
+    load: rawg.getGames,
+    search: ({ query, page }) => rawg.getGames({ search: query, page }),
+    loadGenres: rawg.getGenres,
+  },
+  movies: {
+    label: 'Movies',
+    one: 'movie',
+    many: 'movies',
+    load: tmdb.getMovies,
+    search: tmdb.searchMovies,
+    loadGenres: () => tmdb.getGenres('movie'),
+  },
+  tv: {
+    label: 'TV shows',
+    one: 'TV show',
+    many: 'TV shows',
+    load: tmdb.getShows,
+    search: tmdb.searchShows,
+    loadGenres: () => tmdb.getGenres('tv'),
+  },
+  anime: {
+    label: 'Anime',
+    one: 'anime',
+    many: 'anime',
+    load: tmdb.getAnime,
+    search: tmdb.searchAnime,
+    loadGenres: () => tmdb.getGenres('tv'),
+  },
 };
 
 const RANGES = {
@@ -41,6 +70,11 @@ const summary = document.getElementById('discover-summary');
 const loadMoreButton = document.getElementById('load-more');
 const note = document.getElementById('discover-note');
 const stateBox = document.getElementById('discover-state');
+const quickRange = document.getElementById('quick-range');
+const filters = document.getElementById('discover-filters');
+const clearSearchButton = document.getElementById('search-clear');
+const searchForms = [...document.querySelectorAll('form[role="search"]')];
+const pageSearchInput = document.getElementById('discover-search');
 
 // Bumped on every request, so a slow response for an old view can't overwrite the current one.
 let requestId = 0;
@@ -66,6 +100,7 @@ function readState() {
     range: month ? '' : range,
     platform: cat === 'games' && isId(params.get('platform')) ? params.get('platform') : '',
     genre: isId(params.get('genre')) ? params.get('genre') : '',
+    q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH),
   };
 }
 
@@ -100,6 +135,10 @@ function renderSummary(state) {
     summary.textContent = `${CATEGORIES[state.cat].label} couldn't load`;
     return;
   }
+  if (state.q) {
+    summary.textContent = resultCount === null ? `Results for “${state.q}”` : `${getSubject(state.cat)} found for “${state.q}”`;
+    return;
+  }
   const when = state.month ? `in ${selectedText(monthSelect) || state.month}` : RANGES[state.range];
   const platform = selectedText(platformSelect);
   const genre = selectedText(genreSelect);
@@ -119,6 +158,14 @@ function renderControls(state) {
 
   rangeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.range === state.range));
+  });
+
+  // Search looks across all dates, so the date and filter controls step aside while it's on.
+  quickRange.hidden = Boolean(state.q);
+  filters.hidden = Boolean(state.q);
+  clearSearchButton.hidden = !state.q;
+  searchForms.forEach((form) => {
+    form.elements.q.value = state.q;
   });
 
   platformField.hidden = state.cat !== 'games';
@@ -172,8 +219,10 @@ function wrapInListItem(element) {
   return item;
 }
 
-function getQuery(state, page) {
-  return { ...getDates(state), platforms: state.platform, genres: state.genre, page };
+function fetchPage(state, page) {
+  const category = CATEGORIES[state.cat];
+  if (state.q) return category.search({ query: state.q, page });
+  return category.load({ ...getDates(state), platforms: state.platform, genres: state.genre, page });
 }
 
 function appendCards(results) {
@@ -207,6 +256,10 @@ function clearFilters() {
   update({ month: '', range: 'month', platform: '', genre: '' });
 }
 
+function clearSearch() {
+  update({ q: '' });
+}
+
 function hasFilters(state) {
   return Boolean(state.month || state.platform || state.genre || state.range !== 'month');
 }
@@ -224,7 +277,7 @@ async function loadReleases(state) {
   grid.replaceChildren(...Array.from({ length: SKELETON_COUNT }, () => wrapInListItem(createCardSkeleton())));
 
   try {
-    const response = await CATEGORIES[state.cat].load(getQuery(state, 1));
+    const response = await fetchPage(state, 1);
     if (id !== requestId) return;
     grid.replaceChildren();
     appendCards(response.results);
@@ -235,7 +288,14 @@ async function loadReleases(state) {
     renderStaleNote(response);
 
     if (response.results.length === 0) {
-      const message = hasFilters(state)
+      const message = state.q
+        ? {
+            title: `No ${CATEGORIES[state.cat].many} match “${state.q}”`,
+            text: 'Check the spelling, or try another category.',
+            actionLabel: 'Clear search',
+            onAction: clearSearch,
+          }
+        : hasFilters(state)
         ? {
             title: 'No releases match your filters',
             text: 'Try a different month, platform or genre.',
@@ -276,7 +336,7 @@ async function loadMore() {
   loadMoreButton.disabled = true;
 
   try {
-    const response = await CATEGORIES[state.cat].load(getQuery(state, nextPage));
+    const response = await fetchPage(state, nextPage);
     if (id !== requestId) return;
     appendCards(response.results);
     pagesLoaded += 1;
@@ -335,6 +395,35 @@ monthSelect.addEventListener('change', () => {
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
 loadMoreButton.addEventListener('click', loadMore);
+// Desktop uses the header field and phones use the one on the page; only one is visible at a time.
+function focusVisibleSearch() {
+  const input = searchForms.map((form) => form.elements.q).find((field) => field.offsetParent !== null);
+  input?.focus();
+}
+
+clearSearchButton.addEventListener('click', () => {
+  clearSearch();
+  focusVisibleSearch();
+});
+
+// Already on Discover, so search in place and keep the chosen category instead of reloading.
+searchForms.forEach((form) => {
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = form.elements.q.value.trim();
+    if (query !== readState().q) update({ q: query });
+    form.elements.q.blur();
+  });
+});
+
+// The mobile header icon links to #search, so arriving from another page or tapping it here lands in the field.
+document.querySelector('.site-header__search-link').addEventListener('click', (event) => {
+  event.preventDefault();
+  pageSearchInput.focus();
+});
+
+// Wait a frame so the stylesheet has shown the field; a hidden input can't take focus.
+if (location.hash === '#search') requestAnimationFrame(() => pageSearchInput.focus());
 
 fillMonthOptions();
 fillPlatformOptions()

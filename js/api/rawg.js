@@ -49,6 +49,7 @@ export async function getGames({
     platforms,
     genres,
     search,
+    search_precise: search ? true : undefined,
     ordering: search ? undefined : ordering,
     page,
     page_size: PAGE_SIZE,
