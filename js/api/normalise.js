@@ -51,6 +51,7 @@ export function normaliseRawgGame(game) {
     date,
     tba: Boolean(game.tba) || !date,
     image: resizeRawgImage(game.background_image),
+    season: null,
     platforms: (game.platforms ?? []).map(({ platform }) => platform.name),
     genres: (game.genres ?? []).map((genre) => genre.name),
     rating: game.rating > 0 ? game.rating : null,
@@ -78,6 +79,7 @@ export function normaliseTmdbItem(item, type) {
     date,
     tba: !date,
     image: getTmdbImage(item.poster_path),
+    season: null,
     platforms: [],
     genres: (item.genre_ids ?? []).map((id) => TMDB_GENRES[id]).filter(Boolean),
     rating:

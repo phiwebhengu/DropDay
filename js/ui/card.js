@@ -1,4 +1,4 @@
-import { formatReleaseDate } from '../utils/dates.js';
+import { formatReleaseDate, toIsoDate } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
 
 const MAX_PLATFORM_TAGS = 3;
@@ -24,13 +24,23 @@ const PLATFORM_NAMES = {
   'Nintendo Switch': 'Switch',
 };
 
-function isPast(isoDate) {
-  return isoDate && new Date(`${isoDate}T00:00:00`) < new Date();
-}
+const PAST_PREFIXES = {
+  game: 'Released',
+  movie: 'Released',
+  tv: 'Premiered',
+  anime: 'Premiered',
+};
 
-function getDateText({ type, date, tba }) {
+function getDateText({ type, date, tba, season }) {
   if (tba) return 'Release date TBA';
-  const prefix = isPast(date) ? 'Released' : DATE_PREFIXES[type];
+
+  const today = toIsoDate(new Date());
+  if (date === today) return season > 1 ? `Season ${season} out today` : 'Out today';
+
+  const isPast = date < today;
+  if (season > 1) return `Season ${season} ${isPast ? 'premiered' : 'premieres'} ${formatReleaseDate(date)}`;
+
+  const prefix = isPast ? PAST_PREFIXES[type] : DATE_PREFIXES[type];
   return `${prefix} ${formatReleaseDate(date)}`;
 }
 
