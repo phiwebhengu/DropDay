@@ -1,8 +1,9 @@
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
 import { RAWG_PLATFORMS } from '../config.js';
-import { getMonthRange, getQuickRange, toMonthKey } from '../utils/dates.js';
+import { formatTime, getMonthRange, getQuickRange, toMonthKey } from '../utils/dates.js';
 import { createReleaseCard, createCardSkeleton } from '../ui/card.js';
+import { createStateMessage } from '../ui/states.js';
 
 const SKELETON_COUNT = 10;
 const MONTHS_AHEAD = 12;
@@ -37,10 +38,13 @@ const panel = document.getElementById('discover-results');
 const grid = document.getElementById('release-grid');
 const summary = document.getElementById('discover-summary');
 const loadMoreButton = document.getElementById('load-more');
+const note = document.getElementById('discover-note');
+const stateBox = document.getElementById('discover-state');
 
 // Bumped on every request, so a slow response for an old view can't overwrite the current one.
 let requestId = 0;
 let resultCount = null;
+let loadFailed = false;
 let nextPage = null;
 let genresFor = null;
 let filterTimer;
@@ -90,6 +94,10 @@ function getSubject(cat) {
 }
 
 function renderSummary(state) {
+  if (loadFailed) {
+    summary.textContent = `${CATEGORIES[state.cat].label} couldn't load`;
+    return;
+  }
   const when = state.month ? `in ${selectedText(monthSelect) || state.month}` : RANGES[state.range];
   const platform = selectedText(platformSelect);
   const genre = selectedText(genreSelect);
@@ -175,10 +183,39 @@ function setNextPage(response) {
   loadMoreButton.hidden = nextPage === null;
 }
 
+function showState(message) {
+  stateBox.replaceChildren(message);
+  stateBox.hidden = false;
+  grid.hidden = true;
+}
+
+function hideState() {
+  stateBox.replaceChildren();
+  stateBox.hidden = true;
+  grid.hidden = false;
+}
+
+// The cache hands back the last good response when the network fails; say so rather than pretend it is live.
+function renderStaleNote(response) {
+  note.hidden = !response.isStale;
+  note.textContent = response.isStale ? `You're offline. Showing saved results from ${formatTime(response.savedAt)}.` : '';
+}
+
+function clearFilters() {
+  update({ month: '', range: 'month', platform: '', genre: '' });
+}
+
+function hasFilters(state) {
+  return Boolean(state.month || state.platform || state.genre || state.range !== 'month');
+}
+
 async function loadReleases(state) {
   const id = ++requestId;
   resultCount = null;
+  loadFailed = false;
   setNextPage({ hasMore: false });
+  hideState();
+  note.hidden = true;
   renderSummary(state);
   grid.setAttribute('aria-busy', 'true');
   grid.replaceChildren(...Array.from({ length: SKELETON_COUNT }, () => wrapInListItem(createCardSkeleton())));
@@ -191,11 +228,38 @@ async function loadReleases(state) {
     resultCount = response.count ?? (response.hasMore ? null : response.results.length);
     setNextPage(response);
     renderSummary(state);
+    renderStaleNote(response);
+
+    if (response.results.length === 0) {
+      const message = hasFilters(state)
+        ? {
+            title: 'No releases match your filters',
+            text: 'Try a different month, platform or genre.',
+            actionLabel: 'Clear filters',
+            onAction: clearFilters,
+          }
+        : {
+            title: 'Nothing dropping here yet',
+            text: 'Try another category or look further ahead.',
+            actionLabel: 'Show next 3 months',
+            onAction: () => update({ range: 'quarter', month: '' }),
+          };
+      showState(createStateMessage({ type: 'empty', ...message }));
+    }
   } catch {
-    // Proper error and empty states (with Retry) come in #11.
     if (id !== requestId) return;
     grid.replaceChildren();
-    summary.textContent = 'We could not load releases. Check your connection and try again.';
+    loadFailed = true;
+    renderSummary(state);
+    showState(
+      createStateMessage({
+        type: 'error',
+        title: 'We could not load releases',
+        text: 'Check your connection, then try again.',
+        actionLabel: 'Retry',
+        onAction: () => update({}),
+      }),
+    );
   } finally {
     if (id === requestId) grid.setAttribute('aria-busy', 'false');
   }

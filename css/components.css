@@ -352,6 +352,8 @@
   display: -webkit-box;
   overflow: hidden;
   font: var(--text-h3);
+  /* base.css balances headings, which spreads short titles over too many lines before the clamp. */
+  text-wrap: pretty;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -684,4 +686,46 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* State message (empty and error) */
+
+.state-message {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 340px;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  text-align: center;
+}
+
+.state-message__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-1);
+  border-radius: 50%;
+  background: var(--color-bg-raised);
+  color: var(--color-text-secondary);
+  font: var(--text-h3);
+}
+
+.state-message--error .state-message__icon {
+  color: var(--color-status-error);
+}
+
+.state-message__title {
+  font: var(--text-h3);
+}
+
+.state-message__text {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
 }
