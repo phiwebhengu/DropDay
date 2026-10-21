@@ -9,6 +9,7 @@ const SKELETON_COUNT = 10;
 const MONTHS_AHEAD = 12;
 const OLDER_PLATFORM_COUNT = 8;
 const FILTER_DELAY = 300;
+const SCROLL_KEY_PREFIX = 'dropday.discover.scroll.';
 
 const CATEGORIES = {
   games: { label: 'Games', one: 'game', many: 'games', load: rawg.getGames, loadGenres: rawg.getGenres },
@@ -45,6 +46,7 @@ const stateBox = document.getElementById('discover-state');
 let requestId = 0;
 let resultCount = null;
 let loadFailed = false;
+let pagesLoaded = 0;
 let nextPage = null;
 let genresFor = null;
 let filterTimer;
@@ -213,6 +215,7 @@ async function loadReleases(state) {
   const id = ++requestId;
   resultCount = null;
   loadFailed = false;
+  pagesLoaded = 0;
   setNextPage({ hasMore: false });
   hideState();
   note.hidden = true;
@@ -225,6 +228,7 @@ async function loadReleases(state) {
     if (id !== requestId) return;
     grid.replaceChildren();
     appendCards(response.results);
+    pagesLoaded = 1;
     resultCount = response.count ?? (response.hasMore ? null : response.results.length);
     setNextPage(response);
     renderSummary(state);
@@ -275,6 +279,7 @@ async function loadMore() {
     const response = await CATEGORIES[state.cat].load(getQuery(state, nextPage));
     if (id !== requestId) return;
     appendCards(response.results);
+    pagesLoaded += 1;
     setNextPage(response);
   } catch {
     // Leave the button in place so the user can simply try again.
@@ -288,7 +293,7 @@ function update(changes) {
   const state = { ...readState(), ...changes };
   writeState(state);
   renderControls(state);
-  loadReleases(state);
+  const loaded = loadReleases(state);
 
   fillGenreOptions(state.cat)
     .then(() => {
@@ -296,6 +301,8 @@ function update(changes) {
       renderSummary(state);
     })
     .catch(() => {});
+
+  return loaded;
 }
 
 // Selects can fire several change events in a row (arrow keys in Firefox), so wait for the user to settle.
@@ -338,4 +345,40 @@ fillPlatformOptions()
   })
   .catch(() => {});
 
-update({});
+// Back from a game page should land where the user left off (PRD design goal 2). Filters already live in the URL;
+// this keeps the scroll position and how many pages were loaded, per URL, for this tab only.
+function scrollKey() {
+  return SCROLL_KEY_PREFIX + location.search;
+}
+
+function saveScroll() {
+  try {
+    sessionStorage.setItem(scrollKey(), JSON.stringify({ y: window.scrollY, pages: pagesLoaded }));
+  } catch {}
+}
+
+function readSavedScroll() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(scrollKey()));
+    sessionStorage.removeItem(scrollKey());
+    return saved;
+  } catch {
+    return null;
+  }
+}
+
+async function restoreScroll(saved) {
+  if (!saved) return;
+  while (pagesLoaded < saved.pages && nextPage !== null) {
+    const before = pagesLoaded;
+    await loadMore();
+    if (pagesLoaded === before) break;
+  }
+  window.scrollTo(0, saved.y);
+}
+
+history.scrollRestoration = 'manual';
+window.addEventListener('pagehide', saveScroll);
+
+const savedScroll = readSavedScroll();
+update({}).then(() => restoreScroll(savedScroll));
