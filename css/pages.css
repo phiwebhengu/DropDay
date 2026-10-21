@@ -66,3 +66,15 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+.discover-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .discover-filters {
+    grid-template-columns: repeat(3, minmax(0, 260px));
+  }
+}
