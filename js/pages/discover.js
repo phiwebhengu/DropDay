@@ -5,6 +5,8 @@ import { formatTime, getMonthRange, getQuickRange, toMonthKey } from '../utils/d
 import { createReleaseCard, createCardSkeleton } from '../ui/card.js';
 import { createStateMessage } from '../ui/states.js';
 import { openQuickView } from '../ui/quick-view.js';
+import { syncCards, toggleSave } from '../ui/library-actions.js';
+import { getStatus } from '../store/library.js';
 
 const SKELETON_COUNT = 10;
 const MONTHS_AHEAD = 12;
@@ -227,7 +229,7 @@ function fetchPage(state, page) {
 }
 
 function appendCards(results) {
-  grid.append(...results.map((release) => wrapInListItem(createReleaseCard(release))));
+  grid.append(...results.map((release) => wrapInListItem(createReleaseCard(release, { status: getStatus(release) }))));
 }
 
 function setNextPage(response) {
@@ -396,6 +398,8 @@ monthSelect.addEventListener('change', () => {
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
 loadMoreButton.addEventListener('click', loadMore);
+grid.addEventListener('release:save', (event) => toggleSave(event.detail.release));
+window.addEventListener('library:change', () => syncCards(grid));
 grid.addEventListener('release:quickview', (event) => {
   openQuickView(event.detail.release, event.target.querySelector('.release-card__link'));
 });

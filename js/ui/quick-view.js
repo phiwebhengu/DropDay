@@ -1,6 +1,8 @@
 import * as tmdb from '../api/tmdb.js';
 import { getDateText, getSaveText } from './card.js';
 import { createStateMessage } from './states.js';
+import { getStatus } from '../store/library.js';
+import { toggleSave } from './library-actions.js';
 
 const CATEGORY_LABELS = {
   movie: 'Movie',
@@ -64,6 +66,7 @@ function createDialog() {
       <div class="quick-view__trailer" hidden></div>
       <div class="quick-view__details" aria-live="polite"></div>
     </div>
+    <div class="toast-region" role="status" aria-live="polite"></div>
   `;
   document.body.append(element);
 
@@ -80,19 +83,20 @@ function createDialog() {
     opener?.focus();
   });
 
-  element.querySelector('.quick-view__save').addEventListener('click', toggleSave);
+  element.querySelector('.quick-view__save').addEventListener('click', () => toggleSave(current));
+  window.addEventListener('library:change', () => {
+    if (element.open) renderSaveButton();
+  });
   element.querySelector('.quick-view__trailer-button').addEventListener('click', playTrailer);
 
   return element;
 }
 
-// Saving to the Library arrives in #16; for now the button reports the change for the page to handle.
-function toggleSave() {
+function renderSaveButton() {
   const button = dialog.querySelector('.quick-view__save');
-  const saved = button.getAttribute('aria-pressed') !== 'true';
-  button.setAttribute('aria-pressed', String(saved));
-  button.textContent = getSaveText(current.type, saved);
-  dialog.dispatchEvent(new CustomEvent('release:save', { bubbles: true, detail: { release: current, saved } }));
+  const status = getStatus(current);
+  button.setAttribute('aria-pressed', String(Boolean(status)));
+  button.textContent = getSaveText(current.type, status);
 }
 
 // The video only loads when asked for, which saves data and keeps sound from starting by surprise.
@@ -126,9 +130,7 @@ function renderIntro(release) {
     poster.append(image);
   }
 
-  const save = dialog.querySelector('.quick-view__save');
-  save.setAttribute('aria-pressed', 'false');
-  save.textContent = getSaveText(release.type, false);
+  renderSaveButton();
 
   dialog.querySelector('.quick-view__trailer-button').hidden = true;
   const trailer = dialog.querySelector('.quick-view__trailer');

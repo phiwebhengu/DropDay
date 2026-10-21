@@ -32,7 +32,8 @@ function startTimer(toast) {
 
 // One toast at a time: a new message replaces the last, so quick saves don't stack up a pile.
 export function showToast({ message, type = 'success', viewHref, onUndo }) {
-  const region = document.querySelector('.toast-region');
+  // An open dialog makes the rest of the page inert, so toasts go to the dialog's own region while it's open.
+  const region = document.querySelector('dialog[open] .toast-region') ?? document.querySelector('.toast-region');
   if (!region) return;
   if (current) hide(current);
 
