@@ -155,7 +155,17 @@
           </div>
         </div>
 
-        <section class="library__panel" id="library-panel" role="tabpanel" aria-labelledby="tab-played" tabindex="-1"></section>
+        <div class="library__layout">
+          <section class="library__panel" id="library-panel" role="tabpanel" aria-labelledby="tab-played" tabindex="-1"></section>
+
+          <aside class="activity" aria-labelledby="activity-title">
+            <h2 class="activity__title" id="activity-title">Activity</h2>
+            <ol class="activity__list" id="activity-list"></ol>
+            <p class="activity__empty" id="activity-empty" hidden>Nothing yet. Save or log something and it shows up here.</p>
+            <button class="button button--outline" id="export-button" type="button">Export library (JSON)</button>
+            <p class="activity__note">Your Library lives in this browser only. Export now and then to keep a copy.</p>
+          </aside>
+        </div>
       </div>
     </main>
 
