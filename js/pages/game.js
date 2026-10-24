@@ -6,6 +6,7 @@ import { openLogModal } from '../ui/log-modal.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
+import '../ui/save-feedback.js';
 
 const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;

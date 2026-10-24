@@ -1,3 +1,5 @@
+import { animateToastIn } from '../motion.js';
+
 const HIDE_AFTER = 5000;
 
 const ICONS = {
@@ -73,6 +75,7 @@ export function showToast({ message, type = 'success', viewHref, onUndo }) {
   toast.addEventListener('focusout', () => startTimer(toast));
 
   region.append(toast);
+  if (animateToastIn(toast)) toast.classList.add('toast--animated');
   current = toast;
   startTimer(toast);
 }

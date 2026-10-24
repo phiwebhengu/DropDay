@@ -8,6 +8,7 @@ import { openQuickView } from '../ui/quick-view.js';
 import { animateGrid, captureGrid } from '../motion.js';
 import { syncCards, toggleSave } from '../ui/library-actions.js';
 import { getStatus } from '../store/library.js';
+import '../ui/save-feedback.js';
 
 const SKELETON_COUNT = 10;
 const SKELETON_DELAY = 150;

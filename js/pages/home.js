@@ -8,6 +8,7 @@ import { openQuickView } from '../ui/quick-view.js';
 import { createStateMessage } from '../ui/states.js';
 import { playHeroIntro, setupPinnedStrip, tickDigit } from '../motion.js';
 import { formatReleaseDate, getMonthRange, toMonthKey } from '../utils/dates.js';
+import '../ui/save-feedback.js';
 
 const SKELETON_DELAY = 150;
 const PER_CATEGORY = 3;

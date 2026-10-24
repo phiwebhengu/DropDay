@@ -1799,3 +1799,35 @@ html:has(.log-modal[open]) {
     min-width: 78px;
   }
 }
+
+/* GSAP runs the toast entrance when it's available (M4); the CSS keyframes are the fallback. */
+.toast--animated {
+  animation: none;
+}
+
+/* Library count badge (M4) */
+
+.nav-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: var(--space-2);
+  padding-inline: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-highlight);
+  color: var(--color-bg-page);
+  font: var(--font-weight-semibold) 0.6875rem / 1 var(--font-family);
+  font-variant-numeric: tabular-nums;
+}
+
+.bottom-nav__link {
+  position: relative;
+}
+
+.bottom-nav__link .nav-badge {
+  position: absolute;
+  top: 6px;
+  left: calc(50% + 6px);
+  margin-left: 0;
+}
