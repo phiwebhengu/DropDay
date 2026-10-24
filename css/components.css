@@ -1509,7 +1509,7 @@ html:has(.log-modal[open]) {
 .view-toggle {
   display: inline-flex;
   gap: var(--space-1);
-  padding: var(--space-1);
+  padding: 2px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-pill);
 }
@@ -1518,7 +1518,7 @@ html:has(.log-modal[open]) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 36px;
+  min-height: var(--touch-target);
   padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-pill);
@@ -1556,7 +1556,8 @@ html:has(.log-modal[open]) {
 }
 
 .library-row--diary {
-  grid-template-columns: 40px 56px 1fr auto;
+  grid-template-columns: 32px 44px 1fr auto;
+  gap: var(--space-2) var(--space-3);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1677,7 +1678,7 @@ html:has(.log-modal[open]) {
 .library-row__review--spoiler {
   align-content: center;
   min-width: min(100%, 14rem);
-  min-height: 40px;
+  min-height: var(--touch-target);
 }
 
 .library-row__review--spoiler .library-row__review-text {
@@ -1705,6 +1706,7 @@ html:has(.log-modal[open]) {
   place-items: center;
   width: var(--touch-target);
   height: var(--touch-target);
+  margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
   border: 0;
   border-radius: var(--radius-pill);
   background: none;
@@ -1753,6 +1755,7 @@ html:has(.log-modal[open]) {
 
   .library-row--diary {
     grid-template-columns: 48px 64px 1fr auto;
+    gap: var(--space-2) var(--space-4);
   }
 }
 
