@@ -190,6 +190,8 @@ async function loadGame() {
     ({ game } = await rawg.getGame(id));
     renderGame();
     loadExtras();
+    // "Edit log" in My Library links here with ?log=1 so the modal opens straight away.
+    if (new URLSearchParams(location.search).get('log') === '1') openLogModal(game, { trigger: logButton });
   } catch (error) {
     if (error.status === 404) {
       showNotFound();

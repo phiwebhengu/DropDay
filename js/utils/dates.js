@@ -50,3 +50,29 @@ export function formatTime(timestamp) {
     minute: "2-digit",
   });
 }
+
+const dayMonthFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+});
+const monthYearFormat = new Intl.DateTimeFormat("en-GB", {
+  month: "long",
+  year: "numeric",
+});
+const weekdayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
+
+// "14 Oct" this year, "14 Oct 2025" otherwise. Takes a full timestamp (the Library stores ISO strings).
+export function formatShortDate(timestamp) {
+  const date = new Date(timestamp);
+  return date.getFullYear() === new Date().getFullYear()
+    ? dayMonthFormat.format(date)
+    : releaseDateFormat.format(date);
+}
+
+export function formatMonthYear(timestamp) {
+  return monthYearFormat.format(new Date(timestamp));
+}
+
+export function formatWeekday(timestamp) {
+  return weekdayFormat.format(new Date(timestamp));
+}
