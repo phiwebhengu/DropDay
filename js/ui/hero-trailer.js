@@ -3,7 +3,10 @@ const FADE_OUT = 500;
 // If sound was blocked and nothing is showing by now, it starts again muted instead of sitting there.
 const BLOCKED_FALLBACK = 1500;
 const YOUTUBE_ORIGIN = 'https://www.youtube-nocookie.com';
+const YOUTUBE_ENDED = 0;
 const YOUTUBE_PLAYING = 1;
+// YouTube flashes its pause button for a moment whenever playback starts, so the art covers it a little longer.
+const YOUTUBE_SETTLE = 1000;
 
 const SOUND_ICONS = {
   off: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -19,8 +22,6 @@ function createYouTubePlayer({ youtubeId }, { title, muted: startMuted, onPlayin
     autoplay: 1,
     mute: startMuted ? 1 : 0,
     controls: 0,
-    loop: 1,
-    playlist: youtubeId,
     playsinline: 1,
     rel: 0,
     iv_load_policy: 3,
@@ -36,6 +37,7 @@ function createYouTubePlayer({ youtubeId }, { title, muted: startMuted, onPlayin
   frame.setAttribute('aria-hidden', 'true');
 
   let muted = startMuted;
+  let lastState = null;
   const send = (func, args = []) => {
     frame.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), YOUTUBE_ORIGIN);
   };
@@ -54,7 +56,14 @@ function createYouTubePlayer({ youtubeId }, { title, muted: startMuted, onPlayin
     }
     if (data.event === 'onError') onError();
     const state = data.event === 'onStateChange' ? data.info : data.info?.playerState;
+    if (state === undefined || state === lastState) return;
+    lastState = state;
     if (state === YOUTUBE_PLAYING) onPlaying();
+    // Looping is done here: YouTube's own loop needs a playlist, which adds skip buttons to the video.
+    if (state === YOUTUBE_ENDED) {
+      send('seekTo', [0, true]);
+      send('playVideo');
+    }
   });
 
   return {
@@ -118,6 +127,7 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   let stoppedByUser = false;
   let soundWanted = true;
   let blockedTimer;
+  let revealTimer;
   let hoverTimer;
   let resetTimer;
 
@@ -141,7 +151,13 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   function reveal() {
     if (!playing) return;
     clearTimeout(blockedTimer);
-    hero.classList.add('hero--playing');
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(
+      () => {
+        if (playing) hero.classList.add('hero--playing');
+      },
+      trailer.youtubeId ? YOUTUBE_SETTLE : 0,
+    );
   }
 
   function playMuted() {
@@ -177,6 +193,7 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   function stop() {
     clearTimeout(hoverTimer);
     clearTimeout(blockedTimer);
+    clearTimeout(revealTimer);
     if (!playing) return;
     playing = false;
     startedBy = null;
