@@ -1760,9 +1760,18 @@ html:has(.log-modal[open]) {
 .countdown {
   display: flex;
   gap: var(--space-2);
+  perspective: 600px;
+}
+
+.countdown__value--ghost {
+  position: absolute;
+  top: var(--space-3);
+  inset-inline: 0;
+  text-align: center;
 }
 
 .countdown__unit {
+  position: relative;
   display: grid;
   justify-items: center;
   overflow: hidden;

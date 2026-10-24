@@ -508,9 +508,10 @@
   overflow-wrap: anywhere;
 }
 
+/* Sized like the real title and date line, so nothing shifts when the game arrives. */
 .hero__skeleton {
-  width: min(480px, 80vw);
-  height: 48px;
+  width: min(480px, 80%);
+  height: 1.07em;
 }
 
 .hero__link {
@@ -524,6 +525,7 @@
 }
 
 .hero__meta {
+  min-height: 1.75rem;
   color: var(--color-text-secondary);
   font: var(--text-body-l);
 }
@@ -540,6 +542,11 @@
   aspect-ratio: 460 / 340;
   overflow: hidden;
   border-radius: var(--radius-lg);
+  background: var(--color-bg-raised);
+}
+
+/* The gradient only stands in when there's no art; behind real art the panel stays grey so the reveal is clean. */
+.hero__art:not(.skeleton):not(:has(img)) {
   background: linear-gradient(160deg, var(--color-category-anime), var(--color-action-primary));
 }
 
@@ -570,6 +577,7 @@
 
 .home__section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
 }
 
@@ -637,4 +645,30 @@
   .release-strip {
     grid-auto-columns: calc((100% - 4 * var(--space-6)) / 5);
   }
+}
+
+/* Pinned strip (M2, desktop): GSAP moves it, so it drops its own scrollbar and may run past the container */
+
+.site-main {
+  overflow-x: clip;
+}
+
+.release-strip--pinned {
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+.release-strip__progress {
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-raised);
+}
+
+.release-strip__progress > span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent-highlight);
+  transform: scaleX(0);
+  transform-origin: left center;
 }

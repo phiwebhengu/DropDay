@@ -37,24 +37,98 @@ function prefersReducedMotion() {
 
 /* M1 · Home hero: the featured launch builds in (1.2 s, power3.out), then the countdown digits tick. */
 
+// It starts from the loading state: the eyebrow, buttons, "--" countdown and a grey art panel are already
+// there, so nothing jumps or blinks out. Only the new content arrives: art, title, date, then the digits.
 export function playHeroIntro(hero) {
   return withMotion(({ full }) => {
+    const arriving = hero.querySelectorAll('.hero__title, .hero__meta, .countdown__value');
     if (!full) {
-      fadeIn(hero.querySelector('.hero__content'));
+      fadeIn(arriving);
       return;
     }
-    const lines = hero.querySelectorAll('.hero__eyebrow, .hero__title, .hero__meta, .hero__actions');
-    const units = hero.querySelectorAll('.countdown__unit');
+    const art = hero.querySelector('.hero__art');
+    const reveal = art.querySelector('img') ?? art;
     gsap
       .timeline({ defaults: { ease: 'power3.out' } })
-      .from(lines, { y: 24, opacity: 0, duration: 0.7, stagger: 0.08 }, 0)
-      .from(units, { y: 16, opacity: 0, duration: 0.5, stagger: 0.06 }, 0.3)
-      .from(hero.querySelector('.hero__art'), { opacity: 0, scale: 1.06, duration: 1.2 }, 0);
+      .fromTo(
+        reveal,
+        { clipPath: 'inset(0% 0% 0% 100% round 20px)' },
+        { clipPath: 'inset(0% 0% 0% 0% round 20px)', duration: 1.2, ease: 'power3.inOut', clearProps: 'clipPath' },
+        0,
+      )
+      .from(reveal, { scale: 1.18, duration: 1.6 }, 0)
+      .from(hero.querySelector('.hero__title'), { yPercent: 35, opacity: 0, filter: 'blur(10px)', duration: 0.9, clearProps: 'filter' }, 0.1)
+      .from(hero.querySelector('.hero__meta'), { y: 12, opacity: 0, duration: 0.6 }, 0.3)
+      .from(hero.querySelectorAll('.countdown__value'), { yPercent: -80, opacity: 0, duration: 0.6, stagger: 0.08 }, 0.45);
   }, ['full', 'reduced']);
 }
 
-// The new number drops in from above. Reduced motion just swaps the number: a fade every second would be noise.
-export function tickDigit(element) {
+// The old number rolls out downwards as the new one drops in. Reduced motion just swaps the number:
+// a fade every second would be noise.
+export function tickDigit(element, previous) {
   if (!hasMotion || prefersReducedMotion()) return;
-  gsap.fromTo(element, { yPercent: -45, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.35, ease: 'power2.inOut' });
+  const ghost = element.cloneNode();
+  ghost.classList.add('countdown__value--ghost');
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.textContent = previous;
+  element.after(ghost);
+
+  const roll = { duration: 0.35, ease: 'power2.inOut' };
+  gsap.to(ghost, { yPercent: 70, opacity: 0, ...roll, onComplete: () => ghost.remove() });
+  gsap.fromTo(element, { yPercent: -70, opacity: 0 }, { yPercent: 0, opacity: 1, ...roll });
+}
+
+/* M2 · "Dropping this month": on desktop the section pins and vertical scroll drives the strip sideways.
+   Below 1024 px, and with reduced motion, it stays a native swipe row with scroll-snap. */
+
+export function setupPinnedStrip(section, strip, progress) {
+  return withMotion(({ full, desktop }) => {
+    const distance = () => strip.scrollWidth - strip.clientWidth;
+    if (!full || !desktop || distance() <= 0) return undefined;
+
+    strip.classList.add('release-strip--pinned');
+    progress.hidden = false;
+    const header = document.querySelector('.site-header');
+
+    const slide = gsap.to(strip, {
+      x: () => -distance(),
+      ease: 'none',
+      scrollTrigger: {
+        trigger: section,
+        start: () => `top ${header.offsetHeight + 24}px`,
+        end: () => `+=${distance()}`,
+        pin: true,
+        scrub: 0.8,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => gsap.set(progress.firstElementChild, { scaleX: self.progress }),
+      },
+    });
+
+    // Cards still off to the right sit back slightly and come forward as they slide in.
+    [...strip.children].forEach((card) => {
+      gsap.from(card, {
+        scale: 0.9,
+        opacity: 0.35,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: card, containerAnimation: slide, start: 'left right', end: 'left 75%', scrub: true },
+      });
+    });
+
+    // Tabbing to a card that's still off screen scrolls the page to the point where it's in view.
+    const onFocus = (event) => {
+      const card = event.target.closest('.release-strip > li');
+      if (!card) return;
+      const trigger = slide.scrollTrigger;
+      const share = Math.min(1, Math.max(0, (card.offsetLeft - strip.clientWidth / 2 + card.offsetWidth / 2) / distance()));
+      window.scrollTo({ top: trigger.start + share * (trigger.end - trigger.start), behavior: 'instant' });
+    };
+    strip.addEventListener('focusin', onFocus);
+
+    return () => {
+      strip.classList.remove('release-strip--pinned');
+      progress.hidden = true;
+      strip.removeEventListener('focusin', onFocus);
+    };
+  });
 }
