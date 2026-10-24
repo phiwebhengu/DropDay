@@ -11,6 +11,7 @@ const QUERIES = {
 };
 
 if (hasMotion) {
+  document.documentElement.classList.add('has-motion');
   gsap.registerPlugin(...[window.ScrollTrigger, window.Flip].filter(Boolean));
   gsap.defaults({ duration: 0.4, ease: 'power2.out' });
 }
@@ -175,12 +176,15 @@ export function animateGrid(cards, state = null) {
 /* M4 · Save feedback: the button squashes and springs back, the toast arrives with a little overshoot,
    and the Library badge in the nav pulses. Reduced motion keeps the state changes, without the bounce. */
 
+// One press and one overshoot (back.out), not an elastic wobble, and force3D off so the browser redraws
+// the pill crisply at each step instead of scaling a GPU snapshot of it (that's what blurred the corners).
 export function squashButton(button) {
   if (!hasMotion || prefersReducedMotion()) return;
+  gsap.killTweensOf(button);
   gsap
-    .timeline()
-    .to(button, { scale: 0.9, duration: 0.08, ease: 'power2.in' })
-    .to(button, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.45)', clearProps: 'transform' });
+    .timeline({ defaults: { force3D: false } })
+    .to(button, { scale: 0.93, duration: 0.1, ease: 'power2.out' })
+    .to(button, { scale: 1, duration: 0.45, ease: 'back.out(2.5)', clearProps: 'transform' });
 }
 
 // Returns true when GSAP handled the entrance, so the toast can switch off its CSS fallback.
@@ -192,5 +196,5 @@ export function animateToastIn(toast) {
 
 export function pulseBadge(badge) {
   if (!hasMotion || prefersReducedMotion()) return;
-  gsap.fromTo(badge, { scale: 1.7 }, { scale: 1, duration: 0.8, ease: 'elastic.out(1, 0.35)', clearProps: 'transform' });
+  gsap.fromTo(badge, { scale: 1.6 }, { scale: 1, duration: 0.5, ease: 'back.out(2)', force3D: false, clearProps: 'transform' });
 }

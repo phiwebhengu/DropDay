@@ -491,12 +491,13 @@
   padding-inline: var(--space-3);
   white-space: nowrap;
   transition:
-    transform var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
 }
 
-.release-card__save:active {
+/* GSAP runs the press (M4). This is only the fallback when it isn't loaded; html.has-motion turns it off. */
+html:not(.has-motion) .release-card__save:active {
   transform: scale(0.97);
 }
 
@@ -1172,14 +1173,14 @@ html:has(.quick-view[open]) {
   transition:
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .status-button:hover:not(:disabled) {
   border-color: var(--color-action-primary-hover);
 }
 
-.status-button:active:not(:disabled) {
+html:not(.has-motion) .status-button:active:not(:disabled) {
   transform: scale(0.96);
 }
 
