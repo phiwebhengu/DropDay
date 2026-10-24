@@ -26,6 +26,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* A section that stays dark in the light theme needs its own text colour, not the inherited one. */
+.theme-dark {
+  color: var(--color-text-primary);
+}
+
 /* A faint film grain over everything, so the flat surfaces don't feel sterile. */
 body::after {
   content: "";
@@ -33,7 +38,7 @@ body::after {
   inset: 0;
   z-index: 200;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -122,7 +127,7 @@ h3 {
   z-index: 100;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
-  background: var(--color-accent-highlight);
+  background: var(--color-action-primary);
   color: var(--color-action-on-primary);
   font: var(--text-label-m);
   text-decoration: none;

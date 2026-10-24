@@ -10,6 +10,7 @@ import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatShortDate } from '../utils/dates.js';
 import '../ui/save-feedback.js';
+import '../ui/theme.js';
 
 const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;

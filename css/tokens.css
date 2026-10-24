@@ -24,8 +24,23 @@
   --clay-400: #e08b5e;
   --sky-400: #72a6e0;
   --rose-400: #dc84b0;
+  --paper-100: #f3efe8;
+  --paper-0: #fbf9f5;
+  --paper-200: #e8e3da;
+  --paper-300: #ddd6ca;
+  --paper-500: #b7ae9f;
+  --ink-600: #5b564c;
+  --ink-900: #1b1a17;
+  --amber-700: #8a5300;
+  --amber-600: #925800;
+}
 
-  /* Colour: components only ever use these semantic names */
+/* Colour: components only ever use these semantic names. Dark is the default; .theme-dark keeps
+   a section dark in the light theme too (the Home billboard sits on key art either way).
+   The theme itself is set on <html> by a small script in each page's <head>. */
+:root,
+.theme-dark {
+  color-scheme: dark;
   --color-bg-page: var(--charcoal-900);
   --color-bg-surface: var(--charcoal-850);
   --color-bg-raised: var(--charcoal-800);
@@ -52,7 +67,14 @@
   --color-header-bg: rgb(20 19 17 / 0.86);
   --color-scrim: rgb(14 13 11 / 0.72);
   --color-skeleton-shine: var(--charcoal-700);
+  /* Sits on top of content with text over it (the spoiler cover), unlike the dialog backdrop scrim. */
+  --color-overlay: rgb(14 13 11 / 0.72);
+  --shadow-card: 0 18px 40px -12px rgb(6 5 3 / 0.6);
+  --shadow-float: 0 24px 60px -16px rgb(6 5 3 / 0.75);
+}
 
+/* Everything else is shared by both themes. */
+:root {
   /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
@@ -88,9 +110,8 @@
   --text-label-m: var(--font-weight-semibold) 0.9375rem / 1.4 var(--font-family);
   --text-caption: var(--font-weight-medium) 0.8125rem / 1.4 var(--font-family);
 
-  /* Effects: shadows carry the warm charcoal, not neutral black */
-  --shadow-card: 0 18px 40px -12px rgb(6 5 3 / 0.6);
-  --shadow-float: 0 24px 60px -16px rgb(6 5 3 / 0.75);
+  /* Effects */
+  --grain-opacity: 0.05;
   --focus-ring: 2px solid var(--color-focus-ring);
 
   /* Layout */
@@ -118,4 +139,37 @@
     --container-gutter: var(--space-12);
     --header-height: 72px;
   }
+}
+
+/* Light theme: warm paper and ink, the same amber. Amber is too pale to read as text on paper,
+   so text and focus use a deeper amber; filled buttons keep the bright one with dark text. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg-page: var(--paper-100);
+  --color-bg-surface: var(--paper-0);
+  --color-bg-raised: var(--paper-200);
+  --color-bg-sunken: var(--paper-300);
+  --color-text-primary: var(--ink-900);
+  --color-text-secondary: var(--ink-600);
+  --color-border-default: var(--paper-300);
+  --color-border-strong: var(--paper-500);
+  --color-action-tint: rgb(242 172 62 / 0.18);
+  --color-accent-highlight: var(--amber-600);
+  --color-focus-ring: var(--amber-700);
+  --color-rating: #c27a0a;
+  --color-status-error: #b8392d;
+  --color-status-error-tint: rgb(184 57 45 / 0.1);
+  --color-status-success: #3f7a43;
+  --color-status-warning: var(--amber-700);
+  --color-category-games: #256f48;
+  --color-category-movies: #b4552a;
+  --color-category-tv: #2f68ad;
+  --color-category-anime: #a83f74;
+  --color-header-bg: rgb(243 239 232 / 0.86);
+  --color-scrim: rgb(27 26 23 / 0.45);
+  --color-skeleton-shine: var(--paper-100);
+  --color-overlay: rgb(251 249 245 / 0.8);
+  --shadow-card: 0 18px 40px -16px rgb(74 56 28 / 0.22);
+  --shadow-float: 0 24px 60px -18px rgb(74 56 28 / 0.3);
+  --grain-opacity: 0.035;
 }

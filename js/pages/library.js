@@ -8,6 +8,7 @@ import { showToast } from '../ui/toast.js';
 import { formatMonthYear, formatRelative, toIsoDate } from '../utils/dates.js';
 import { countTo } from '../motion.js';
 import '../ui/save-feedback.js';
+import '../ui/theme.js';
 
 const TABS = ['played', 'playing', 'backlog', 'radar'];
 const VIEWS = ['list', 'grid'];

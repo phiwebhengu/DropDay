@@ -48,6 +48,24 @@
   }
 }
 
+/* Theme toggle: tucked in beside search, so the header gap doesn't push them apart. */
+.theme-toggle {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  margin-left: calc(var(--space-1) - var(--space-6));
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-bg-raised);
+}
+
 /* Main navigation (desktop) */
 
 .site-nav {
@@ -1766,7 +1784,7 @@ html:has(.log-modal[open]) {
   margin-left: var(--space-2);
   padding-inline: 5px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent-highlight);
+  background: var(--color-action-primary);
   color: var(--color-action-on-primary);
   font: var(--font-weight-semibold) 0.6875rem / 1 var(--font-family);
   font-variant-numeric: tabular-nums;
@@ -1844,7 +1862,7 @@ html:has(.log-modal[open]) {
   place-items: center;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-scrim);
+  background: var(--color-overlay);
   font: var(--text-label-m);
   text-decoration: underline;
   white-space: nowrap;
