@@ -1832,3 +1832,18 @@ html:has(.log-modal[open]) {
   left: calc(50% + 6px);
   margin-left: 0;
 }
+
+/* With GSAP loaded, the dialogs' entrances and exits are animated in JS (M5); the keyframes above stay as the fallback. */
+.has-motion .log-modal[open],
+.has-motion .quick-view[open] {
+  animation: none;
+}
+
+.log-modal,
+.quick-view {
+  --dialog-x: 0%;
+  --dialog-y: 0%;
+  --dialog-scale: 1;
+  translate: var(--dialog-x) var(--dialog-y);
+  scale: var(--dialog-scale);
+}

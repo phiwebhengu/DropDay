@@ -6,6 +6,7 @@ import { openQuickView } from '../ui/quick-view.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatMonthYear, formatRelative, toIsoDate } from '../utils/dates.js';
+import { countTo } from '../motion.js';
 import '../ui/save-feedback.js';
 
 const TABS = ['played', 'playing', 'backlog', 'radar'];
@@ -49,7 +50,7 @@ function writeState(state) {
 function renderCounts() {
   const counts = library.getCounts();
   document.querySelectorAll('[data-count]').forEach((element) => {
-    element.textContent = counts[element.dataset.count];
+    countTo(element, counts[element.dataset.count]);
   });
   document.querySelectorAll('[data-tab-count]').forEach((element) => {
     element.textContent = counts[element.dataset.tabCount];
