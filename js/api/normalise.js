@@ -58,9 +58,15 @@ export function normaliseRawgGame(game) {
   };
 }
 
+// The detail page shows the art large, so it gets a bigger, uncropped copy than the cards.
+function resizeRawgCover(url) {
+  return url ? url.replace("/media/games/", "/media/resize/1280/-/games/") : null;
+}
+
 export function normaliseRawgGameDetail(game) {
   return {
     ...normaliseRawgGame(game),
+    cover: resizeRawgCover(game.background_image),
     description: game.description_raw ?? "",
     developers: (game.developers ?? []).map((developer) => developer.name),
     publishers: (game.publishers ?? []).map((publisher) => publisher.name),

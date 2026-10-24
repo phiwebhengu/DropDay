@@ -13,6 +13,7 @@ const MONTHS_AHEAD = 12;
 const OLDER_PLATFORM_COUNT = 8;
 const FILTER_DELAY = 300;
 const SCROLL_KEY_PREFIX = 'dropday.discover.scroll.';
+const RETURN_KEY = 'dropday.discover.return';
 const MAX_QUERY_LENGTH = 100;
 
 const CATEGORIES = {
@@ -48,6 +49,12 @@ const CATEGORIES = {
     search: tmdb.searchAnime,
     loadGenres: () => tmdb.getGenres('tv'),
   },
+};
+
+const RANGE_LABELS = {
+  week: 'This week',
+  month: 'This month',
+  quarter: 'Next 3 months',
 };
 
 const RANGES = {
@@ -474,8 +481,23 @@ async function restoreScroll(saved) {
   window.scrollTo(0, saved.y);
 }
 
+// Game detail's "Back to results" link reads this to say where it goes, e.g. "Games · Nov 2026 · PS5".
+function getResultsLabel(state) {
+  if (state.q) return `“${state.q}”`;
+  const when = state.month ? selectedText(monthSelect) : RANGE_LABELS[state.range];
+  const parts = [CATEGORIES[state.cat].label, when, selectedText(platformSelect)];
+  return parts.filter(Boolean).join(' · ');
+}
+
+function saveReturnLink() {
+  try {
+    sessionStorage.setItem(RETURN_KEY, JSON.stringify({ search: location.search, label: getResultsLabel(readState()) }));
+  } catch {}
+}
+
 history.scrollRestoration = 'manual';
 window.addEventListener('pagehide', saveScroll);
+window.addEventListener('pagehide', saveReturnLink);
 
 const savedScroll = readSavedScroll();
 update({}).then(() => restoreScroll(savedScroll));

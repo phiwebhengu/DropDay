@@ -1086,3 +1086,116 @@ html:has(.quick-view[open]) {
     opacity: 0;
   }
 }
+
+/* Back link */
+
+.back-link {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  max-width: 100%;
+  padding: 0 var(--space-4) 0 var(--space-3);
+  border: 2px solid var(--color-action-primary);
+  border-radius: var(--radius-pill);
+  font: var(--text-label-m);
+  text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.back-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.back-link:hover {
+  background: rgb(108 77 255 / 0.12);
+}
+
+/* Text button: low-emphasis actions like Share and Read more */
+
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: var(--text-label-m);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.text-button:hover {
+  color: var(--color-accent-highlight);
+}
+
+/* Stars */
+
+.stars {
+  --rating: 0;
+  font-size: 1.375rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  background: linear-gradient(
+    90deg,
+    var(--color-rating) calc(var(--rating) / 5 * 100%),
+    var(--color-bg-raised) 0
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Status buttons (Played / Playing / Backlog / Radar) */
+
+.status-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.status-button {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-1);
+  min-width: 0;
+  min-height: 68px;
+  padding: var(--space-2) var(--space-1);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  font: var(--text-label-m);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.status-button:hover:not(:disabled) {
+  border-color: var(--color-action-primary-hover);
+}
+
+.status-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.status-button[aria-checked="true"] {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+}
+
+.status-button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+@media (min-width: 768px) {
+  .status-buttons {
+    grid-template-columns: repeat(4, 84px);
+  }
+}

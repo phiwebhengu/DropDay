@@ -93,14 +93,71 @@
     </header>
 
     <main class="site-main" id="main">
-      <div class="container">
-        <section class="page-intro">
-          <p class="page-intro__eyebrow">Game detail</p>
-          <h1>Game</h1>
-          <p class="page-intro__text">
-            Game info, status buttons and the Log & review modal land here in
-            milestone 3.
-          </p>
+      <div class="game container">
+        <a class="back-link" id="back-link" href="discover.html">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          <span id="back-link-text">Back to Discover</span>
+        </a>
+
+        <div class="game__state" id="game-state" hidden></div>
+
+        <article class="game__hero" id="game-hero" aria-busy="true">
+          <div class="game__cover skeleton" id="game-cover"></div>
+          <div class="game__info">
+            <p class="game__eyebrow" id="game-eyebrow">
+              <span class="skeleton skeleton--line skeleton--short"></span>
+            </p>
+            <h1 class="game__title" id="game-title">
+              <span class="skeleton skeleton--heading"></span>
+            </h1>
+            <p class="game__meta" id="game-meta"></p>
+            <ul class="game__platforms" id="game-platforms" role="list"></ul>
+            <p class="game__rating" id="game-rating" hidden></p>
+
+            <h2 class="game__library-label" id="library-label">Add to your Library</h2>
+            <div class="status-buttons" id="status-buttons" role="radiogroup" aria-labelledby="library-label">
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="played" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m5 12 5 5L20 7" />
+                </svg>
+                Played
+              </button>
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="playing" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M7 4.5v15l12-7.5z" />
+                </svg>
+                Playing
+              </button>
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="backlog" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                  <path d="M5 7h14M5 12h14M5 17h14" />
+                </svg>
+                Backlog
+              </button>
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="radar" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8" />
+                  <circle cx="12" cy="12" r="3.5" />
+                </svg>
+                Radar
+              </button>
+            </div>
+
+            <div class="game__actions">
+              <button class="text-button" id="share-button" type="button">Share</button>
+              <button class="text-button" id="remove-button" type="button" hidden>Remove from Library</button>
+            </div>
+          </div>
+        </article>
+
+        <section class="game__section" id="game-about" aria-labelledby="about-title" hidden>
+          <h2 class="game__section-title" id="about-title">About</h2>
+          <p class="game__description" id="game-description"></p>
+          <button class="text-button" id="read-more" type="button" aria-expanded="false" aria-controls="game-description" hidden>
+            Read more
+          </button>
         </section>
       </div>
     </main>
@@ -180,5 +237,7 @@
     </nav>
 
     <div class="toast-region" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/pages/game.js"></script>
   </body>
 </html>

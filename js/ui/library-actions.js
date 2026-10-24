@@ -28,27 +28,47 @@ function undo(result) {
   if (!undone.ok) showError(undone.error);
 }
 
+export function setReleaseStatus(release, status) {
+  const result = library.setStatus(release, status);
+  if (!result.ok) {
+    showError(result.error);
+    return;
+  }
+  if (result.unchanged) return;
+
+  const verb = result.previous ? 'Moved' : 'Added';
+  showToast({
+    message: `${verb} “${release.title}” to ${LIST_NAMES[status]}`,
+    viewHref: `library.html?tab=${status}`,
+    onUndo: () => undo(result),
+  });
+}
+
+export function removeRelease(release) {
+  const result = library.removeEntry(release);
+  if (!result.ok) {
+    showError(result.error);
+    return;
+  }
+  if (!result.previous) return;
+
+  showToast({
+    message: `Removed “${release.title}” from ${LIST_NAMES[result.previous.status]}`,
+    onUndo: () => undo(result),
+  });
+}
+
 // The one save action behind every + Backlog / + Radar button: saves, or removes when already saved.
 // Played and Playing hold a log and review, so those open the game page instead of being removed by one tap.
 export function toggleSave(release) {
   const status = library.getStatus(release);
   if (status === 'played' || status === 'playing') {
     location.href = `game.html?id=${release.id}`;
-    return;
+  } else if (status) {
+    removeRelease(release);
+  } else {
+    setReleaseStatus(release, getDefaultStatus(release));
   }
-
-  const result = status ? library.removeEntry(release) : library.setStatus(release, getDefaultStatus(release));
-  if (!result.ok) {
-    showError(result.error);
-    return;
-  }
-
-  const list = status ?? result.entry.status;
-  showToast({
-    message: status ? `Removed “${release.title}” from ${LIST_NAMES[list]}` : `Added “${release.title}” to ${LIST_NAMES[list]}`,
-    viewHref: status ? undefined : `library.html?tab=${list}`,
-    onUndo: () => undo(result),
-  });
 }
 
 // Brings every card under root in line with the Library, e.g. after an Undo or a change in another tab.
