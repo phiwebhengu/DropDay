@@ -312,3 +312,102 @@
     display: block;
   }
 }
+
+/* My Library */
+
+.library {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.library__header {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.library__title {
+  font: var(--text-display-xl);
+}
+
+.library__intro {
+  color: var(--color-text-secondary);
+  font: var(--text-body-l);
+}
+
+.library-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.library-stats__item {
+  --stat-accent: var(--color-category-games);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.library-stats__item--playing {
+  --stat-accent: var(--color-category-tv);
+}
+
+.library-stats__item--backlog {
+  --stat-accent: var(--color-rating);
+}
+
+.library-stats__item--radar {
+  --stat-accent: var(--color-accent-highlight);
+}
+
+.library-stats__label {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.library-stats__count {
+  color: var(--stat-accent);
+  font: var(--text-h1);
+  font-variant-numeric: tabular-nums;
+}
+
+.library__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.library__panel:focus {
+  outline: none;
+}
+
+@media (min-width: 768px) {
+  .library-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+/* Diary: Played as a Letterboxd-style log, one block per month */
+
+.diary {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.diary__month {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.diary__heading {
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

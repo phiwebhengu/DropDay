@@ -95,15 +95,67 @@
     </header>
 
     <main class="site-main" id="main">
-      <div class="container">
-        <section class="page-intro">
-          <p class="page-intro__eyebrow">Saved on this device</p>
-          <h1>My Library</h1>
-          <p class="page-intro__text">
-            Stats, tabs, list rows, activity log and export land here in
-            milestone 3.
-          </p>
-        </section>
+      <div class="library container">
+        <header class="library__header">
+          <h1 class="library__title">My Library</h1>
+          <p class="library__intro">Saved on this device. No account needed.</p>
+        </header>
+
+        <dl class="library-stats" id="library-stats">
+          <div class="library-stats__item library-stats__item--played">
+            <dt class="library-stats__label">Played</dt>
+            <dd class="library-stats__count" data-count="played">0</dd>
+          </div>
+          <div class="library-stats__item library-stats__item--playing">
+            <dt class="library-stats__label">Playing</dt>
+            <dd class="library-stats__count" data-count="playing">0</dd>
+          </div>
+          <div class="library-stats__item library-stats__item--backlog">
+            <dt class="library-stats__label">Backlog</dt>
+            <dd class="library-stats__count" data-count="backlog">0</dd>
+          </div>
+          <div class="library-stats__item library-stats__item--radar">
+            <dt class="library-stats__label">Radar</dt>
+            <dd class="library-stats__count" data-count="radar">0</dd>
+          </div>
+        </dl>
+
+        <div class="library__controls">
+          <div class="library-tabs" role="tablist" aria-label="Library lists">
+            <button class="library-tab" id="tab-played" type="button" role="tab" data-tab="played" aria-controls="library-panel">
+              Played <span class="library-tab__count" data-tab-count="played">0</span>
+            </button>
+            <button class="library-tab" id="tab-playing" type="button" role="tab" data-tab="playing" aria-controls="library-panel">
+              Playing <span class="library-tab__count" data-tab-count="playing">0</span>
+            </button>
+            <button class="library-tab" id="tab-backlog" type="button" role="tab" data-tab="backlog" aria-controls="library-panel">
+              Backlog <span class="library-tab__count" data-tab-count="backlog">0</span>
+            </button>
+            <button class="library-tab" id="tab-radar" type="button" role="tab" data-tab="radar" aria-controls="library-panel">
+              Radar <span class="library-tab__count" data-tab-count="radar">0</span>
+            </button>
+          </div>
+
+          <div class="view-toggle" role="group" aria-label="View">
+            <button class="view-toggle__option" type="button" data-view="list" aria-pressed="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <path d="M5 7h14M5 12h14M5 17h14" />
+              </svg>
+              List
+            </button>
+            <button class="view-toggle__option" type="button" data-view="grid" aria-pressed="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <rect x="4" y="4" width="6.5" height="6.5" rx="1" />
+                <rect x="13.5" y="4" width="6.5" height="6.5" rx="1" />
+                <rect x="4" y="13.5" width="6.5" height="6.5" rx="1" />
+                <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1" />
+              </svg>
+              Grid
+            </button>
+          </div>
+        </div>
+
+        <section class="library__panel" id="library-panel" role="tabpanel" aria-labelledby="tab-played" tabindex="-1"></section>
       </div>
     </main>
 
@@ -182,5 +234,7 @@
     </nav>
 
     <div class="toast-region" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/pages/library.js"></script>
   </body>
 </html>
