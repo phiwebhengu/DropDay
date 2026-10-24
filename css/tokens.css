@@ -40,6 +40,7 @@
   --color-category-movies: var(--orange-400);
   --color-category-tv: var(--blue-400);
   --color-category-anime: var(--pink-400);
+  --color-rating: var(--amber-400);
 
   /* Spacing */
   --space-1: 4px;
