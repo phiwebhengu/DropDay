@@ -6,6 +6,7 @@ import { setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.j
 import { createLibraryRow } from '../ui/library-row.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { createStateMessage } from '../ui/states.js';
+import { playHeroIntro, tickDigit } from '../motion.js';
 import { formatReleaseDate, getMonthRange, toMonthKey } from '../utils/dates.js';
 
 const SKELETON_DELAY = 150;
@@ -38,6 +39,7 @@ const backlogEmpty = document.getElementById('backlog-empty');
 
 let featured = null;
 let countdownTimer;
+let countdownStarted = false;
 
 /* Hero */
 
@@ -59,10 +61,20 @@ function tick() {
     return;
   }
   const seconds = Math.floor(remaining / 1000);
-  countdownValues.days.textContent = pad(Math.floor(seconds / 86400));
-  countdownValues.hours.textContent = pad(Math.floor((seconds % 86400) / 3600));
-  countdownValues.minutes.textContent = pad(Math.floor((seconds % 3600) / 60));
-  countdownValues.seconds.textContent = pad(seconds % 60);
+  const next = {
+    days: pad(Math.floor(seconds / 86400)),
+    hours: pad(Math.floor((seconds % 86400) / 3600)),
+    minutes: pad(Math.floor((seconds % 3600) / 60)),
+    seconds: pad(seconds % 60),
+  };
+  // Only the units that changed animate, so most seconds it's just the last box ticking.
+  Object.entries(next).forEach(([unit, value]) => {
+    const element = countdownValues[unit];
+    if (element.textContent === value) return;
+    element.textContent = value;
+    if (countdownStarted) tickDigit(element);
+  });
+  countdownStarted = true;
 }
 
 function renderHeroSave() {
@@ -108,6 +120,7 @@ function renderHero(game) {
     clearInterval(countdownTimer);
     countdownTimer = setInterval(tick, 1000);
   }
+  playHeroIntro(hero);
 }
 
 function renderHeroMessage(message) {
