@@ -792,41 +792,30 @@ html:not(.has-motion) .release-card__save:active {
 .state-message {
   display: grid;
   justify-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  max-width: 340px;
-  margin-inline: auto;
-  padding: var(--space-8) var(--space-6);
-  border: 1px solid var(--color-border-default);
+  padding: var(--space-12) var(--space-6);
+  border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
   text-align: center;
 }
 
-.state-message__icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin-bottom: var(--space-1);
-  border-radius: 50%;
-  background: var(--color-bg-raised);
-  color: var(--color-text-secondary);
-  font: var(--text-h3);
-}
-
-.state-message--error .state-message__icon {
-  color: var(--color-status-error);
+/* An error is a problem to fix, not an empty slot, so it gets a solid tinted panel instead. */
+.state-message--error {
+  border: 1px solid color-mix(in srgb, var(--color-status-error) 45%, transparent);
+  background: var(--color-status-error-tint);
 }
 
 .state-message__title {
-  font: var(--text-h3);
+  font: var(--text-h2);
+  text-wrap: balance;
 }
 
 .state-message__text {
+  max-width: 46ch;
   margin-bottom: var(--space-2);
   color: var(--color-text-secondary);
-  font: var(--text-body-s);
+  font: var(--text-body-m);
 }
 
 /* Quick view drawer: a bottom sheet on phones (matches the Log sheet), a side drawer on desktop */

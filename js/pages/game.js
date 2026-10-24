@@ -174,7 +174,15 @@ function renderScreenshots(urls) {
       image.height = 338;
       image.loading = 'lazy';
       image.decoding = 'async';
-      image.addEventListener('error', () => item.remove(), { once: true });
+      // If every screenshot fails, the section goes too, rather than leaving a heading over nothing.
+      image.addEventListener(
+        'error',
+        () => {
+          item.remove();
+          screenshots.hidden = !screenshotList.children.length;
+        },
+        { once: true },
+      );
       item.append(image);
       return item;
     }),

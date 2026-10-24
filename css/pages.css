@@ -638,6 +638,17 @@
   justify-items: stretch;
 }
 
+/* Without a featured game there's no art to fill, so the billboard shrinks to its message. */
+@media (min-width: 1024px) {
+  .hero--message {
+    min-height: 0;
+  }
+
+  .hero--message .hero__content {
+    max-width: none;
+  }
+}
+
 @media (min-width: 768px) {
   .hero__content {
     padding: var(--space-8) var(--space-12) var(--space-12);
