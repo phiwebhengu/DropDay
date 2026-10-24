@@ -1,7 +1,8 @@
 import * as rawg from '../api/rawg.js';
-import { getStatus } from '../store/library.js';
+import { getEntry, getStatus } from '../store/library.js';
 import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
+import { openLogModal } from '../ui/log-modal.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
@@ -21,6 +22,7 @@ const meta = document.getElementById('game-meta');
 const platforms = document.getElementById('game-platforms');
 const rating = document.getElementById('game-rating');
 const statusButtons = [...document.querySelectorAll('.status-button')];
+const logButton = document.getElementById('log-button');
 const shareButton = document.getElementById('share-button');
 const removeButton = document.getElementById('remove-button');
 const about = document.getElementById('game-about');
@@ -75,6 +77,8 @@ function renderStatus() {
     button.tabIndex = button.dataset.status === focusable ? 0 : -1;
   });
   removeButton.hidden = !status;
+  logButton.disabled = false;
+  logButton.textContent = getEntry(game)?.loggedAt ? 'Edit your log' : 'Log or review';
 }
 
 function renderDescription(text) {
@@ -218,7 +222,12 @@ async function share() {
 }
 
 statusButtons.forEach((button, index) => {
-  button.addEventListener('click', () => setReleaseStatus(game, button.dataset.status));
+  // Played and Playing open the Log modal set to that status; Backlog and Radar save straight away (Figma note 9).
+  button.addEventListener('click', () => {
+    const { status } = button.dataset;
+    if (status === 'played' || status === 'playing') openLogModal(game, { trigger: button, status });
+    else setReleaseStatus(game, status);
+  });
 
   button.addEventListener('keydown', (event) => {
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
@@ -234,6 +243,7 @@ removeButton.addEventListener('click', () => {
 });
 
 shareButton.addEventListener('click', share);
+logButton.addEventListener('click', () => openLogModal(game, { trigger: logButton }));
 
 readMore.addEventListener('click', () => {
   const expanded = readMore.getAttribute('aria-expanded') !== 'true';

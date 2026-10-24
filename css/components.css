@@ -1199,3 +1199,266 @@ html:has(.quick-view[open]) {
     grid-template-columns: repeat(4, 84px);
   }
 }
+
+/* Textarea, hint and checkbox (Log modal) */
+
+.field__textarea {
+  width: 100%;
+  min-height: 112px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+  font: var(--text-body-m);
+  resize: vertical;
+}
+
+.field__hint {
+  justify-self: end;
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--touch-target);
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+  cursor: pointer;
+}
+
+.checkbox__input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-action-primary);
+}
+
+/* Status options: the same tiles as the status buttons, built on real radios for the form */
+
+.status-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.status-option {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-1);
+  min-height: 68px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  font: var(--text-label-m);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.status-option__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.status-option:hover {
+  border-color: var(--color-action-primary-hover);
+}
+
+.status-option:has(:checked) {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+}
+
+.status-option:has(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .status-options {
+    grid-template-columns: repeat(3, 84px);
+  }
+}
+
+/* Star input: ten invisible half-star radios laid over the star row */
+
+.star-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.star-input__stars {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  border-radius: var(--radius-sm);
+}
+
+.star-input__stars .stars {
+  grid-area: 1 / 1 / 2 / -1;
+  font-size: 2rem;
+  pointer-events: none;
+}
+
+.star-input__option {
+  grid-row: 1;
+  min-height: var(--touch-target);
+  cursor: pointer;
+}
+
+.star-input__radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.star-input__stars:has(:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+}
+
+.star-input__text {
+  font: var(--text-label-m);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Log modal: bottom sheet on phones, centred dialog from 768px (Figma note 14) */
+
+.log-modal {
+  width: 100%;
+  max-width: none;
+  max-height: 90dvh;
+  margin: auto 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.log-modal[open] {
+  animation: sheet-in var(--duration-base) var(--ease-out);
+}
+
+.log-modal::backdrop {
+  background: rgb(7 8 13 / 0.7);
+}
+
+.log-modal[open]::backdrop {
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+
+html:has(.log-modal[open]) {
+  overflow: hidden;
+}
+
+.log-modal__panel {
+  display: grid;
+  grid-auto-rows: max-content;
+  gap: var(--space-4);
+  max-height: 90dvh;
+  padding: var(--space-3) var(--space-4) var(--space-6);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.log-modal__handle {
+  justify-self: center;
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-raised);
+}
+
+.log-modal__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.log-modal__title {
+  font: var(--text-h2);
+  overflow-wrap: anywhere;
+}
+
+.log-modal__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  margin-right: calc(var(--space-2) * -1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-secondary);
+}
+
+.log-modal__close:hover {
+  background: var(--color-bg-raised);
+  color: var(--color-text-primary);
+}
+
+.log-modal__group {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.log-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .log-modal {
+    width: min(600px, calc(100% - 2 * var(--space-8)));
+    max-height: calc(100dvh - 2 * var(--space-8));
+    margin: auto;
+    border-radius: var(--radius-lg);
+  }
+
+  .log-modal[open] {
+    animation-name: modal-in;
+  }
+
+  .log-modal__panel {
+    max-height: calc(100dvh - 2 * var(--space-8));
+    padding: var(--space-8);
+  }
+
+  .log-modal__handle {
+    display: none;
+  }
+
+  .log-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
