@@ -1,5 +1,7 @@
 const HOVER_DELAY = 500;
 const FADE_OUT = 500;
+// If sound was blocked and nothing is showing by now, it starts again muted instead of sitting there.
+const BLOCKED_FALLBACK = 1500;
 const YOUTUBE_ORIGIN = 'https://www.youtube-nocookie.com';
 const YOUTUBE_PLAYING = 1;
 
@@ -11,11 +13,11 @@ const SOUND_ICONS = {
 /* Two players with the same small interface, so the hero doesn't care where the trailer comes from. */
 
 // YouTube is controlled through postMessage (the IFrame API protocol), so no extra script is loaded.
-function createYouTubePlayer({ youtubeId }, { title, onPlaying, onError }) {
+function createYouTubePlayer({ youtubeId }, { title, muted: startMuted, onPlaying, onError }) {
   const frame = document.createElement('iframe');
   const params = new URLSearchParams({
     autoplay: 1,
-    mute: 1,
+    mute: startMuted ? 1 : 0,
     controls: 0,
     loop: 1,
     playlist: youtubeId,
@@ -33,7 +35,7 @@ function createYouTubePlayer({ youtubeId }, { title, onPlaying, onError }) {
   frame.tabIndex = -1;
   frame.setAttribute('aria-hidden', 'true');
 
-  let muted = true;
+  let muted = startMuted;
   const send = (func, args = []) => {
     frame.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), YOUTUBE_ORIGIN);
   };
@@ -75,11 +77,11 @@ function createYouTubePlayer({ youtubeId }, { title, onPlaying, onError }) {
   };
 }
 
-function createVideoPlayer({ src }, { onPlaying, onError }) {
+function createVideoPlayer({ src }, { muted, onPlaying, onError }) {
   const video = document.createElement('video');
   video.className = 'hero__video';
   video.src = src;
-  video.muted = true;
+  video.muted = muted;
   video.loop = true;
   video.playsInline = true;
   video.preload = 'none';
@@ -103,7 +105,7 @@ function createVideoPlayer({ src }, { onPlaying, onError }) {
   };
 }
 
-// Hovering the billboard plays the trailer muted, like Netflix; leaving fades back to the still art.
+// Hovering the billboard plays the trailer with sound, like Netflix; leaving fades back to the still art.
 // Phones, reduced motion and data saver get the Play trailer button only, so nothing starts on its own.
 export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer, title }) {
   const canHover = matchMedia('(hover: hover) and (pointer: fine)');
@@ -114,10 +116,14 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   let playing = false;
   let startedBy = null;
   let stoppedByUser = false;
+  let soundWanted = true;
+  let blockedTimer;
   let hoverTimer;
   let resetTimer;
 
   const canAutoplay = () => canHover.matches && !reducedMotion.matches && !saveData;
+  // Browsers only allow sound after a click or key press on the page; a hover alone doesn't count.
+  const canPlaySound = () => navigator.userActivation?.hasBeenActive ?? true;
 
   function renderSound() {
     const soundOn = Boolean(player && !player.muted);
@@ -133,7 +139,16 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
 
   // The art only gives way once real frames are showing, so a slow connection never flashes black.
   function reveal() {
-    if (playing) hero.classList.add('hero--playing');
+    if (!playing) return;
+    clearTimeout(blockedTimer);
+    hero.classList.add('hero--playing');
+  }
+
+  function playMuted() {
+    if (!playing || !player) return;
+    player.muted = true;
+    renderSound();
+    player.play().catch(() => stop());
   }
 
   function play(source) {
@@ -143,20 +158,25 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
     startedBy = source;
     soundButton.hidden = false;
     renderPlayButton();
+    const muted = !(soundWanted && canPlaySound());
     if (player) {
-      player.play().catch(() => stop());
+      player.muted = muted;
+      player.play().catch(playMuted);
     } else {
       // A new YouTube embed starts by itself once it loads; a video file needs telling.
       const create = trailer.youtubeId ? createYouTubePlayer : createVideoPlayer;
-      player = create(trailer, { title, onPlaying: reveal, onError: remove });
+      player = create(trailer, { title, muted, onPlaying: reveal, onError: remove });
       media.append(player.element);
-      if (!trailer.youtubeId) player.play().catch(() => stop());
+      if (!trailer.youtubeId) player.play().catch(playMuted);
     }
+    clearTimeout(blockedTimer);
+    if (!muted) blockedTimer = setTimeout(playMuted, BLOCKED_FALLBACK);
     renderSound();
   }
 
   function stop() {
     clearTimeout(hoverTimer);
+    clearTimeout(blockedTimer);
     if (!playing) return;
     playing = false;
     startedBy = null;
@@ -164,7 +184,7 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
     soundButton.hidden = true;
     renderPlayButton();
     if (!player) return;
-    // Sound never carries over to the next hover; it's always the user's choice to turn it on.
+    // Silenced straight away so audio doesn't trail behind the fade. The next play goes back to the user's choice.
     player.muted = true;
     renderSound();
     resetTimer = setTimeout(() => player?.rewind(), FADE_OUT);
@@ -215,7 +235,8 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
 
   soundButton.addEventListener('click', () => {
     if (!player) return;
-    player.muted = !player.muted;
+    soundWanted = player.muted;
+    player.muted = !soundWanted;
     renderSound();
   });
 
