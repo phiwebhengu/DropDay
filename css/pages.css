@@ -234,3 +234,72 @@
     aspect-ratio: 340 / 450;
   }
 }
+
+.game__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.game__see-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  color: var(--color-accent-highlight);
+  font: var(--text-label-m);
+  text-decoration: none;
+}
+
+.game__see-all:hover {
+  text-decoration: underline;
+}
+
+.game__section--wide {
+  justify-items: stretch;
+}
+
+/* Screenshots: swipe row on phones (scroll-snap), four across on desktop */
+
+.screenshots {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 75%;
+  gap: var(--space-3);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.screenshots > li {
+  scroll-snap-align: start;
+}
+
+.screenshots__image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .screenshots {
+    grid-auto-columns: calc((100% - 3 * var(--space-6)) / 4);
+    gap: var(--space-6);
+  }
+}
+
+/* A single row: show only as many similar games as fit, so the last row is never half empty. */
+.release-grid--row > li:nth-child(n + 5) {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .release-grid--row > li:nth-child(5) {
+    display: block;
+  }
+}

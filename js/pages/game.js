@@ -1,13 +1,14 @@
 import * as rawg from '../api/rawg.js';
 import { getStatus } from '../store/library.js';
-import { getDateText } from '../ui/card.js';
-import { removeRelease, setReleaseStatus } from '../ui/library-actions.js';
+import { createReleaseCard, getDateText } from '../ui/card.js';
+import { removeRelease, setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 
 const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;
+const SIMILAR_COUNT = 5;
 
 const backLink = document.getElementById('back-link');
 const backLinkText = document.getElementById('back-link-text');
@@ -25,6 +26,11 @@ const removeButton = document.getElementById('remove-button');
 const about = document.getElementById('game-about');
 const description = document.getElementById('game-description');
 const readMore = document.getElementById('read-more');
+const screenshots = document.getElementById('game-screenshots');
+const screenshotList = document.getElementById('screenshot-list');
+const similar = document.getElementById('game-similar');
+const similarList = document.getElementById('similar-list');
+const similarSeeAll = document.getElementById('similar-see-all');
 
 const id = new URLSearchParams(location.search).get('id');
 let game = null;
@@ -111,9 +117,49 @@ function renderGame() {
   renderDescription(game.description);
 }
 
+function renderScreenshots(urls) {
+  screenshots.hidden = !urls.length;
+  screenshotList.replaceChildren(
+    ...urls.map((url, index) => {
+      const item = document.createElement('li');
+      const image = document.createElement('img');
+      image.className = 'screenshots__image';
+      image.src = url;
+      image.alt = `Screenshot ${index + 1} of ${game.title}`;
+      image.width = 600;
+      image.height = 338;
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      image.addEventListener('error', () => item.remove(), { once: true });
+      item.append(image);
+      return item;
+    }),
+  );
+}
+
+function renderSimilar(games) {
+  similar.hidden = !games.length;
+  similarSeeAll.href = `discover.html?cat=games&range=quarter&genre=${game.genreIds[0]}`;
+  similarList.replaceChildren(
+    ...games.map((release) => {
+      const item = document.createElement('li');
+      item.append(createReleaseCard(release, { status: getStatus(release) }));
+      return item;
+    }),
+  );
+}
+
+// The extras load after the main details so the page is usable sooner; if they fail, their sections just stay hidden.
+function loadExtras() {
+  rawg.getScreenshots(id).then(renderScreenshots).catch(() => {});
+  rawg.getSimilarGames(id, game.genreIds, SIMILAR_COUNT).then(renderSimilar).catch(() => {});
+}
+
 function showState(message) {
   hero.hidden = true;
   about.hidden = true;
+  screenshots.hidden = true;
+  similar.hidden = true;
   stateBox.replaceChildren(message);
   stateBox.hidden = false;
 }
@@ -139,6 +185,7 @@ async function loadGame() {
   try {
     ({ game } = await rawg.getGame(id));
     renderGame();
+    loadExtras();
   } catch (error) {
     if (error.status === 404) {
       showNotFound();
@@ -195,8 +242,11 @@ readMore.addEventListener('click', () => {
   description.classList.toggle('game__description--expanded', expanded);
 });
 
+similarList.addEventListener('release:save', (event) => toggleSave(event.detail.release));
+
 window.addEventListener('library:change', () => {
   if (game) renderStatus();
+  syncCards(similarList);
 });
 
 renderBackLink();
