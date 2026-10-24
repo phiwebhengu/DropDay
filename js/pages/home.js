@@ -6,7 +6,7 @@ import { setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.j
 import { createLibraryRow } from '../ui/library-row.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { createStateMessage } from '../ui/states.js';
-import { playHeroIntro, tickDigit } from '../motion.js';
+import { playHeroIntro, setupPinnedStrip, tickDigit } from '../motion.js';
 import { formatReleaseDate, getMonthRange, toMonthKey } from '../utils/dates.js';
 
 const SKELETON_DELAY = 150;
@@ -34,12 +34,15 @@ const countdownValues = Object.fromEntries(
 );
 const monthStrip = document.getElementById('month-strip');
 const monthState = document.getElementById('month-state');
+const monthSection = document.getElementById('month-section');
+const monthProgress = document.getElementById('month-progress');
 const backlogList = document.getElementById('backlog-list');
 const backlogEmpty = document.getElementById('backlog-empty');
 
 let featured = null;
 let countdownTimer;
 let countdownStarted = false;
+let stripMotion = null;
 
 /* Hero */
 
@@ -70,16 +73,17 @@ function tick() {
   // Only the units that changed animate, so most seconds it's just the last box ticking.
   Object.entries(next).forEach(([unit, value]) => {
     const element = countdownValues[unit];
-    if (element.textContent === value) return;
+    const previous = element.textContent;
+    if (previous === value) return;
     element.textContent = value;
-    if (countdownStarted) tickDigit(element);
+    if (countdownStarted) tickDigit(element, previous);
   });
   countdownStarted = true;
 }
 
 function renderHeroSave() {
   const status = getStatus(featured);
-  heroSave.hidden = false;
+  heroSave.disabled = false;
   heroSave.setAttribute('aria-pressed', String(Boolean(status)));
   heroSave.textContent = status ? getSaveText('game', status) : '+ Add to Radar';
 }
@@ -103,6 +107,7 @@ function renderHero(game) {
   heroMeta.textContent = [game.tba ? 'Release date TBA' : formatReleaseDate(game.date), platforms].filter(Boolean).join(' · ');
 
   heroArt.href = link.href;
+  heroArt.classList.remove('skeleton');
   heroArt.replaceChildren();
   if (game.cover) {
     const image = document.createElement('img');
@@ -114,8 +119,8 @@ function renderHero(game) {
   }
 
   renderHeroSave();
-  if (!game.tba && game.date) {
-    countdown.hidden = false;
+  countdown.hidden = game.tba || !game.date;
+  if (!countdown.hidden) {
     tick();
     clearInterval(countdownTimer);
     countdownTimer = setInterval(tick, 1000);
@@ -130,6 +135,8 @@ function renderHeroMessage(message) {
   heroTitle.textContent = 'Drop Day';
   heroMeta.textContent = '';
   heroArt.hidden = true;
+  countdown.hidden = true;
+  heroSave.hidden = true;
   heroMeta.after(message);
 }
 
@@ -235,6 +242,8 @@ async function loadMonth() {
   monthStrip.replaceChildren(
     ...releases.map((release) => wrapInListItem(createReleaseCard(release, { status: getStatus(release) }))),
   );
+  stripMotion?.revert();
+  stripMotion = setupPinnedStrip(monthSection, monthStrip, monthProgress);
 }
 
 /* Continue your Backlog: localStorage only, so it renders even offline */
