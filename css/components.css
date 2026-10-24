@@ -1672,6 +1672,13 @@ html:has(.log-modal[open]) {
   font-style: italic;
 }
 
+/* Short reviews would leave the button no room, so a spoiler always gets a usable width. */
+.library-row__review--spoiler {
+  align-content: center;
+  min-width: min(100%, 14rem);
+  min-height: 40px;
+}
+
 .library-row__review--spoiler .library-row__review-text {
   filter: blur(6px);
   user-select: none;
@@ -1687,6 +1694,7 @@ html:has(.log-modal[open]) {
   background: rgb(11 13 20 / 0.4);
   font: var(--text-label-m);
   text-decoration: underline;
+  white-space: nowrap;
 }
 
 .library-row__more {
