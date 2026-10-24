@@ -132,3 +132,42 @@ export function setupPinnedStrip(section, strip, progress) {
     };
   });
 }
+
+/* M3 · Discover grid: when filters change, releases that stay glide to their new places (Flip),
+   new ones rise in on a short stagger. Reduced motion: the new cards fade in. */
+
+export function captureGrid(grid) {
+  if (!hasMotion || !window.Flip) return null;
+  return window.Flip.getState(grid.querySelectorAll('.release-card[data-flip-id]'));
+}
+
+function enterCards(cards) {
+  return gsap.from(cards, {
+    opacity: 0,
+    y: 24,
+    scale: 0.96,
+    duration: 0.55,
+    ease: 'power3.out',
+    stagger: { each: 0.03, amount: 0.5 },
+    clearProps: 'opacity,transform',
+  });
+}
+
+export function animateGrid(cards, state = null) {
+  if (!hasMotion || !cards.length) return;
+  if (prefersReducedMotion()) {
+    fadeIn(cards);
+    return;
+  }
+  if (!state || !window.Flip) {
+    enterCards(cards);
+    return;
+  }
+  window.Flip.from(state, {
+    targets: cards,
+    duration: 0.6,
+    ease: 'power3.inOut',
+    stagger: 0.015,
+    onEnter: enterCards,
+  });
+}

@@ -79,6 +79,8 @@ export function createReleaseCard(release, { status = null } = {}) {
   card.classList.toggle('release-card--saved', Boolean(status));
   card.dataset.id = release.id;
   card.dataset.type = release.type;
+  // Lets GSAP Flip recognise the same release across a re-render (M3).
+  card.dataset.flipId = `${release.type}:${release.id}`;
 
   const tags = getTags(release)
     .map((tag) => `<li class="tag">${escapeHtml(tag)}</li>`)

@@ -5,10 +5,12 @@ import { formatTime, getMonthRange, getQuickRange, toMonthKey } from '../utils/d
 import { createReleaseCard, createCardSkeleton } from '../ui/card.js';
 import { createStateMessage } from '../ui/states.js';
 import { openQuickView } from '../ui/quick-view.js';
+import { animateGrid, captureGrid } from '../motion.js';
 import { syncCards, toggleSave } from '../ui/library-actions.js';
 import { getStatus } from '../store/library.js';
 
 const SKELETON_COUNT = 10;
+const SKELETON_DELAY = 150;
 const MONTHS_AHEAD = 12;
 const OLDER_PLATFORM_COUNT = 8;
 const FILTER_DELAY = 300;
@@ -236,7 +238,9 @@ function fetchPage(state, page) {
 }
 
 function appendCards(results) {
-  grid.append(...results.map((release) => wrapInListItem(createReleaseCard(release, { status: getStatus(release) }))));
+  const cards = results.map((release) => createReleaseCard(release, { status: getStatus(release) }));
+  grid.append(...cards.map(wrapInListItem));
+  return cards;
 }
 
 function setNextPage(response) {
@@ -284,13 +288,21 @@ async function loadReleases(state) {
   note.hidden = true;
   renderSummary(state);
   grid.setAttribute('aria-busy', 'true');
-  grid.replaceChildren(...Array.from({ length: SKELETON_COUNT }, () => wrapInListItem(createCardSkeleton())));
+
+  // The current cards stay (dimmed) while the next set loads, so Flip can move the ones that stay.
+  // Skeletons only replace them if loading takes longer than 150 ms (PRD loading state).
+  let flipState = captureGrid(grid);
+  const skeletonTimer = setTimeout(() => {
+    flipState = null;
+    grid.replaceChildren(...Array.from({ length: SKELETON_COUNT }, () => wrapInListItem(createCardSkeleton())));
+  }, SKELETON_DELAY);
 
   try {
     const response = await fetchPage(state, 1);
     if (id !== requestId) return;
+    clearTimeout(skeletonTimer);
     grid.replaceChildren();
-    appendCards(response.results);
+    animateGrid(appendCards(response.results), flipState);
     pagesLoaded = 1;
     resultCount = response.count ?? (response.hasMore ? null : response.results.length);
     setNextPage(response);
@@ -322,6 +334,7 @@ async function loadReleases(state) {
     }
   } catch {
     if (id !== requestId) return;
+    clearTimeout(skeletonTimer);
     grid.replaceChildren();
     loadFailed = true;
     renderSummary(state);
@@ -339,7 +352,7 @@ async function loadReleases(state) {
   }
 }
 
-async function loadMore() {
+async function loadMore({ animate = true } = {}) {
   const id = requestId;
   const state = readState();
   loadMoreButton.setAttribute('aria-busy', 'true');
@@ -348,7 +361,8 @@ async function loadMore() {
   try {
     const response = await fetchPage(state, nextPage);
     if (id !== requestId) return;
-    appendCards(response.results);
+    const cards = appendCards(response.results);
+    if (animate) animateGrid(cards);
     pagesLoaded += 1;
     setNextPage(response);
   } catch {
@@ -404,7 +418,7 @@ monthSelect.addEventListener('change', () => {
 });
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
-loadMoreButton.addEventListener('click', loadMore);
+loadMoreButton.addEventListener('click', () => loadMore());
 grid.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 window.addEventListener('library:change', () => syncCards(grid));
 grid.addEventListener('release:quickview', (event) => {
@@ -475,7 +489,7 @@ async function restoreScroll(saved) {
   if (!saved) return;
   while (pagesLoaded < saved.pages && nextPage !== null) {
     const before = pagesLoaded;
-    await loadMore();
+    await loadMore({ animate: false });
     if (pagesLoaded === before) break;
   }
   window.scrollTo(0, saved.y);
