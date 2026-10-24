@@ -12,9 +12,6 @@
 .page-intro__eyebrow {
   color: var(--color-accent-highlight);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .page-intro__text {
@@ -124,7 +121,7 @@
   aspect-ratio: 358 / 220;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, var(--color-category-games), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
 }
 
 .game__cover.skeleton {
@@ -147,9 +144,6 @@
 .game__eyebrow {
   color: var(--color-category-games);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .game__title {
@@ -341,7 +335,6 @@
 }
 
 .library-stats__item {
-  --stat-accent: var(--color-category-games);
   display: flex;
   flex-direction: column-reverse;
   gap: var(--space-1);
@@ -351,25 +344,12 @@
   background: var(--color-bg-surface);
 }
 
-.library-stats__item--playing {
-  --stat-accent: var(--color-category-tv);
-}
-
-.library-stats__item--backlog {
-  --stat-accent: var(--color-rating);
-}
-
-.library-stats__item--radar {
-  --stat-accent: var(--color-accent-highlight);
-}
-
 .library-stats__label {
   color: var(--color-text-secondary);
   font: var(--text-body-s);
 }
 
 .library-stats__count {
-  color: var(--stat-accent);
   font: var(--text-h1);
   font-variant-numeric: tabular-nums;
 }
@@ -406,10 +386,9 @@
 }
 
 .diary__heading {
-  color: var(--color-text-secondary);
-  font: var(--text-label-m);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-default);
+  font: var(--text-h2);
 }
 
 /* Library layout: the list, with Activity beside it on desktop and below it on phones */
@@ -480,9 +459,7 @@
   overflow: hidden;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgb(108 77 255 / 0.45), transparent 60%),
-    linear-gradient(135deg, var(--color-bg-surface), var(--color-bg-page));
+  background: var(--color-bg-surface);
 }
 
 .hero__content {
@@ -496,9 +473,6 @@
 .hero__eyebrow {
   color: var(--color-accent-highlight);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .hero__title {
@@ -545,9 +519,9 @@
   background: var(--color-bg-raised);
 }
 
-/* The gradient only stands in when there's no art; behind real art the panel stays grey so the reveal is clean. */
+/* A tinted panel only stands in when there's no art; behind real art it stays plain so the reveal is clean. */
 .hero__art:not(.skeleton):not(:has(img)) {
-  background: linear-gradient(160deg, var(--color-category-anime), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
 }
 
 .hero__image {
