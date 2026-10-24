@@ -6,6 +6,7 @@ import { openQuickView } from '../ui/quick-view.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatMonthYear, formatRelative, toIsoDate } from '../utils/dates.js';
+import '../ui/save-feedback.js';
 
 const TABS = ['played', 'playing', 'backlog', 'radar'];
 const VIEWS = ['list', 'grid'];

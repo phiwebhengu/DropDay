@@ -171,3 +171,26 @@ export function animateGrid(cards, state = null) {
     onEnter: enterCards,
   });
 }
+
+/* M4 · Save feedback: the button squashes and springs back, the toast arrives with a little overshoot,
+   and the Library badge in the nav pulses. Reduced motion keeps the state changes, without the bounce. */
+
+export function squashButton(button) {
+  if (!hasMotion || prefersReducedMotion()) return;
+  gsap
+    .timeline()
+    .to(button, { scale: 0.9, duration: 0.08, ease: 'power2.in' })
+    .to(button, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.45)', clearProps: 'transform' });
+}
+
+// Returns true when GSAP handled the entrance, so the toast can switch off its CSS fallback.
+export function animateToastIn(toast) {
+  if (!hasMotion || prefersReducedMotion()) return false;
+  gsap.from(toast, { y: 32, scale: 0.94, opacity: 0, duration: 0.5, ease: 'back.out(1.6)', clearProps: 'transform,opacity' });
+  return true;
+}
+
+export function pulseBadge(badge) {
+  if (!hasMotion || prefersReducedMotion()) return;
+  gsap.fromTo(badge, { scale: 1.7 }, { scale: 1, duration: 0.8, ease: 'elastic.out(1, 0.35)', clearProps: 'transform' });
+}
