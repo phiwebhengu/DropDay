@@ -152,12 +152,25 @@
           </div>
         </article>
 
+        <section class="game__section game__section--wide" id="game-screenshots" aria-labelledby="screenshots-title" hidden>
+          <h2 class="game__section-title" id="screenshots-title">Screenshots</h2>
+          <ul class="screenshots" id="screenshot-list" role="list"></ul>
+        </section>
+
         <section class="game__section" id="game-about" aria-labelledby="about-title" hidden>
           <h2 class="game__section-title" id="about-title">About</h2>
           <p class="game__description" id="game-description"></p>
           <button class="text-button" id="read-more" type="button" aria-expanded="false" aria-controls="game-description" hidden>
             Read more
           </button>
+        </section>
+
+        <section class="game__section game__section--wide" id="game-similar" aria-labelledby="similar-title" hidden>
+          <div class="game__section-head">
+            <h2 class="game__section-title" id="similar-title">Similar games</h2>
+            <a class="game__see-all" id="similar-see-all" href="discover.html">See all <span aria-hidden="true">→</span></a>
+          </div>
+          <ul class="release-grid release-grid--row" id="similar-list" role="list"></ul>
         </section>
       </div>
     </main>
