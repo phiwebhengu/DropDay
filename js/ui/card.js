@@ -1,5 +1,6 @@
 import { formatReleaseDate, toIsoDate } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
+import { posterFallback } from './poster.js';
 
 const MAX_PLATFORM_TAGS = 3;
 
@@ -88,6 +89,7 @@ export function createReleaseCard(release, { status = null } = {}) {
 
   card.innerHTML = `
     <div class="release-card__media">
+      ${posterFallback(release.title)}
       ${release.image ? `<img class="release-card__image" src="${escapeHtml(release.image)}" alt="" width="600" height="400" loading="lazy" decoding="async">` : ''}
     </div>
     <div class="release-card__body">

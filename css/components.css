@@ -5,8 +5,8 @@
   top: 0;
   z-index: 50;
   border-bottom: 1px solid var(--color-border-default);
-  background: rgb(11 13 20 / 0.92);
-  backdrop-filter: blur(12px);
+  background: var(--color-header-bg);
+  backdrop-filter: blur(12px) saturate(1.2);
 }
 
 .site-header__inner {
@@ -21,10 +21,8 @@
   align-items: center;
   gap: var(--space-2);
   min-height: var(--touch-target);
-  font: var(--text-label-m);
-  font-size: 1.125rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font: var(--font-weight-heavy) 1.625rem / 1 var(--font-display);
+  letter-spacing: 0.01em;
   text-decoration: none;
 }
 
@@ -48,6 +46,24 @@
   .site-header__search-link {
     display: none;
   }
+}
+
+/* Theme toggle: tucked in beside search, so the header gap doesn't push them apart. */
+.theme-toggle {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  margin-left: calc(var(--space-1) - var(--space-6));
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-bg-raised);
 }
 
 /* Main navigation (desktop) */
@@ -226,8 +242,8 @@
   gap: var(--space-2);
   min-height: var(--touch-target);
   padding: 0 var(--space-6);
-  border: 2px solid transparent;
-  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   font: var(--text-label-m);
   text-decoration: none;
   transition:
@@ -245,13 +261,13 @@
 }
 
 .button--outline {
-  border-color: var(--color-action-primary);
+  border-color: var(--color-border-strong);
   background: transparent;
 }
 
 .button--outline:hover {
-  border-color: var(--color-action-primary-hover);
-  background: rgb(108 77 255 / 0.12);
+  border-color: var(--color-action-primary);
+  background: var(--color-action-tint);
 }
 
 .button:disabled {
@@ -286,7 +302,7 @@
   min-height: 50px;
   padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
   border: 1px solid var(--toast-accent);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   background: var(--color-bg-surface);
   box-shadow: var(--shadow-card);
   pointer-events: auto;
@@ -320,7 +336,7 @@
   min-height: var(--touch-target);
   padding-inline: var(--space-3);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--color-accent-highlight);
   font: var(--text-label-m);
@@ -389,11 +405,7 @@
 
 .release-card__media {
   aspect-ratio: 13 / 15;
-  background: linear-gradient(
-    160deg,
-    var(--card-accent),
-    var(--color-action-primary)
-  );
+  background: color-mix(in srgb, var(--card-accent) 16%, var(--color-bg-raised));
 }
 
 .release-card__image {
@@ -422,8 +434,6 @@
   gap: var(--space-2);
   color: var(--color-text-secondary);
   font: var(--text-caption);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .release-card__category::before {
@@ -502,29 +512,24 @@ html:not(.has-motion) .release-card__save:active {
 }
 
 .release-card--saved {
-  border-color: var(--color-accent-highlight);
-  box-shadow: 0 0 0 1px var(--color-accent-highlight);
+  border-color: color-mix(in srgb, var(--color-accent-highlight) 50%, var(--color-border-default));
 }
 
 .release-card--saved .release-card__save {
   border-color: var(--color-accent-highlight);
+  background: var(--color-action-tint);
   color: var(--color-accent-highlight);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .release-card:not(.release-card--loading):hover {
     transform: translateY(-4px);
-    border-color: var(--color-action-primary-hover);
-    box-shadow:
-      0 0 0 1px var(--color-action-primary-hover),
-      var(--shadow-card);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-card);
   }
 
   .release-card--saved:hover {
     border-color: var(--color-accent-highlight);
-    box-shadow:
-      0 0 0 1px var(--color-accent-highlight),
-      var(--shadow-card);
   }
 }
 
@@ -543,7 +548,7 @@ html:not(.has-motion) .release-card__save:active {
   background: linear-gradient(
       90deg,
       var(--color-bg-raised) 30%,
-      color-mix(in srgb, var(--color-bg-raised), var(--ink-500) 40%) 50%,
+      var(--color-skeleton-shine) 50%,
       var(--color-bg-raised) 70%
     )
     0 0 / 300% 100%;
@@ -601,7 +606,7 @@ html:not(.has-motion) .release-card__save:active {
   min-height: var(--touch-target);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: var(--color-bg-surface);
   font: var(--text-label-m);
   transition: background-color var(--duration-fast) ease,
@@ -668,8 +673,8 @@ html:not(.has-motion) .release-card__save:active {
 .quick-range__option {
   min-height: var(--touch-target);
   padding: var(--space-3) var(--space-6);
-  border: 2px solid var(--color-action-primary-hover);
-  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   background: transparent;
   font: var(--text-label-m);
   transition: background-color var(--duration-fast) ease,
@@ -689,7 +694,7 @@ html:not(.has-motion) .release-card__save:active {
 
 @media (hover: hover) and (pointer: fine) {
   .quick-range__option[aria-pressed="false"]:hover {
-    background: rgb(108 77 255 / 0.12);
+    background: var(--color-action-tint);
   }
 }
 
@@ -787,41 +792,30 @@ html:not(.has-motion) .release-card__save:active {
 .state-message {
   display: grid;
   justify-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  max-width: 340px;
-  margin-inline: auto;
-  padding: var(--space-8) var(--space-6);
-  border: 1px solid var(--color-border-default);
+  padding: var(--space-12) var(--space-6);
+  border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
   text-align: center;
 }
 
-.state-message__icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin-bottom: var(--space-1);
-  border-radius: 50%;
-  background: var(--color-bg-raised);
-  color: var(--color-text-secondary);
-  font: var(--text-h3);
-}
-
-.state-message--error .state-message__icon {
-  color: var(--color-status-error);
+/* An error is a problem to fix, not an empty slot, so it gets a solid tinted panel instead. */
+.state-message--error {
+  border: 1px solid color-mix(in srgb, var(--color-status-error) 45%, transparent);
+  background: var(--color-status-error-tint);
 }
 
 .state-message__title {
-  font: var(--text-h3);
+  font: var(--text-h2);
+  text-wrap: balance;
 }
 
 .state-message__text {
+  max-width: 46ch;
   margin-bottom: var(--space-2);
   color: var(--color-text-secondary);
-  font: var(--text-body-s);
+  font: var(--text-body-m);
 }
 
 /* Quick view drawer: a bottom sheet on phones (matches the Log sheet), a side drawer on desktop */
@@ -854,7 +848,7 @@ html:not(.has-motion) .release-card__save:active {
 }
 
 .quick-view::backdrop {
-  background: rgb(7 8 13 / 0.7);
+  background: var(--color-scrim);
 }
 
 .quick-view[open]::backdrop {
@@ -898,8 +892,6 @@ html:has(.quick-view[open]) {
   gap: var(--space-2);
   color: var(--color-text-secondary);
   font: var(--text-caption);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .quick-view__category::before {
@@ -939,7 +931,7 @@ html:has(.quick-view[open]) {
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: linear-gradient(160deg, var(--quick-view-accent), var(--color-action-primary));
+  background: color-mix(in srgb, var(--quick-view-accent) 16%, var(--color-bg-raised));
 }
 
 .quick-view__image {
@@ -977,7 +969,7 @@ html:has(.quick-view[open]) {
 }
 
 .quick-view__save[aria-pressed="true"] {
-  background: transparent;
+  background: var(--color-action-tint);
   border-color: var(--color-accent-highlight);
   color: var(--color-accent-highlight);
 }
@@ -986,7 +978,7 @@ html:has(.quick-view[open]) {
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: var(--ink-950);
+  background: var(--color-bg-sunken);
 }
 
 .quick-view__video {
@@ -1029,7 +1021,7 @@ html:has(.quick-view[open]) {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: var(--color-bg-raised);
   font: var(--text-caption);
 }
@@ -1098,11 +1090,11 @@ html:has(.quick-view[open]) {
   min-height: var(--touch-target);
   max-width: 100%;
   padding: 0 var(--space-4) 0 var(--space-3);
-  border: 2px solid var(--color-action-primary);
-  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   font: var(--text-label-m);
   text-decoration: none;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
 }
 
 .back-link span {
@@ -1112,7 +1104,8 @@ html:has(.quick-view[open]) {
 }
 
 .back-link:hover {
-  background: rgb(108 77 255 / 0.12);
+  border-color: var(--color-action-primary);
+  background: var(--color-action-tint);
 }
 
 /* Text button: low-emphasis actions like Share and Read more */
@@ -1177,7 +1170,7 @@ html:has(.quick-view[open]) {
 }
 
 .status-button:hover:not(:disabled) {
-  border-color: var(--color-action-primary-hover);
+  border-color: var(--color-border-strong);
 }
 
 html:not(.has-motion) .status-button:active:not(:disabled) {
@@ -1270,7 +1263,7 @@ html:not(.has-motion) .status-button:active:not(:disabled) {
 }
 
 .status-option:hover {
-  border-color: var(--color-action-primary-hover);
+  border-color: var(--color-border-strong);
 }
 
 .status-option:has(:checked) {
@@ -1355,7 +1348,7 @@ html:not(.has-motion) .status-button:active:not(:disabled) {
 }
 
 .log-modal::backdrop {
-  background: rgb(7 8 13 / 0.7);
+  background: var(--color-scrim);
 }
 
 .log-modal[open]::backdrop {
@@ -1469,7 +1462,8 @@ html:has(.log-modal[open]) {
 .library-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .library-tab {
@@ -1477,26 +1471,26 @@ html:has(.log-modal[open]) {
   align-items: center;
   gap: var(--space-2);
   min-height: var(--touch-target);
-  padding: 0 var(--space-4);
+  margin-bottom: -1px;
+  padding: 0 var(--space-1);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-bottom: 2px solid transparent;
   background: none;
+  color: var(--color-text-secondary);
   font: var(--text-label-m);
-  transition: background-color var(--duration-fast) var(--ease-out);
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
 }
 
-.library-tab[aria-selected="false"] {
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
+.library-tab:hover {
+  color: var(--color-text-primary);
 }
 
-.library-tab[aria-selected="false"]:hover {
-  background: var(--color-bg-surface);
-}
-
+/* The bar under the tab marks the selection, so it doesn't rely on colour alone. */
 .library-tab[aria-selected="true"] {
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
+  border-bottom-color: var(--color-action-primary);
+  color: var(--color-text-primary);
 }
 
 .library-tab__count {
@@ -1511,7 +1505,7 @@ html:has(.log-modal[open]) {
   gap: var(--space-1);
   padding: 2px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
 }
 
 .view-toggle__option {
@@ -1521,7 +1515,7 @@ html:has(.log-modal[open]) {
   min-height: var(--touch-target);
   padding: 0 var(--space-4);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--color-text-secondary);
   font: var(--text-label-m);
@@ -1562,7 +1556,7 @@ html:has(.log-modal[open]) {
 
 @media (hover: hover) and (pointer: fine) {
   .library-row:hover {
-    border-color: var(--color-action-primary-hover);
+    border-color: var(--color-border-strong);
   }
 }
 
@@ -1573,7 +1567,7 @@ html:has(.log-modal[open]) {
 }
 
 .library-row__day-number {
-  font: var(--text-h3);
+  font: var(--font-weight-heavy) 1.75rem / 1 var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1586,19 +1580,19 @@ html:has(.log-modal[open]) {
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--radius-sm);
-  background: linear-gradient(160deg, var(--color-category-games), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
 }
 
 .library-row--movie .library-row__cover {
-  background: linear-gradient(160deg, var(--color-category-movies), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-movies) 16%, var(--color-bg-raised));
 }
 
 .library-row--tv .library-row__cover {
-  background: linear-gradient(160deg, var(--color-category-tv), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-tv) 16%, var(--color-bg-raised));
 }
 
 .library-row--anime .library-row__cover {
-  background: linear-gradient(160deg, var(--color-category-anime), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-anime) 16%, var(--color-bg-raised));
 }
 
 .library-row__image {
@@ -1654,49 +1648,11 @@ html:has(.log-modal[open]) {
   font-size: 1rem;
 }
 
+/* Above the row's stretched link, so the spoiler button and text selection still work. */
 .library-row__review {
   position: relative;
   z-index: 2;
-  display: grid;
-  justify-self: start;
-  justify-items: start;
   margin-top: var(--space-1);
-  max-width: 65ch;
-}
-
-.library-row__review-text {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  color: var(--color-text-secondary);
-  font: var(--text-body-s);
-  font-style: italic;
-}
-
-/* Short reviews would leave the button no room, so a spoiler always gets a usable width. */
-.library-row__review--spoiler {
-  align-content: center;
-  min-width: min(100%, 14rem);
-  min-height: var(--touch-target);
-}
-
-.library-row__review--spoiler .library-row__review-text {
-  filter: blur(6px);
-  user-select: none;
-}
-
-.library-row__reveal {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: rgb(11 13 20 / 0.4);
-  font: var(--text-label-m);
-  text-decoration: underline;
-  white-space: nowrap;
 }
 
 .library-row__more {
@@ -1744,7 +1700,7 @@ html:has(.log-modal[open]) {
 
 .library-row__action--danger:hover {
   border-color: var(--color-status-error);
-  background: rgb(255 107 107 / 0.12);
+  background: var(--color-status-error-tint);
 }
 
 @media (min-width: 768px) {
@@ -1794,8 +1750,6 @@ html:has(.log-modal[open]) {
 .countdown__label {
   color: var(--color-text-secondary);
   font: var(--text-caption);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 @media (min-width: 768px) {
@@ -1819,8 +1773,8 @@ html:has(.log-modal[open]) {
   margin-left: var(--space-2);
   padding-inline: 5px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent-highlight);
-  color: var(--color-bg-page);
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
   font: var(--font-weight-semibold) 0.6875rem / 1 var(--font-family);
   font-variant-numeric: tabular-nums;
 }
@@ -1849,4 +1803,90 @@ html:has(.log-modal[open]) {
   --dialog-scale: 1;
   translate: var(--dialog-x) var(--dialog-y);
   scale: var(--dialog-scale);
+}
+
+/* Review: a logged review as a pull-quote (diary rows and "Your log") */
+
+.review {
+  position: relative;
+  display: grid;
+  justify-self: start;
+  justify-items: start;
+  max-width: 65ch;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-accent-highlight);
+}
+
+.review__text {
+  color: var(--color-text-primary);
+  font: var(--text-body-m);
+  white-space: pre-line;
+}
+
+.review--clamped .review__text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+/* Short reviews would leave the button no room, so a spoiler always gets a usable width. */
+.review--spoiler {
+  align-content: center;
+  min-width: min(100%, 14rem);
+  min-height: var(--touch-target);
+}
+
+.review--spoiler .review__text {
+  filter: blur(6px);
+  user-select: none;
+}
+
+.review__reveal {
+  position: absolute;
+  inset: 0 0 0 var(--space-4);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-overlay);
+  font: var(--text-label-m);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+/* Poster fallback: the title as a title card when there's no art */
+
+.release-card__media,
+.library-row__cover,
+.quick-view__poster {
+  position: relative;
+  container-type: inline-size;
+}
+
+.poster-fallback {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: end;
+  padding: 8cqi;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font: var(--font-weight-heavy) clamp(1.25rem, 13cqi, 2.75rem) / 0.92 var(--font-display);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.poster-fallback--initial {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 55cqi;
+  line-height: 1;
+}
+
+:not(:has(> img)) > .poster-fallback {
+  display: flex;
 }

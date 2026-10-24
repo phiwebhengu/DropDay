@@ -4,6 +4,8 @@ import { openQuickView } from './quick-view.js';
 import { createStars, formatRating } from './rating.js';
 import { formatShortDate, formatWeekday } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
+import { posterFallback } from './poster.js';
+import { createReview } from './review.js';
 
 const STATUSES = ['played', 'playing', 'backlog', 'radar'];
 const STANDARD_EDITION = 'Standard edition';
@@ -52,36 +54,6 @@ function renderActions(entry, actionsId) {
   `;
 }
 
-function createReview(entry) {
-  if (!entry.review) return null;
-  const review = document.createElement('div');
-  review.className = 'library-row__review';
-
-  const text = document.createElement('p');
-  text.className = 'library-row__review-text';
-  text.textContent = entry.review;
-  review.append(text);
-
-  // Spoilers stay hidden from everyone, screen readers included, until asked for.
-  if (entry.spoilers) {
-    review.classList.add('library-row__review--spoiler');
-    text.setAttribute('aria-hidden', 'true');
-    const reveal = document.createElement('button');
-    reveal.className = 'library-row__reveal';
-    reveal.type = 'button';
-    reveal.textContent = 'Show spoiler';
-    reveal.addEventListener('click', () => {
-      review.classList.remove('library-row__review--spoiler');
-      text.removeAttribute('aria-hidden');
-      reveal.remove();
-      text.tabIndex = -1;
-      text.focus();
-    });
-    review.append(reveal);
-  }
-  return review;
-}
-
 // One saved item as a row, used in My Library and on Home. diary adds the day column for Played.
 export function createLibraryRow(entry, { diary = false } = {}) {
   const item = document.createElement('li');
@@ -101,6 +73,7 @@ export function createLibraryRow(entry, { diary = false } = {}) {
         : ''
     }
     <div class="library-row__cover">
+      ${posterFallback(entry.title, { initial: true })}
       ${entry.image ? `<img class="library-row__image" src="${escapeHtml(entry.image)}" alt="" loading="lazy" decoding="async">` : ''}
     </div>
     <div class="library-row__body">
@@ -123,8 +96,11 @@ export function createLibraryRow(entry, { diary = false } = {}) {
     rating.append(createStars(entry.rating), value);
     body.append(rating);
   }
-  const review = createReview(entry);
-  if (review) body.append(review);
+  if (entry.review) {
+    const review = createReview(entry.review, { spoilers: entry.spoilers, clamped: true });
+    review.classList.add('library-row__review');
+    body.append(review);
+  }
 
   row.querySelector('.library-row__image')?.addEventListener('error', (event) => event.target.remove(), { once: true });
 

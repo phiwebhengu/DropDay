@@ -12,9 +12,6 @@
 .page-intro__eyebrow {
   color: var(--color-accent-highlight);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .page-intro__text {
@@ -121,10 +118,12 @@
 }
 
 .game__cover {
+  position: relative;
+  container-type: inline-size;
   aspect-ratio: 358 / 220;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, var(--color-category-games), var(--color-action-primary));
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
 }
 
 .game__cover.skeleton {
@@ -147,9 +146,6 @@
 .game__eyebrow {
   color: var(--color-category-games);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .game__title {
@@ -215,6 +211,39 @@
 
 .game__section-title {
   font: var(--text-h2);
+}
+
+.your-log {
+  justify-items: stretch;
+}
+
+.your-log__card {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  max-width: 48rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.your-log__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--text-label-m);
+}
+
+.your-log__meta,
+.your-log__empty {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.review + .your-log__meta,
+.your-log__meta + .review {
+  margin-top: var(--space-2);
 }
 
 .game__description {
@@ -341,7 +370,6 @@
 }
 
 .library-stats__item {
-  --stat-accent: var(--color-category-games);
   display: flex;
   flex-direction: column-reverse;
   gap: var(--space-1);
@@ -351,25 +379,12 @@
   background: var(--color-bg-surface);
 }
 
-.library-stats__item--playing {
-  --stat-accent: var(--color-category-tv);
-}
-
-.library-stats__item--backlog {
-  --stat-accent: var(--color-rating);
-}
-
-.library-stats__item--radar {
-  --stat-accent: var(--color-accent-highlight);
-}
-
 .library-stats__label {
   color: var(--color-text-secondary);
   font: var(--text-body-s);
 }
 
 .library-stats__count {
-  color: var(--stat-accent);
   font: var(--text-h1);
   font-variant-numeric: tabular-nums;
 }
@@ -406,10 +421,9 @@
 }
 
 .diary__heading {
-  color: var(--color-text-secondary);
-  font: var(--text-label-m);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-default);
+  font: var(--text-h2);
 }
 
 /* Library layout: the list, with Activity beside it on desktop and below it on phones */
@@ -473,32 +487,87 @@
   gap: var(--space-12);
 }
 
+/* Billboard: the art fills the hero on desktop with the text over a scrim; on phones the art sits on top. */
 .hero {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  gap: var(--space-6);
-  padding: var(--space-6);
   overflow: hidden;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgb(108 77 255 / 0.45), transparent 60%),
-    linear-gradient(135deg, var(--color-bg-surface), var(--color-bg-page));
+  background: var(--color-bg-surface);
+}
+
+.hero__media {
+  position: relative;
+  container-type: size;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+}
+
+.hero__media.skeleton {
+  border-radius: 0;
+}
+
+/* A tinted panel only stands in when there's no art; behind real art it stays plain so the reveal is clean. */
+.hero__media:not(.skeleton):not(:has(img)) {
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
+}
+
+/* The scrim isn't decoration: it keeps the title readable whatever colour the art is. */
+.hero__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-bg-surface), transparent 45%);
+  pointer-events: none;
+}
+
+.hero__image,
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: transparent;
+}
+
+.hero__video {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit) and
+   ignores the pointer, which keeps hover on the hero and stops clicks landing on YouTube. */
+.hero__video--embed {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 177.78cqh);
+  height: max(100cqh, 56.25cqw);
+  border: 0;
+  pointer-events: none;
+  translate: -50% -50%;
+}
+
+.hero--playing .hero__video {
+  opacity: 1;
 }
 
 .hero__content {
   display: grid;
   justify-items: start;
-  align-content: center;
+  align-content: end;
   gap: var(--space-4);
   min-width: 0;
+  padding: var(--space-6);
 }
 
 .hero__eyebrow {
   color: var(--color-accent-highlight);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .hero__title {
@@ -537,47 +606,80 @@
   margin-top: var(--space-2);
 }
 
-.hero__art {
-  display: block;
-  aspect-ratio: 460 / 340;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-raised);
+.hero .countdown__unit {
+  background: color-mix(in srgb, var(--color-bg-sunken) 75%, transparent);
+  backdrop-filter: blur(8px);
 }
 
-/* The gradient only stands in when there's no art; behind real art the panel stays grey so the reveal is clean. */
-.hero__art:not(.skeleton):not(:has(img)) {
-  background: linear-gradient(160deg, var(--color-category-anime), var(--color-action-primary));
+.hero__sound {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-scrim);
+  backdrop-filter: blur(8px);
+  transition: border-color var(--duration-fast) ease;
 }
 
-.hero__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  color: transparent;
+.hero__sound:hover {
+  border-color: var(--color-text-primary);
+}
+
+.hero--message .hero__media {
+  display: none;
 }
 
 .hero--message .hero__content {
   justify-items: stretch;
 }
 
-/* Two columns only once there's room for both; on tablets the art panel would shrink to a stamp. */
-@media (max-width: 1023px) {
-  .hero__art {
-    display: none;
+/* Without a featured game there's no art to fill, so the billboard shrinks to its message. */
+@media (min-width: 1024px) {
+  .hero--message {
+    min-height: 0;
+  }
+
+  .hero--message .hero__content {
+    max-width: none;
   }
 }
 
 @media (min-width: 768px) {
-  .hero {
-    padding: var(--space-12);
+  .hero__content {
+    padding: var(--space-8) var(--space-12) var(--space-12);
   }
 }
 
 @media (min-width: 1024px) {
   .hero {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: var(--space-8);
+    min-height: clamp(480px, 68vh, 640px);
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    aspect-ratio: auto;
+  }
+
+  .hero__media::after {
+    background:
+      linear-gradient(to right, color-mix(in srgb, var(--color-bg-sunken) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg-sunken) 60%, transparent) 40%, transparent 70%),
+      linear-gradient(to top, color-mix(in srgb, var(--color-bg-sunken) 70%, transparent), transparent 40%);
+  }
+
+  .hero__content {
+    max-width: 40rem;
+  }
+
+  .hero__sound {
+    top: var(--space-6);
+    right: var(--space-6);
   }
 }
 

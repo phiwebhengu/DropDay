@@ -1,5 +1,6 @@
 import * as tmdb from '../api/tmdb.js';
 import { getDateText, getSaveText } from './card.js';
+import { posterFallback } from './poster.js';
 import { createStateMessage } from './states.js';
 import { getStatus } from '../store/library.js';
 import { toggleSave } from './library-actions.js';
@@ -141,7 +142,7 @@ function renderIntro(release) {
   dialog.querySelector('.quick-view__facts').textContent = '';
 
   const poster = dialog.querySelector('.quick-view__poster');
-  poster.replaceChildren();
+  poster.innerHTML = posterFallback(release.title);
   if (release.image) {
     const image = createElement('img', 'quick-view__image');
     image.src = release.image;

@@ -1,14 +1,17 @@
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
+import * as youtube from '../api/youtube.js';
 import { getStatus, listByStatus } from '../store/library.js';
 import { createReleaseCard, createCardSkeleton, getSaveText } from '../ui/card.js';
 import { setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
 import { createLibraryRow } from '../ui/library-row.js';
 import { openQuickView } from '../ui/quick-view.js';
+import { setupHeroTrailer } from '../ui/hero-trailer.js';
 import { createStateMessage } from '../ui/states.js';
 import { playHeroIntro, setupPinnedStrip, tickDigit } from '../motion.js';
 import { formatReleaseDate, getMonthRange, toMonthKey } from '../utils/dates.js';
 import '../ui/save-feedback.js';
+import '../ui/theme.js';
 
 const SKELETON_DELAY = 150;
 const PER_CATEGORY = 3;
@@ -29,6 +32,8 @@ const heroTitle = document.getElementById('hero-title');
 const heroMeta = document.getElementById('hero-meta');
 const heroSave = document.getElementById('hero-save');
 const heroArt = document.getElementById('hero-art');
+const heroTrailer = document.getElementById('hero-trailer');
+const heroSound = document.getElementById('hero-sound');
 const countdown = document.getElementById('countdown');
 const countdownValues = Object.fromEntries(
   [...countdown.querySelectorAll('[data-unit]')].map((element) => [element.dataset.unit, element]),
@@ -107,7 +112,6 @@ function renderHero(game) {
   heroMeta.dataset.platforms = platforms;
   heroMeta.textContent = [game.tba ? 'Release date TBA' : formatReleaseDate(game.date), platforms].filter(Boolean).join(' · ');
 
-  heroArt.href = link.href;
   heroArt.classList.remove('skeleton');
   heroArt.replaceChildren();
   if (game.cover) {
@@ -127,6 +131,23 @@ function renderHero(game) {
     countdownTimer = setInterval(tick, 1000);
   }
   playHeroIntro(hero);
+  loadTrailer(game);
+}
+
+// YouTube finds the official trailer for almost any game; RAWG only has clips for games on Steam.
+async function findTrailer(game) {
+  const fromYouTube = await youtube.findTrailer(game.title).catch(() => null);
+  return fromYouTube ?? rawg.getTrailer(game.id);
+}
+
+// The trailer is extra: it loads after the hero is on screen, and if there isn't one the art just stays.
+function loadTrailer(game) {
+  findTrailer(game)
+    .then((trailer) => {
+      if (!trailer || featured !== game) return;
+      setupHeroTrailer({ hero, media: heroArt, playButton: heroTrailer, soundButton: heroSound, trailer, title: game.title });
+    })
+    .catch(() => {});
 }
 
 function renderHeroMessage(message) {

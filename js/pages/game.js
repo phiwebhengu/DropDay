@@ -3,13 +3,23 @@ import { getEntry, getStatus } from '../store/library.js';
 import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
+import { posterFallback } from '../ui/poster.js';
 import { createStars, formatRating } from '../ui/rating.js';
+import { createReview } from '../ui/review.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
+import { formatShortDate } from '../utils/dates.js';
 import '../ui/save-feedback.js';
+import '../ui/theme.js';
 
 const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;
+const STANDARD_EDITION = 'Standard edition';
+
+const LOG_STATUS_NAMES = {
+  played: 'Played',
+  playing: 'Playing',
+};
 const SIMILAR_COUNT = 5;
 
 const backLink = document.getElementById('back-link');
@@ -26,6 +36,8 @@ const statusButtons = [...document.querySelectorAll('.status-button')];
 const logButton = document.getElementById('log-button');
 const shareButton = document.getElementById('share-button');
 const removeButton = document.getElementById('remove-button');
+const yourLog = document.getElementById('your-log');
+const yourLogCard = document.getElementById('your-log-card');
 const about = document.getElementById('game-about');
 const description = document.getElementById('game-description');
 const readMore = document.getElementById('read-more');
@@ -80,6 +92,33 @@ function renderStatus() {
   removeButton.hidden = !status;
   logButton.disabled = false;
   logButton.textContent = getEntry(game)?.loggedAt ? 'Edit your log' : 'Log or review';
+  renderYourLog();
+}
+
+// What the user logged, shown like a Letterboxd review: rating, when and how they played, and their words.
+function renderYourLog() {
+  const entry = getEntry(game);
+  yourLog.hidden = !entry?.loggedAt;
+  if (yourLog.hidden) return;
+
+  const details = [
+    LOG_STATUS_NAMES[entry.status],
+    `Logged ${formatShortDate(entry.loggedAt)}`,
+    entry.platform,
+    entry.edition !== STANDARD_EDITION ? entry.edition : null,
+  ];
+  const meta = createElement('p', 'your-log__meta', details.filter(Boolean).join(' · '));
+
+  const parts = [meta];
+  if (entry.rating) {
+    const rating = createElement('p', 'your-log__rating', '');
+    rating.append(createStars(entry.rating), createElement('span', 'your-log__rating-value', formatRating(entry.rating)));
+    parts.unshift(rating);
+  }
+  if (entry.review) parts.push(createReview(entry.review, { spoilers: entry.spoilers }));
+  else parts.push(createElement('p', 'your-log__empty', 'No review written. Add a few words any time.'));
+
+  yourLogCard.replaceChildren(...parts);
 }
 
 function renderDescription(text) {
@@ -94,7 +133,7 @@ function renderGame() {
   hero.setAttribute('aria-busy', 'false');
 
   cover.classList.remove('skeleton');
-  cover.replaceChildren();
+  cover.innerHTML = posterFallback(game.title);
   if (game.cover) {
     const image = document.createElement('img');
     image.className = 'game__cover-image';
@@ -135,7 +174,15 @@ function renderScreenshots(urls) {
       image.height = 338;
       image.loading = 'lazy';
       image.decoding = 'async';
-      image.addEventListener('error', () => item.remove(), { once: true });
+      // If every screenshot fails, the section goes too, rather than leaving a heading over nothing.
+      image.addEventListener(
+        'error',
+        () => {
+          item.remove();
+          screenshots.hidden = !screenshotList.children.length;
+        },
+        { once: true },
+      );
       item.append(image);
       return item;
     }),
@@ -162,6 +209,7 @@ function loadExtras() {
 
 function showState(message) {
   hero.hidden = true;
+  yourLog.hidden = true;
   about.hidden = true;
   screenshots.hidden = true;
   similar.hidden = true;

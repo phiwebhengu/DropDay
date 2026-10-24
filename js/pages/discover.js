@@ -9,6 +9,7 @@ import { animateGrid, captureGrid } from '../motion.js';
 import { syncCards, toggleSave } from '../ui/library-actions.js';
 import { getStatus } from '../store/library.js';
 import '../ui/save-feedback.js';
+import '../ui/theme.js';
 
 const SKELETON_COUNT = 10;
 const SKELETON_DELAY = 150;
