@@ -672,3 +672,12 @@
   transform: scaleX(0);
   transform-origin: left center;
 }
+
+/* While the next set of releases loads, the current cards dim instead of vanishing (M3 needs them for Flip). */
+.release-grid > li {
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.release-grid[aria-busy="true"] > li:has(.release-card:not(.release-card--loading)) {
+  opacity: 0.45;
+}
