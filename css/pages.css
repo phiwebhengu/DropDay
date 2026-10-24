@@ -118,6 +118,8 @@
 }
 
 .game__cover {
+  position: relative;
+  container-type: inline-size;
   aspect-ratio: 358 / 220;
   overflow: hidden;
   border-radius: var(--radius-lg);
@@ -209,6 +211,39 @@
 
 .game__section-title {
   font: var(--text-h2);
+}
+
+.your-log {
+  justify-items: stretch;
+}
+
+.your-log__card {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  max-width: 48rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.your-log__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--text-label-m);
+}
+
+.your-log__meta,
+.your-log__empty {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.review + .your-log__meta,
+.your-log__meta + .review {
+  margin-top: var(--space-2);
 }
 
 .game__description {

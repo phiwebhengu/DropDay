@@ -1641,49 +1641,11 @@ html:has(.log-modal[open]) {
   font-size: 1rem;
 }
 
+/* Above the row's stretched link, so the spoiler button and text selection still work. */
 .library-row__review {
   position: relative;
   z-index: 2;
-  display: grid;
-  justify-self: start;
-  justify-items: start;
   margin-top: var(--space-1);
-  max-width: 65ch;
-}
-
-.library-row__review-text {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  color: var(--color-text-secondary);
-  font: var(--text-body-s);
-  font-style: italic;
-}
-
-/* Short reviews would leave the button no room, so a spoiler always gets a usable width. */
-.library-row__review--spoiler {
-  align-content: center;
-  min-width: min(100%, 14rem);
-  min-height: var(--touch-target);
-}
-
-.library-row__review--spoiler .library-row__review-text {
-  filter: blur(6px);
-  user-select: none;
-}
-
-.library-row__reveal {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: var(--color-scrim);
-  font: var(--text-label-m);
-  text-decoration: underline;
-  white-space: nowrap;
 }
 
 .library-row__more {
@@ -1834,4 +1796,90 @@ html:has(.log-modal[open]) {
   --dialog-scale: 1;
   translate: var(--dialog-x) var(--dialog-y);
   scale: var(--dialog-scale);
+}
+
+/* Review: a logged review as a pull-quote (diary rows and "Your log") */
+
+.review {
+  position: relative;
+  display: grid;
+  justify-self: start;
+  justify-items: start;
+  max-width: 65ch;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-accent-highlight);
+}
+
+.review__text {
+  color: var(--color-text-primary);
+  font: var(--text-body-m);
+  white-space: pre-line;
+}
+
+.review--clamped .review__text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+/* Short reviews would leave the button no room, so a spoiler always gets a usable width. */
+.review--spoiler {
+  align-content: center;
+  min-width: min(100%, 14rem);
+  min-height: var(--touch-target);
+}
+
+.review--spoiler .review__text {
+  filter: blur(6px);
+  user-select: none;
+}
+
+.review__reveal {
+  position: absolute;
+  inset: 0 0 0 var(--space-4);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-scrim);
+  font: var(--text-label-m);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+/* Poster fallback: the title as a title card when there's no art */
+
+.release-card__media,
+.library-row__cover,
+.quick-view__poster {
+  position: relative;
+  container-type: inline-size;
+}
+
+.poster-fallback {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: end;
+  padding: 8cqi;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font: var(--font-weight-heavy) clamp(1.25rem, 13cqi, 2.75rem) / 0.92 var(--font-display);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.poster-fallback--initial {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 55cqi;
+  line-height: 1;
+}
+
+:not(:has(> img)) > .poster-fallback {
+  display: flex;
 }
