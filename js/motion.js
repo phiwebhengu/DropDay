@@ -5,15 +5,15 @@ const { gsap } = window;
 export const hasMotion = Boolean(gsap);
 
 const QUERIES = {
-  full: '(prefers-reduced-motion: no-preference)',
-  reduced: '(prefers-reduced-motion: reduce)',
-  desktop: '(min-width: 1024px)',
+  full: "(prefers-reduced-motion: no-preference)",
+  reduced: "(prefers-reduced-motion: reduce)",
+  desktop: "(min-width: 1024px)",
 };
 
 if (hasMotion) {
-  document.documentElement.classList.add('has-motion');
+  document.documentElement.classList.add("has-motion");
   gsap.registerPlugin(...[window.ScrollTrigger, window.Flip].filter(Boolean));
-  gsap.defaults({ duration: 0.4, ease: 'power2.out' });
+  gsap.defaults({ duration: 0.4, ease: "power2.out" });
 }
 
 // Every moment goes through here. setup gets { full, reduced, desktop } and runs again whenever those change,
@@ -29,7 +29,12 @@ export function withMotion(setup, keys = Object.keys(QUERIES)) {
 
 // The reduced-motion stand-in for any entrance: a 0.2 s opacity fade, nothing moves.
 export function fadeIn(targets, vars = {}) {
-  return gsap.from(targets, { opacity: 0, duration: 0.2, ease: 'none', ...vars });
+  return gsap.from(targets, {
+    opacity: 0,
+    duration: 0.2,
+    ease: "none",
+    ...vars,
+  });
 }
 
 function prefersReducedMotion() {
@@ -41,27 +46,55 @@ function prefersReducedMotion() {
 // It starts from the loading state: the eyebrow, buttons, "--" countdown and a grey art panel are already
 // there, so nothing jumps or blinks out. Only the new content arrives: art, title, date, then the digits.
 export function playHeroIntro(hero) {
-  return withMotion(({ full }) => {
-    const arriving = hero.querySelectorAll('.hero__title, .hero__meta, .countdown__value');
-    if (!full) {
-      fadeIn(arriving);
-      return;
-    }
-    const media = hero.querySelector('.hero__media');
-    const reveal = media.querySelector('img') ?? media;
-    gsap
-      .timeline({ defaults: { ease: 'power3.out' } })
-      .fromTo(
-        reveal,
-        { clipPath: 'inset(0% 0% 0% 100%)' },
-        { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.2, ease: 'power3.inOut', clearProps: 'clipPath' },
-        0,
-      )
-      .from(reveal, { scale: 1.12, duration: 1.8 }, 0)
-      .from(hero.querySelector('.hero__title'), { yPercent: 35, opacity: 0, filter: 'blur(10px)', duration: 0.9, clearProps: 'filter' }, 0.1)
-      .from(hero.querySelector('.hero__meta'), { y: 12, opacity: 0, duration: 0.6 }, 0.3)
-      .from(hero.querySelectorAll('.countdown__value'), { yPercent: -80, opacity: 0, duration: 0.6, stagger: 0.08 }, 0.45);
-  }, ['full', 'reduced']);
+  return withMotion(
+    ({ full }) => {
+      const arriving = hero.querySelectorAll(
+        ".hero__title, .hero__meta, .countdown__value",
+      );
+      if (!full) {
+        fadeIn(arriving);
+        return;
+      }
+      const media = hero.querySelector(".hero__media");
+      const reveal = media.querySelector("img") ?? media;
+      gsap
+        .timeline({ defaults: { ease: "power3.out" } })
+        .fromTo(
+          reveal,
+          { clipPath: "inset(0% 0% 0% 100%)" },
+          {
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 1.2,
+            ease: "power3.inOut",
+            clearProps: "clipPath",
+          },
+          0,
+        )
+        .from(reveal, { scale: 1.12, duration: 1.8 }, 0)
+        .from(
+          hero.querySelector(".hero__title"),
+          {
+            yPercent: 35,
+            opacity: 0,
+            filter: "blur(10px)",
+            duration: 0.9,
+            clearProps: "filter",
+          },
+          0.1,
+        )
+        .from(
+          hero.querySelector(".hero__meta"),
+          { y: 12, opacity: 0, duration: 0.6 },
+          0.3,
+        )
+        .from(
+          hero.querySelectorAll(".countdown__value"),
+          { yPercent: -80, opacity: 0, duration: 0.6, stagger: 0.08 },
+          0.45,
+        );
+    },
+    ["full", "reduced"],
+  );
 }
 
 // The old number rolls out downwards as the new one drops in. Reduced motion just swaps the number:
@@ -69,14 +102,23 @@ export function playHeroIntro(hero) {
 export function tickDigit(element, previous) {
   if (!hasMotion || prefersReducedMotion()) return;
   const ghost = element.cloneNode();
-  ghost.classList.add('countdown__value--ghost');
-  ghost.setAttribute('aria-hidden', 'true');
+  ghost.classList.add("countdown__value--ghost");
+  ghost.setAttribute("aria-hidden", "true");
   ghost.textContent = previous;
   element.after(ghost);
 
-  const roll = { duration: 0.35, ease: 'power2.inOut' };
-  gsap.to(ghost, { yPercent: 70, opacity: 0, ...roll, onComplete: () => ghost.remove() });
-  gsap.fromTo(element, { yPercent: -70, opacity: 0 }, { yPercent: 0, opacity: 1, ...roll });
+  const roll = { duration: 0.35, ease: "power2.inOut" };
+  gsap.to(ghost, {
+    yPercent: 70,
+    opacity: 0,
+    ...roll,
+    onComplete: () => ghost.remove(),
+  });
+  gsap.fromTo(
+    element,
+    { yPercent: -70, opacity: 0 },
+    { yPercent: 0, opacity: 1, ...roll },
+  );
 }
 
 /* M2 · "Dropping this month": on desktop the section pins and vertical scroll drives the strip sideways.
@@ -87,13 +129,13 @@ export function setupPinnedStrip(section, strip, progress) {
     const distance = () => strip.scrollWidth - strip.clientWidth;
     if (!full || !desktop || distance() <= 0) return undefined;
 
-    strip.classList.add('release-strip--pinned');
+    strip.classList.add("release-strip--pinned");
     progress.hidden = false;
-    const header = document.querySelector('.site-header');
+    const header = document.querySelector(".site-header");
 
     const slide = gsap.to(strip, {
       x: () => -distance(),
-      ease: 'none',
+      ease: "none",
       scrollTrigger: {
         trigger: section,
         start: () => `top ${header.offsetHeight + 24}px`,
@@ -102,7 +144,8 @@ export function setupPinnedStrip(section, strip, progress) {
         scrub: 0.8,
         anticipatePin: 1,
         invalidateOnRefresh: true,
-        onUpdate: (self) => gsap.set(progress.firstElementChild, { scaleX: self.progress }),
+        onUpdate: (self) =>
+          gsap.set(progress.firstElementChild, { scaleX: self.progress }),
       },
     });
 
@@ -111,25 +154,41 @@ export function setupPinnedStrip(section, strip, progress) {
       gsap.from(card, {
         scale: 0.9,
         opacity: 0.35,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: card, containerAnimation: slide, start: 'left right', end: 'left 75%', scrub: true },
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: card,
+          containerAnimation: slide,
+          start: "left right",
+          end: "left 75%",
+          scrub: true,
+        },
       });
     });
 
     // Tabbing to a card that's still off screen scrolls the page to the point where it's in view.
     const onFocus = (event) => {
-      const card = event.target.closest('.release-strip > li');
+      const card = event.target.closest(".release-strip > li");
       if (!card) return;
       const trigger = slide.scrollTrigger;
-      const share = Math.min(1, Math.max(0, (card.offsetLeft - strip.clientWidth / 2 + card.offsetWidth / 2) / distance()));
-      window.scrollTo({ top: trigger.start + share * (trigger.end - trigger.start), behavior: 'instant' });
+      const share = Math.min(
+        1,
+        Math.max(
+          0,
+          (card.offsetLeft - strip.clientWidth / 2 + card.offsetWidth / 2) /
+            distance(),
+        ),
+      );
+      window.scrollTo({
+        top: trigger.start + share * (trigger.end - trigger.start),
+        behavior: "instant",
+      });
     };
-    strip.addEventListener('focusin', onFocus);
+    strip.addEventListener("focusin", onFocus);
 
     return () => {
-      strip.classList.remove('release-strip--pinned');
+      strip.classList.remove("release-strip--pinned");
       progress.hidden = true;
-      strip.removeEventListener('focusin', onFocus);
+      strip.removeEventListener("focusin", onFocus);
     };
   });
 }
@@ -139,7 +198,9 @@ export function setupPinnedStrip(section, strip, progress) {
 
 export function captureGrid(grid) {
   if (!hasMotion || !window.Flip) return null;
-  return window.Flip.getState(grid.querySelectorAll('.release-card[data-flip-id]'));
+  return window.Flip.getState(
+    grid.querySelectorAll(".release-card[data-flip-id]"),
+  );
 }
 
 function enterCards(cards) {
@@ -148,9 +209,9 @@ function enterCards(cards) {
     y: 24,
     scale: 0.96,
     duration: 0.55,
-    ease: 'power3.out',
+    ease: "power3.out",
     stagger: { each: 0.03, amount: 0.5 },
-    clearProps: 'opacity,transform',
+    clearProps: "opacity,transform",
   });
 }
 
@@ -167,7 +228,7 @@ export function animateGrid(cards, state = null) {
   window.Flip.from(state, {
     targets: cards,
     duration: 0.6,
-    ease: 'power3.inOut',
+    ease: "power3.inOut",
     stagger: 0.015,
     onEnter: enterCards,
   });
@@ -183,20 +244,42 @@ export function squashButton(button) {
   gsap.killTweensOf(button);
   gsap
     .timeline({ defaults: { force3D: false } })
-    .to(button, { scale: 0.93, duration: 0.1, ease: 'power2.out' })
-    .to(button, { scale: 1, duration: 0.45, ease: 'back.out(2.5)', clearProps: 'transform' });
+    .to(button, { scale: 0.93, duration: 0.1, ease: "power2.out" })
+    .to(button, {
+      scale: 1,
+      duration: 0.45,
+      ease: "back.out(2.5)",
+      clearProps: "transform",
+    });
 }
 
 // Returns true when GSAP handled the entrance, so the toast can switch off its CSS fallback.
 export function animateToastIn(toast) {
   if (!hasMotion || prefersReducedMotion()) return false;
-  gsap.from(toast, { y: 32, scale: 0.94, opacity: 0, duration: 0.5, ease: 'back.out(1.6)', clearProps: 'transform,opacity' });
+  gsap.from(toast, {
+    y: 32,
+    scale: 0.94,
+    opacity: 0,
+    duration: 0.5,
+    ease: "back.out(1.6)",
+    clearProps: "transform,opacity",
+  });
   return true;
 }
 
 export function pulseBadge(badge) {
   if (!hasMotion || prefersReducedMotion()) return;
-  gsap.fromTo(badge, { scale: 1.6 }, { scale: 1, duration: 0.5, ease: 'back.out(2)', force3D: false, clearProps: 'transform' });
+  gsap.fromTo(
+    badge,
+    { scale: 1.6 },
+    {
+      scale: 1,
+      duration: 0.5,
+      ease: "back.out(2)",
+      force3D: false,
+      clearProps: "transform",
+    },
+  );
 }
 
 /* M5 · Dialogs and the Library count-up.
@@ -207,25 +290,45 @@ export function pulseBadge(badge) {
 // GSAP briefly re-attaches an element to measure its transform, and doing that to an open modal <dialog>
 // knocks it out of the top layer, so Esc and the backdrop stop working.
 const DIALOG_ORIGINS = {
-  bottom: { '--dialog-y': '100%' },
-  right: { '--dialog-x': '100%' },
-  centre: { '--dialog-y': '4%', '--dialog-scale': 0.96, opacity: 0 },
+  bottom: { "--dialog-y": "100%" },
+  right: { "--dialog-x": "100%" },
+  centre: { "--dialog-y": "4%", "--dialog-scale": 0.96, opacity: 0 },
 };
 
-const DIALOG_REST = { '--dialog-x': '0%', '--dialog-y': '0%', '--dialog-scale': 1, opacity: 1 };
+const DIALOG_REST = {
+  "--dialog-x": "0%",
+  "--dialog-y": "0%",
+  "--dialog-scale": 1,
+  opacity: 1,
+};
 
 export function openDialog(dialog, origin) {
   if (!hasMotion) return;
   gsap.killTweensOf(dialog);
   gsap.set(dialog, DIALOG_REST);
   if (prefersReducedMotion()) {
-    gsap.from(dialog, { opacity: 0, duration: 0.2, ease: 'none' });
+    gsap.from(dialog, { opacity: 0, duration: 0.2, ease: "none" });
     return;
   }
   gsap
     .timeline()
-    .from(dialog, { ...DIALOG_ORIGINS[origin], duration: 0.5, ease: 'power3.out' })
-    .from(dialog.querySelectorAll('[data-reveal]'), { y: 12, opacity: 0, duration: 0.4, stagger: 0.04, ease: 'power2.out', clearProps: 'transform,opacity' }, 0.12);
+    .from(dialog, {
+      ...DIALOG_ORIGINS[origin],
+      duration: 0.5,
+      ease: "power3.out",
+    })
+    .from(
+      dialog.querySelectorAll("[data-reveal]"),
+      {
+        y: 12,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.04,
+        ease: "power2.out",
+        clearProps: "transform,opacity",
+      },
+      0.12,
+    );
 }
 
 // Resolves once the dialog has animated away, so the caller can then really close it.
@@ -233,8 +336,8 @@ export function closeDialog(dialog, origin) {
   if (!hasMotion) return Promise.resolve();
   gsap.killTweensOf(dialog);
   const exit = prefersReducedMotion()
-    ? { opacity: 0, duration: 0.15, ease: 'none' }
-    : { ...DIALOG_ORIGINS[origin], duration: 0.3, ease: 'power2.in' };
+    ? { opacity: 0, duration: 0.15, ease: "none" }
+    : { ...DIALOG_ORIGINS[origin], duration: 0.3, ease: "power2.in" };
   return new Promise((resolve) => {
     gsap.to(dialog, { ...exit, onComplete: resolve });
   });
@@ -252,7 +355,7 @@ export function countTo(element, value) {
   gsap.to(counter, {
     value,
     duration: Math.min(1.2, 0.5 + Math.abs(value - from) * 0.03),
-    ease: 'power2.out',
+    ease: "power2.out",
     onUpdate: () => {
       element.textContent = Math.round(counter.value);
     },
