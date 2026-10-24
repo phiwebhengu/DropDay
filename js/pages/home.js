@@ -1,5 +1,6 @@
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
+import * as youtube from '../api/youtube.js';
 import { getStatus, listByStatus } from '../store/library.js';
 import { createReleaseCard, createCardSkeleton, getSaveText } from '../ui/card.js';
 import { setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
@@ -132,10 +133,15 @@ function renderHero(game) {
   loadTrailer(game);
 }
 
+// YouTube finds the official trailer for almost any game; RAWG only has clips for games on Steam.
+async function findTrailer(game) {
+  const fromYouTube = await youtube.findTrailer(game.title).catch(() => null);
+  return fromYouTube ?? rawg.getTrailer(game.id);
+}
+
 // The trailer is extra: it loads after the hero is on screen, and if there isn't one the art just stays.
 function loadTrailer(game) {
-  rawg
-    .getTrailer(game.id)
+  findTrailer(game)
     .then((trailer) => {
       if (!trailer || featured !== game) return;
       setupHeroTrailer({ hero, media: heroArt, playButton: heroTrailer, soundButton: heroSound, trailer, title: game.title });

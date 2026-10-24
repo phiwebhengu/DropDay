@@ -1,10 +1,107 @@
 const HOVER_DELAY = 500;
 const FADE_OUT = 500;
+const YOUTUBE_ORIGIN = 'https://www.youtube-nocookie.com';
+const YOUTUBE_PLAYING = 1;
 
 const SOUND_ICONS = {
   off: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   on: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
 };
+
+/* Two players with the same small interface, so the hero doesn't care where the trailer comes from. */
+
+// YouTube is controlled through postMessage (the IFrame API protocol), so no extra script is loaded.
+function createYouTubePlayer({ youtubeId }, { title, onPlaying, onError }) {
+  const frame = document.createElement('iframe');
+  const params = new URLSearchParams({
+    autoplay: 1,
+    mute: 1,
+    controls: 0,
+    loop: 1,
+    playlist: youtubeId,
+    playsinline: 1,
+    rel: 0,
+    iv_load_policy: 3,
+    disablekb: 1,
+    enablejsapi: 1,
+    origin: location.origin,
+  });
+  frame.className = 'hero__video hero__video--embed';
+  frame.src = `${YOUTUBE_ORIGIN}/embed/${youtubeId}?${params}`;
+  frame.title = `${title} trailer`;
+  frame.allow = 'autoplay; encrypted-media';
+  frame.tabIndex = -1;
+  frame.setAttribute('aria-hidden', 'true');
+
+  let muted = true;
+  const send = (func, args = []) => {
+    frame.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), YOUTUBE_ORIGIN);
+  };
+
+  // Asking to "listen" makes the player report its state, which is how the hero knows frames are showing.
+  frame.addEventListener('load', () => {
+    frame.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), YOUTUBE_ORIGIN);
+  });
+  window.addEventListener('message', (event) => {
+    if (event.source !== frame.contentWindow) return;
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch {
+      return;
+    }
+    if (data.event === 'onError') onError();
+    const state = data.event === 'onStateChange' ? data.info : data.info?.playerState;
+    if (state === YOUTUBE_PLAYING) onPlaying();
+  });
+
+  return {
+    element: frame,
+    play: () => {
+      send('playVideo');
+      return Promise.resolve();
+    },
+    rewind: () => {
+      send('pauseVideo');
+      send('seekTo', [0, true]);
+    },
+    get muted() {
+      return muted;
+    },
+    set muted(value) {
+      muted = value;
+      send(value ? 'mute' : 'unMute');
+    },
+  };
+}
+
+function createVideoPlayer({ src }, { onPlaying, onError }) {
+  const video = document.createElement('video');
+  video.className = 'hero__video';
+  video.src = src;
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.preload = 'none';
+  video.setAttribute('aria-hidden', 'true');
+  video.addEventListener('playing', onPlaying);
+  video.addEventListener('error', onError, { once: true });
+
+  return {
+    element: video,
+    play: () => video.play(),
+    rewind: () => {
+      video.pause();
+      video.currentTime = 0;
+    },
+    get muted() {
+      return video.muted;
+    },
+    set muted(value) {
+      video.muted = value;
+    },
+  };
+}
 
 // Hovering the billboard plays the trailer muted, like Netflix; leaving fades back to the still art.
 // Phones, reduced motion and data saver get the Play trailer button only, so nothing starts on its own.
@@ -13,7 +110,7 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const saveData = navigator.connection?.saveData === true;
 
-  let video = null;
+  let player = null;
   let playing = false;
   let startedBy = null;
   let stoppedByUser = false;
@@ -23,7 +120,7 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   const canAutoplay = () => canHover.matches && !reducedMotion.matches && !saveData;
 
   function renderSound() {
-    const soundOn = Boolean(video && !video.muted);
+    const soundOn = Boolean(player && !player.muted);
     soundButton.setAttribute('aria-pressed', String(soundOn));
     soundButton.setAttribute('aria-label', soundOn ? 'Mute trailer' : 'Unmute trailer');
     soundButton.innerHTML = soundOn ? SOUND_ICONS.on : SOUND_ICONS.off;
@@ -34,23 +131,9 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
     playButton.setAttribute('aria-label', `${playing ? 'Stop' : 'Play'} the ${title} trailer`);
   }
 
-  function getVideo() {
-    if (video) return video;
-    video = document.createElement('video');
-    video.className = 'hero__video';
-    video.src = trailer.src;
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = 'none';
-    video.setAttribute('aria-hidden', 'true');
-    // The art only gives way once real frames are showing, so a slow connection never flashes black.
-    video.addEventListener('playing', () => {
-      if (playing) hero.classList.add('hero--playing');
-    });
-    video.addEventListener('error', remove, { once: true });
-    media.append(video);
-    return video;
+  // The art only gives way once real frames are showing, so a slow connection never flashes black.
+  function reveal() {
+    if (playing) hero.classList.add('hero--playing');
   }
 
   function play(source) {
@@ -60,10 +143,16 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
     startedBy = source;
     soundButton.hidden = false;
     renderPlayButton();
+    if (player) {
+      player.play().catch(() => stop());
+    } else {
+      // A new YouTube embed starts by itself once it loads; a video file needs telling.
+      const create = trailer.youtubeId ? createYouTubePlayer : createVideoPlayer;
+      player = create(trailer, { title, onPlaying: reveal, onError: remove });
+      media.append(player.element);
+      if (!trailer.youtubeId) player.play().catch(() => stop());
+    }
     renderSound();
-    getVideo()
-      .play()
-      .catch(() => stop());
   }
 
   function stop() {
@@ -74,21 +163,18 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
     hero.classList.remove('hero--playing');
     soundButton.hidden = true;
     renderPlayButton();
-    if (!video) return;
+    if (!player) return;
     // Sound never carries over to the next hover; it's always the user's choice to turn it on.
-    video.muted = true;
+    player.muted = true;
     renderSound();
-    resetTimer = setTimeout(() => {
-      video.pause();
-      video.currentTime = 0;
-    }, FADE_OUT);
+    resetTimer = setTimeout(() => player?.rewind(), FADE_OUT);
   }
 
-  // A broken clip just leaves the still art, as if there were no trailer.
+  // A broken trailer just leaves the still art, as if there were none.
   function remove() {
     stop();
-    video?.remove();
-    video = null;
+    player?.element.remove();
+    player = null;
     playButton.hidden = true;
   }
 
@@ -128,8 +214,8 @@ export function setupHeroTrailer({ hero, media, playButton, soundButton, trailer
   });
 
   soundButton.addEventListener('click', () => {
-    if (!video) return;
-    video.muted = !video.muted;
+    if (!player) return;
+    player.muted = !player.muted;
     renderSound();
   });
 

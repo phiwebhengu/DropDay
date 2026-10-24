@@ -465,6 +465,7 @@
 
 .hero__media {
   position: relative;
+  container-type: size;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--color-bg-raised);
@@ -501,6 +502,19 @@
 .hero__video {
   opacity: 0;
   transition: opacity 600ms var(--ease-out);
+}
+
+/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit) and
+   ignores the pointer, which keeps hover on the hero and stops clicks landing on YouTube. */
+.hero__video--embed {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 177.78cqh);
+  height: max(100cqh, 56.25cqw);
+  border: 0;
+  pointer-events: none;
+  translate: -50% -50%;
 }
 
 .hero--playing .hero__video {
