@@ -4,7 +4,8 @@ import { removeRelease, setReleaseStatus, syncCards, toggleSave } from '../ui/li
 import { openQuickView } from '../ui/quick-view.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createStateMessage } from '../ui/states.js';
-import { formatMonthYear, formatShortDate, formatWeekday } from '../utils/dates.js';
+import { showToast } from '../ui/toast.js';
+import { formatMonthYear, formatRelative, formatShortDate, formatWeekday, toIsoDate } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
 
 const TABS = ['played', 'playing', 'backlog', 'radar'];
@@ -34,6 +35,9 @@ const EMPTY_TEXT = {
 const tabs = [...document.querySelectorAll('.library-tab')];
 const viewButtons = [...document.querySelectorAll('.view-toggle__option')];
 const panel = document.getElementById('library-panel');
+const activityList = document.getElementById('activity-list');
+const activityEmpty = document.getElementById('activity-empty');
+const exportButton = document.getElementById('export-button');
 
 function readState() {
   const params = new URLSearchParams(location.search);
@@ -249,14 +253,90 @@ function createGrid(entries) {
   return grid;
 }
 
+function describeActivity({ action, title, status, rating }) {
+  const name = `“${title}”`;
+  if (action === 'logged') return `You logged ${name} as ${LIST_NAMES[status]}${rating ? ` · ${rating}★` : ''}`;
+  if (action === 'moved') return `You moved ${name} to ${LIST_NAMES[status]}`;
+  if (action === 'removed') return `You removed ${name}`;
+  return `You added ${name} to ${LIST_NAMES[status]}`;
+}
+
+function renderActivity() {
+  const problem = library.getProblem();
+  const activity = problem ? [] : library.getActivity();
+  activityEmpty.hidden = activity.length > 0;
+  activityEmpty.textContent = problem
+    ? 'Activity is unavailable until your Library is fixed.'
+    : 'Nothing yet. Save or log something and it shows up here.';
+  activityList.replaceChildren(
+    ...activity.map((item) => {
+      const row = document.createElement('li');
+      row.className = 'activity__item';
+      const time = document.createElement('time');
+      time.className = 'activity__time';
+      time.dateTime = item.at;
+      time.textContent = formatRelative(item.at);
+      row.append(`${describeActivity(item)} · `, time);
+      return row;
+    }),
+  );
+}
+
+function exportLibrary() {
+  const blob = new Blob([library.exportLibrary()], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `dropday-library-${toIsoDate(new Date())}.json`;
+  link.click();
+  // Firefox needs the link to live a moment longer before the file URL is released.
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  showToast({ message: 'Library exported. Check your downloads.' });
+}
+
+// Damaged data is never wiped quietly: the user can export what's there first, then choose to start fresh.
+function createRecovery() {
+  const message = createStateMessage({
+    type: 'error',
+    title: "Your Library couldn't be read",
+    text: 'The saved data on this device looks damaged. Nothing has been deleted. Export a copy first, then reset to start a fresh Library.',
+    actionLabel: 'Export a copy',
+    onAction: exportLibrary,
+  });
+
+  const reset = document.createElement('button');
+  reset.className = 'button button--outline library__reset';
+  reset.type = 'button';
+  reset.textContent = 'Reset library';
+  reset.addEventListener('click', () => {
+    // Two steps, so a stray tap can't wipe anything.
+    if (reset.dataset.confirm !== 'true') {
+      reset.dataset.confirm = 'true';
+      reset.textContent = 'Yes, reset and start fresh';
+      return;
+    }
+    const result = library.resetLibrary();
+    showToast(
+      result.ok
+        ? { message: 'Library reset. You can start saving again.' }
+        : { type: 'error', message: "Couldn't reset. Your browser is blocking storage for this site." },
+    );
+  });
+  message.append(reset);
+  return message;
+}
+
 function renderPanel() {
   const state = readState();
+  if (library.getProblem() === 'corrupt') {
+    panel.replaceChildren(createRecovery());
+    return;
+  }
   if (library.getProblem()) {
     panel.replaceChildren(
       createStateMessage({
         type: 'error',
-        title: "Your Library couldn't be read",
-        text: 'The saved data on this device looks damaged. Nothing has been deleted.',
+        title: "Your Library isn't available",
+        text: 'Your browser is blocking storage for this site, so nothing can be saved. Check your privacy settings.',
       }),
     );
     return;
@@ -289,6 +369,7 @@ function update(changes) {
   renderControls(state);
   renderCounts();
   renderPanel();
+  renderActivity();
 }
 
 tabs.forEach((tab, index) => {
@@ -303,6 +384,7 @@ tabs.forEach((tab, index) => {
 });
 
 viewButtons.forEach((button) => button.addEventListener('click', () => update({ view: button.dataset.view })));
+exportButton.addEventListener('click', exportLibrary);
 
 panel.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 panel.addEventListener('release:quickview', (event) => {
@@ -314,6 +396,7 @@ window.addEventListener('library:change', () => {
   const hadFocus = panel.contains(document.activeElement);
   renderCounts();
   renderPanel();
+  renderActivity();
   syncCards(panel);
   if (hadFocus) panel.focus();
 });

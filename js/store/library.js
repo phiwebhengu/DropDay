@@ -198,6 +198,33 @@ export function getActivity() {
   return load().activity;
 }
 
+// The file Export downloads. When the saved data is damaged it holds the raw text as it is,
+// so nothing is lost even if it can't be read here.
+export function exportLibrary() {
+  load();
+  if (problem === 'corrupt') {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.library);
+    } catch {
+      return '';
+    }
+  }
+  return JSON.stringify({ app: 'Drop Day', version: 1, exportedAt: new Date().toISOString(), ...library }, null, 2);
+}
+
+// Only ever called from the recovery prompt, after the user has had the chance to export.
+export function resetLibrary() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.library);
+  } catch {
+    return { ok: false, error: 'save-failed' };
+  }
+  library = emptyLibrary();
+  problem = null;
+  window.dispatchEvent(new CustomEvent('library:change'));
+  return { ok: true };
+}
+
 // Another tab changed the library: drop the copy in memory so the next read picks up the new data.
 window.addEventListener('storage', (event) => {
   if (event.key !== STORAGE_KEYS.library) return;

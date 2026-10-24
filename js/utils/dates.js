@@ -76,3 +76,21 @@ export function formatMonthYear(timestamp) {
 export function formatWeekday(timestamp) {
   return weekdayFormat.format(new Date(timestamp));
 }
+
+const relativeFormat = new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" });
+
+// "just now", "5 minutes ago", "yesterday", "2 weeks ago"; older than that gets a plain date.
+export function formatRelative(timestamp, now = Date.now()) {
+  const seconds = (new Date(timestamp).getTime() - now) / 1000;
+  const minutes = seconds / 60;
+  const hours = minutes / 60;
+  const days = hours / 24;
+  const weeks = days / 7;
+
+  if (Math.abs(seconds) < 60) return "just now";
+  if (Math.abs(minutes) < 60) return relativeFormat.format(Math.round(minutes), "minute");
+  if (Math.abs(hours) < 24) return relativeFormat.format(Math.round(hours), "hour");
+  if (Math.abs(days) < 7) return relativeFormat.format(Math.round(days), "day");
+  if (Math.abs(weeks) < 5) return relativeFormat.format(Math.round(weeks), "week");
+  return formatShortDate(timestamp);
+}
