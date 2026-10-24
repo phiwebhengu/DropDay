@@ -44,6 +44,23 @@ export function setReleaseStatus(release, status) {
   });
 }
 
+// Returns true when saved, so the Log modal knows whether it can close.
+export function saveLogEntry(release, log) {
+  const result = library.saveLog(release, log);
+  if (!result.ok) {
+    showError(result.error);
+    return false;
+  }
+
+  const rating = log.rating ? ` · ${log.rating}★` : '';
+  showToast({
+    message: `Logged “${release.title}” as ${LIST_NAMES[log.status]}${rating}`,
+    viewHref: `library.html?tab=${log.status}`,
+    onUndo: () => undo(result),
+  });
+  return true;
+}
+
 export function removeRelease(release) {
   const result = library.removeEntry(release);
   if (!result.ok) {
