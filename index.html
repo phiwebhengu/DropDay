@@ -97,13 +97,58 @@
     </header>
 
     <main class="site-main" id="main">
-      <div class="container">
-        <section class="page-intro">
-          <p class="page-intro__eyebrow">Featured launch</p>
-          <h1>Drop Day</h1>
-          <p class="page-intro__text">
-            Countdown hero, “Dropping this month” and “Continue your Backlog”
-            land here in milestone 4.
+      <div class="home container">
+        <section class="hero" id="hero" aria-labelledby="hero-title" aria-busy="true">
+          <div class="hero__content">
+            <p class="hero__eyebrow" id="hero-eyebrow">Featured launch · Game</p>
+            <h1 class="hero__title" id="hero-title">
+              <span class="visually-hidden">Drop Day: featured launch</span>
+              <span class="skeleton skeleton--heading hero__skeleton" aria-hidden="true"></span>
+            </h1>
+            <p class="hero__meta" id="hero-meta"></p>
+            <div class="countdown" id="countdown" role="timer" aria-label="Time until release" hidden>
+              <div class="countdown__unit">
+                <span class="countdown__value" data-unit="days">00</span>
+                <span class="countdown__label">Days</span>
+              </div>
+              <div class="countdown__unit">
+                <span class="countdown__value" data-unit="hours">00</span>
+                <span class="countdown__label">Hrs</span>
+              </div>
+              <div class="countdown__unit">
+                <span class="countdown__value" data-unit="minutes">00</span>
+                <span class="countdown__label">Min</span>
+              </div>
+              <div class="countdown__unit">
+                <span class="countdown__value" data-unit="seconds">00</span>
+                <span class="countdown__label">Sec</span>
+              </div>
+            </div>
+            <div class="hero__actions">
+              <button class="button button--primary" id="hero-save" type="button" hidden>+ Add to Radar</button>
+              <a class="button button--outline" href="discover.html">Browse releases</a>
+            </div>
+          </div>
+          <a class="hero__art" id="hero-art" href="discover.html" tabindex="-1" aria-hidden="true"></a>
+        </section>
+
+        <section class="home__section" aria-labelledby="month-title">
+          <div class="home__section-head">
+            <h2 class="home__section-title" id="month-title">Dropping this month</h2>
+            <a class="home__see-all" href="discover.html?range=month">See all <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="home__state" id="month-state" hidden></div>
+          <ul class="release-strip" id="month-strip" role="list" aria-busy="true"></ul>
+        </section>
+
+        <section class="home__section" aria-labelledby="backlog-title">
+          <div class="home__section-head">
+            <h2 class="home__section-title" id="backlog-title">Continue your Backlog</h2>
+            <a class="home__see-all" href="library.html?tab=backlog">Open Library <span aria-hidden="true">→</span></a>
+          </div>
+          <ul class="library-list home__backlog" id="backlog-list" role="list"></ul>
+          <p class="home__empty" id="backlog-empty" hidden>
+            Nothing in your Backlog yet. Tap <strong>+ Backlog</strong> on any game and it waits for you here.
           </p>
         </section>
       </div>
@@ -184,5 +229,7 @@
     </nav>
 
     <div class="toast-region" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/pages/home.js"></script>
   </body>
 </html>
