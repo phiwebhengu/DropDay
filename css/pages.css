@@ -452,22 +452,68 @@
   gap: var(--space-12);
 }
 
+/* Billboard: the art fills the hero on desktop with the text over a scrim; on phones the art sits on top. */
 .hero {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  gap: var(--space-6);
-  padding: var(--space-6);
   overflow: hidden;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
   background: var(--color-bg-surface);
 }
 
+.hero__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+}
+
+.hero__media.skeleton {
+  border-radius: 0;
+}
+
+/* A tinted panel only stands in when there's no art; behind real art it stays plain so the reveal is clean. */
+.hero__media:not(.skeleton):not(:has(img)) {
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
+}
+
+/* The scrim isn't decoration: it keeps the title readable whatever colour the art is. */
+.hero__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-bg-surface), transparent 45%);
+  pointer-events: none;
+}
+
+.hero__image,
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: transparent;
+}
+
+.hero__video {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+.hero--playing .hero__video {
+  opacity: 1;
+}
+
 .hero__content {
   display: grid;
   justify-items: start;
-  align-content: center;
+  align-content: end;
   gap: var(--space-4);
   min-width: 0;
+  padding: var(--space-6);
 }
 
 .hero__eyebrow {
@@ -511,47 +557,69 @@
   margin-top: var(--space-2);
 }
 
-.hero__art {
-  display: block;
-  aspect-ratio: 460 / 340;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-raised);
+.hero .countdown__unit {
+  background: color-mix(in srgb, var(--color-bg-sunken) 75%, transparent);
+  backdrop-filter: blur(8px);
 }
 
-/* A tinted panel only stands in when there's no art; behind real art it stays plain so the reveal is clean. */
-.hero__art:not(.skeleton):not(:has(img)) {
-  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
+.hero__sound {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-scrim);
+  backdrop-filter: blur(8px);
+  transition: border-color var(--duration-fast) ease;
 }
 
-.hero__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  color: transparent;
+.hero__sound:hover {
+  border-color: var(--color-text-primary);
+}
+
+.hero--message .hero__media {
+  display: none;
 }
 
 .hero--message .hero__content {
   justify-items: stretch;
 }
 
-/* Two columns only once there's room for both; on tablets the art panel would shrink to a stamp. */
-@media (max-width: 1023px) {
-  .hero__art {
-    display: none;
-  }
-}
-
 @media (min-width: 768px) {
-  .hero {
-    padding: var(--space-12);
+  .hero__content {
+    padding: var(--space-8) var(--space-12) var(--space-12);
   }
 }
 
 @media (min-width: 1024px) {
   .hero {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: var(--space-8);
+    min-height: clamp(480px, 68vh, 640px);
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    aspect-ratio: auto;
+  }
+
+  .hero__media::after {
+    background:
+      linear-gradient(to right, color-mix(in srgb, var(--color-bg-sunken) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg-sunken) 60%, transparent) 40%, transparent 70%),
+      linear-gradient(to top, color-mix(in srgb, var(--color-bg-sunken) 70%, transparent), transparent 40%);
+  }
+
+  .hero__content {
+    max-width: 40rem;
+  }
+
+  .hero__sound {
+    top: var(--space-6);
+    right: var(--space-6);
   }
 }
 

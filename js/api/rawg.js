@@ -85,6 +85,14 @@ export async function getScreenshots(id) {
   return data.results.map((screenshot) => resizeRawgImage(screenshot.image));
 }
 
+// RAWG only has clips for some games, so this resolves to null when there's nothing to play.
+export async function getTrailer(id) {
+  const { data } = await cachedFetch(buildUrl(`/games/${id}/movies`));
+  const movie = data.results?.[0];
+  const src = movie?.data?.["480"] ?? movie?.data?.max;
+  return src ? { src, name: movie.name } : null;
+}
+
 export async function getEditions(id) {
   const { data } = await cachedFetch(buildUrl(`/games/${id}/additions`));
   return data.results.map((addition) => addition.name);

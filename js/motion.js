@@ -47,17 +47,17 @@ export function playHeroIntro(hero) {
       fadeIn(arriving);
       return;
     }
-    const art = hero.querySelector('.hero__art');
-    const reveal = art.querySelector('img') ?? art;
+    const media = hero.querySelector('.hero__media');
+    const reveal = media.querySelector('img') ?? media;
     gsap
       .timeline({ defaults: { ease: 'power3.out' } })
       .fromTo(
         reveal,
-        { clipPath: 'inset(0% 0% 0% 100% round 20px)' },
-        { clipPath: 'inset(0% 0% 0% 0% round 20px)', duration: 1.2, ease: 'power3.inOut', clearProps: 'clipPath' },
+        { clipPath: 'inset(0% 0% 0% 100%)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.2, ease: 'power3.inOut', clearProps: 'clipPath' },
         0,
       )
-      .from(reveal, { scale: 1.18, duration: 1.6 }, 0)
+      .from(reveal, { scale: 1.12, duration: 1.8 }, 0)
       .from(hero.querySelector('.hero__title'), { yPercent: 35, opacity: 0, filter: 'blur(10px)', duration: 0.9, clearProps: 'filter' }, 0.1)
       .from(hero.querySelector('.hero__meta'), { y: 12, opacity: 0, duration: 0.6 }, 0.3)
       .from(hero.querySelectorAll('.countdown__value'), { yPercent: -80, opacity: 0, duration: 0.6, stagger: 0.08 }, 0.45);

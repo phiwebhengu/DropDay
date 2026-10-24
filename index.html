@@ -99,6 +99,7 @@
     <main class="site-main" id="main">
       <div class="home container">
         <section class="hero" id="hero" aria-labelledby="hero-title" aria-busy="true">
+          <div class="hero__media skeleton" id="hero-art" aria-hidden="true"></div>
           <div class="hero__content">
             <p class="hero__eyebrow" id="hero-eyebrow">Featured launch · Game</p>
             <h1 class="hero__title" id="hero-title">
@@ -126,10 +127,11 @@
             </div>
             <div class="hero__actions">
               <button class="button button--primary" id="hero-save" type="button" disabled>+ Add to Radar</button>
+              <button class="button button--outline" id="hero-trailer" type="button" hidden>Play trailer</button>
               <a class="button button--outline" href="discover.html">Browse releases</a>
             </div>
           </div>
-          <a class="hero__art skeleton" id="hero-art" href="discover.html" tabindex="-1" aria-hidden="true"></a>
+          <button class="hero__sound" id="hero-sound" type="button" aria-pressed="false" aria-label="Trailer sound" hidden></button>
         </section>
 
         <section class="home__section" id="month-section" aria-labelledby="month-title">
