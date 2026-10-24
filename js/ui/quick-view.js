@@ -3,6 +3,7 @@ import { getDateText, getSaveText } from './card.js';
 import { createStateMessage } from './states.js';
 import { getStatus } from '../store/library.js';
 import { toggleSave } from './library-actions.js';
+import { closeDialog, openDialog } from '../motion.js';
 
 const CATEGORY_LABELS = {
   movie: 'Movie',
@@ -14,6 +15,20 @@ let dialog;
 let opener;
 let current;
 let requestId = 0;
+let closing = false;
+
+// A bottom sheet on phones, a drawer from the right from 1024 px.
+function getOrigin() {
+  return window.matchMedia('(min-width: 1024px)').matches ? 'right' : 'bottom';
+}
+
+async function closeDrawer() {
+  if (closing || !dialog.open) return;
+  closing = true;
+  await closeDialog(dialog, getOrigin());
+  dialog.close();
+  closing = false;
+}
 
 function formatRuntime(minutes) {
   const hours = Math.floor(minutes / 60);
@@ -51,7 +66,7 @@ function createDialog() {
           </svg>
         </button>
       </div>
-      <div class="quick-view__intro">
+      <div class="quick-view__intro" data-reveal>
         <div class="quick-view__poster"></div>
         <div class="quick-view__heading">
           <h2 class="quick-view__title" id="quick-view-title"></h2>
@@ -59,22 +74,27 @@ function createDialog() {
           <p class="quick-view__facts"></p>
         </div>
       </div>
-      <div class="quick-view__actions">
+      <div class="quick-view__actions" data-reveal>
         <button class="button button--primary quick-view__save" type="button" aria-pressed="false"></button>
         <button class="button button--outline quick-view__trailer-button" type="button" hidden>Watch trailer</button>
       </div>
       <div class="quick-view__trailer" hidden></div>
-      <div class="quick-view__details" aria-live="polite"></div>
+      <div class="quick-view__details" aria-live="polite" data-reveal></div>
     </div>
     <div class="toast-region" role="status" aria-live="polite"></div>
   `;
   document.body.append(element);
 
-  element.querySelector('.quick-view__close').addEventListener('click', () => element.close());
+  element.querySelector('.quick-view__close').addEventListener('click', closeDrawer);
 
   // A click on the dialog itself (not the panel inside it) is a click on the backdrop.
   element.addEventListener('click', (event) => {
-    if (event.target === element) element.close();
+    if (event.target === element) closeDrawer();
+  });
+
+  element.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeDrawer();
   });
 
   element.addEventListener('close', () => {
@@ -228,6 +248,7 @@ export function openQuickView(release, trigger) {
   current = release;
   renderIntro(release);
   dialog.showModal();
+  openDialog(dialog, getOrigin());
   dialog.querySelector('.quick-view__panel').scrollTop = 0;
   loadDetails(release);
 }

@@ -2,6 +2,7 @@ import * as rawg from '../api/rawg.js';
 import { getEntry } from '../store/library.js';
 import { saveLogEntry } from './library-actions.js';
 import { formatRating } from './rating.js';
+import { closeDialog, openDialog } from '../motion.js';
 
 const STANDARD_EDITION = 'Standard edition';
 const REVIEW_LIMIT = 2000;
@@ -11,6 +12,20 @@ let dialog;
 let form;
 let game;
 let opener;
+let closing = false;
+
+// A sheet below 768 px, a centred dialog above (Figma note 14).
+function getOrigin() {
+  return window.matchMedia('(min-width: 768px)').matches ? 'centre' : 'bottom';
+}
+
+async function closeModal() {
+  if (closing || !dialog.open) return;
+  closing = true;
+  await closeDialog(dialog, getOrigin());
+  dialog.close();
+  closing = false;
+}
 
 function createDialog() {
   const element = document.createElement('dialog');
@@ -28,7 +43,7 @@ function createDialog() {
         </button>
       </div>
 
-      <fieldset class="log-modal__group">
+      <fieldset class="log-modal__group" data-reveal>
         <legend class="visually-hidden">Status</legend>
         <div class="status-options">
           <label class="status-option">
@@ -49,17 +64,17 @@ function createDialog() {
         </div>
       </fieldset>
 
-      <div class="field">
+      <div class="field" data-reveal>
         <label class="field__label" for="log-platform">Platform played</label>
         <select class="field__select" id="log-platform" name="platform" autocomplete="off"></select>
       </div>
 
-      <div class="field">
+      <div class="field" data-reveal>
         <label class="field__label" for="log-edition">Edition</label>
         <select class="field__select" id="log-edition" name="edition" autocomplete="off"></select>
       </div>
 
-      <fieldset class="log-modal__group">
+      <fieldset class="log-modal__group" data-reveal>
         <legend class="field__label">Your rating</legend>
         <div class="star-input">
           <div class="star-input__stars">
@@ -77,18 +92,18 @@ function createDialog() {
         </div>
       </fieldset>
 
-      <div class="field">
+      <div class="field" data-reveal>
         <label class="field__label" for="log-review">Review (optional)</label>
         <textarea class="field__textarea" id="log-review" name="review" rows="4" maxlength="${REVIEW_LIMIT}" aria-describedby="log-review-count"></textarea>
         <span class="field__hint" id="log-review-count"></span>
       </div>
 
-      <label class="checkbox">
+      <label class="checkbox" data-reveal>
         <input class="checkbox__input" type="checkbox" name="spoilers">
         Contains spoilers (hides the review behind a reveal)
       </label>
 
-      <div class="log-modal__actions">
+      <div class="log-modal__actions" data-reveal>
         <button class="button button--outline" type="button" data-close>Cancel</button>
         <button class="button button--primary" type="submit" disabled>Save log</button>
       </div>
@@ -182,11 +197,16 @@ function fillForm(status) {
 function setUpForm() {
   form = dialog.querySelector('form');
 
-  dialog.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => dialog.close()));
+  dialog.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeModal));
   dialog.addEventListener('click', (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog) closeModal();
   });
   dialog.addEventListener('close', () => opener?.focus());
+  // Esc would close instantly; route it through the exit animation instead.
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeModal();
+  });
 
   form.addEventListener('change', (event) => {
     if (event.target.name === 'rating') renderRating();
@@ -221,7 +241,7 @@ function setUpForm() {
       spoilers: form.elements.spoilers.checked,
     });
     // On failure the error toast shows and the form stays open, so nothing typed is lost.
-    if (saved) dialog.close();
+    if (saved) closeModal();
   });
 }
 
@@ -235,6 +255,7 @@ export function openLogModal(release, { trigger, status } = {}) {
   opener = trigger;
   fillForm(status);
   dialog.showModal();
+  openDialog(dialog, getOrigin());
   dialog.querySelector('.log-modal__panel').scrollTop = 0;
   // Focus starts on the chosen status (or the first), per the Figma handoff note.
   (form.querySelector('[name="status"]:checked') ?? form.querySelector('[name="status"]')).focus();

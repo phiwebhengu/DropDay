@@ -198,3 +198,63 @@ export function pulseBadge(badge) {
   if (!hasMotion || prefersReducedMotion()) return;
   gsap.fromTo(badge, { scale: 1.6 }, { scale: 1, duration: 0.5, ease: 'back.out(2)', force3D: false, clearProps: 'transform' });
 }
+
+/* M5 · Dialogs and the Library count-up.
+   The log modal rises as a bottom sheet on phones and settles in the centre on desktop; the quick view
+   slides in from the right on desktop. Each closes the way it came. Reduced motion: short fades. */
+
+// The dialogs move through CSS variables (see .log-modal / .quick-view in components.css), not GSAP's x/y:
+// GSAP briefly re-attaches an element to measure its transform, and doing that to an open modal <dialog>
+// knocks it out of the top layer, so Esc and the backdrop stop working.
+const DIALOG_ORIGINS = {
+  bottom: { '--dialog-y': '100%' },
+  right: { '--dialog-x': '100%' },
+  centre: { '--dialog-y': '4%', '--dialog-scale': 0.96, opacity: 0 },
+};
+
+const DIALOG_REST = { '--dialog-x': '0%', '--dialog-y': '0%', '--dialog-scale': 1, opacity: 1 };
+
+export function openDialog(dialog, origin) {
+  if (!hasMotion) return;
+  gsap.killTweensOf(dialog);
+  gsap.set(dialog, DIALOG_REST);
+  if (prefersReducedMotion()) {
+    gsap.from(dialog, { opacity: 0, duration: 0.2, ease: 'none' });
+    return;
+  }
+  gsap
+    .timeline()
+    .from(dialog, { ...DIALOG_ORIGINS[origin], duration: 0.5, ease: 'power3.out' })
+    .from(dialog.querySelectorAll('[data-reveal]'), { y: 12, opacity: 0, duration: 0.4, stagger: 0.04, ease: 'power2.out', clearProps: 'transform,opacity' }, 0.12);
+}
+
+// Resolves once the dialog has animated away, so the caller can then really close it.
+export function closeDialog(dialog, origin) {
+  if (!hasMotion) return Promise.resolve();
+  gsap.killTweensOf(dialog);
+  const exit = prefersReducedMotion()
+    ? { opacity: 0, duration: 0.15, ease: 'none' }
+    : { ...DIALOG_ORIGINS[origin], duration: 0.3, ease: 'power2.in' };
+  return new Promise((resolve) => {
+    gsap.to(dialog, { ...exit, onComplete: resolve });
+  });
+}
+
+// Counts up from where it was (0 on first view) to the new number.
+export function countTo(element, value) {
+  const from = Number(element.dataset.shown ?? 0);
+  element.dataset.shown = value;
+  if (!hasMotion || prefersReducedMotion() || from === value) {
+    element.textContent = value;
+    return;
+  }
+  const counter = { value: from };
+  gsap.to(counter, {
+    value,
+    duration: Math.min(1.2, 0.5 + Math.abs(value - from) * 0.03),
+    ease: 'power2.out',
+    onUpdate: () => {
+      element.textContent = Math.round(counter.value);
+    },
+  });
+}
