@@ -561,7 +561,8 @@
   justify-items: stretch;
 }
 
-@media (max-width: 767px) {
+/* Two columns only once there's room for both; on tablets the art panel would shrink to a stamp. */
+@media (max-width: 1023px) {
   .hero__art {
     display: none;
   }
@@ -569,9 +570,14 @@
 
 @media (min-width: 768px) {
   .hero {
+    padding: var(--space-12);
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     gap: var(--space-8);
-    padding: var(--space-12);
   }
 }
 
