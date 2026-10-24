@@ -5,6 +5,8 @@ import {
   LIST_CACHE_TTL,
 } from "../config.js";
 import { addDays, toIsoDate } from "../utils/dates.js";
+
+const FEATURED_CANDIDATES = 10;
 import { cachedFetch } from "./cache.js";
 import {
   normaliseRawgGame,
@@ -58,14 +60,17 @@ export async function getGames({
   return toPage(await cachedFetch(url), page);
 }
 
+// RAWG counts some TBA games as "in range" through a placeholder date, so it asks for a few and
+// features the most-added one with a real date (the hero needs one for its countdown).
 export async function getFeaturedGame(today = new Date()) {
   const url = buildUrl("/games", {
     dates: `${toIsoDate(today)},${toIsoDate(addDays(today, 90))}`,
     ordering: "-added",
-    page_size: 1,
+    page_size: FEATURED_CANDIDATES,
   });
   const { results, savedAt, isStale } = toPage(await cachedFetch(url), 1);
-  return { game: results[0] ?? null, savedAt, isStale };
+  const game = results.find((result) => !result.tba && result.date) ?? null;
+  return { game, savedAt, isStale };
 }
 
 export async function getGame(id) {
