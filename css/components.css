@@ -1136,7 +1136,7 @@ html:has(.quick-view[open]) {
   background: linear-gradient(
     90deg,
     var(--color-rating) calc(var(--rating) / 5 * 100%),
-    var(--color-bg-raised) 0
+    var(--color-star-empty) 0
   );
   -webkit-background-clip: text;
   background-clip: text;

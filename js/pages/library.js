@@ -223,9 +223,15 @@ function renderPanel() {
     return;
   }
 
-  if (state.view === 'grid') panel.replaceChildren(createGrid(entries));
-  else if (state.tab === 'played') panel.replaceChildren(createDiary(entries));
-  else panel.replaceChildren(createList(entries));
+  if (state.tab === 'played' && state.view === 'list') {
+    panel.replaceChildren(createDiary(entries));
+    return;
+  }
+  // The diary has month headings; the plain list and grid get a hidden one, so titles don't jump from h1 to h3.
+  const heading = document.createElement('h2');
+  heading.className = 'visually-hidden';
+  heading.textContent = LIST_NAMES[state.tab];
+  panel.replaceChildren(heading, state.view === 'grid' ? createGrid(entries) : createList(entries));
 }
 
 function update(changes) {
