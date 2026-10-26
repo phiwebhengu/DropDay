@@ -221,6 +221,7 @@ function showNotFound() {
   document.title = 'Game not found · Drop Day';
   showState(
     createStateMessage({
+      headingLevel: 1,
       type: 'empty',
       title: 'Game not found',
       text: 'This link may be broken, or the game was removed from RAWG.',
@@ -248,6 +249,7 @@ async function loadGame() {
     }
     showState(
       createStateMessage({
+        headingLevel: 1,
         type: 'error',
         title: "This game couldn't load",
         text: 'Check your connection, then try again.',

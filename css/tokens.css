@@ -56,6 +56,8 @@
   --color-accent-highlight: var(--amber-400);
   --color-focus-ring: var(--amber-300);
   --color-rating: var(--amber-400);
+  /* The unfilled part of a star row. 3:1 against cards, because in the log form the stars are the control. */
+  --color-star-empty: #76705f;
   --color-status-error: var(--red-400);
   --color-status-error-tint: rgb(230 104 92 / 0.12);
   --color-status-success: var(--sage-400);
@@ -157,6 +159,7 @@
   --color-accent-highlight: var(--amber-600);
   --color-focus-ring: var(--amber-700);
   --color-rating: #c27a0a;
+  --color-star-empty: #8c8475;
   --color-status-error: #b8392d;
   --color-status-error-tint: rgb(184 57 45 / 0.1);
   --color-status-success: #3f7a43;
