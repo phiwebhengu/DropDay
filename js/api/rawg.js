@@ -5,6 +5,8 @@ import {
   LIST_CACHE_TTL,
 } from "../config.js";
 import { addDays, toIsoDate } from "../utils/dates.js";
+
+const FEATURED_CANDIDATES = 10;
 import { cachedFetch } from "./cache.js";
 import {
   normaliseRawgGame,
@@ -49,21 +51,26 @@ export async function getGames({
     platforms,
     genres,
     search,
-    ordering: search ? undefined : ordering,
+    search_precise: search ? true : undefined,
+    // Search defaults to RAWG's relevance order, which ranks fan games above the real thing; most added comes first instead.
+    ordering: search ? "-added" : ordering,
     page,
     page_size: PAGE_SIZE,
   });
   return toPage(await cachedFetch(url), page);
 }
 
+// RAWG counts some TBA games as "in range" through a placeholder date, so it asks for a few and
+// features the most-added one with a real date (the hero needs one for its countdown).
 export async function getFeaturedGame(today = new Date()) {
   const url = buildUrl("/games", {
     dates: `${toIsoDate(today)},${toIsoDate(addDays(today, 90))}`,
     ordering: "-added",
-    page_size: 1,
+    page_size: FEATURED_CANDIDATES,
   });
   const { results, savedAt, isStale } = toPage(await cachedFetch(url), 1);
-  return { game: results[0] ?? null, savedAt, isStale };
+  const game = results.find((result) => !result.tba && result.date) ?? null;
+  return { game, savedAt, isStale };
 }
 
 export async function getGame(id) {
@@ -76,6 +83,14 @@ export async function getGame(id) {
 export async function getScreenshots(id) {
   const { data } = await cachedFetch(buildUrl(`/games/${id}/screenshots`));
   return data.results.map((screenshot) => resizeRawgImage(screenshot.image));
+}
+
+// RAWG only has clips for some games, so this resolves to null when there's nothing to play.
+export async function getTrailer(id) {
+  const { data } = await cachedFetch(buildUrl(`/games/${id}/movies`));
+  const movie = data.results?.[0];
+  const src = movie?.data?.["480"] ?? movie?.data?.max;
+  return src ? { src, name: movie.name } : null;
 }
 
 export async function getEditions(id) {
@@ -99,7 +114,11 @@ export async function getPlatforms() {
     buildUrl("/platforms", { page_size: 40 }),
     { maxAge: LIST_CACHE_TTL },
   );
-  return data.results.map(({ id, name }) => ({ id, name }));
+  return data.results.map(({ id, name, games_count }) => ({
+    id,
+    name,
+    gamesCount: games_count,
+  }));
 }
 
 export async function getGenres() {

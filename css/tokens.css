@@ -1,46 +1,82 @@
-/*transcribed from my Figma variables (page 03 Design System)*/
+/*
+  Drop Day design tokens. Redesigned in the design pass (#42) from the Figma variables:
+  a warm "projection room" charcoal so posters and key art carry the colour, one accent
+  (marquee amber, which is also the colour of a star rating), and a condensed signage
+  face for titles and numbers, like a release board.
+*/
 
 :root {
   /* Primitives */
-  --ink-950: #07080d;
-  --ink-900: #0b0d14;
-  --ink-800: #151926;
-  --ink-700: #1f2435;
-  --ink-500: #5b6070;
-  --ink-300: #b4b7c8;
-  --ink-100: #e6e7ef;
-  --ink-50: #f4f5fa;
-  --white: #ffffff;
-  --violet-500: #6c4dff;
-  --violet-400: #8a73ff;
-  --lime-400: #c6ee72;
-  --red-400: #ff6b6b;
-  --amber-400: #ffc043;
-  --green-400: #34d399;
-  --orange-400: #ff8a5b;
-  --blue-400: #4da3ff;
-  --pink-400: #ff5fa2;
+  --charcoal-950: #0e0d0b;
+  --charcoal-900: #141311;
+  --charcoal-850: #1b1a17;
+  --charcoal-800: #23211e;
+  --charcoal-700: #302d29;
+  --charcoal-600: #47433d;
+  --stone-400: #a9a397;
+  --stone-200: #d9d3c7;
+  --paper-50: #f4f0e8;
+  --amber-400: #f2ac3e;
+  --amber-300: #f6c272;
+  --red-400: #e6685c;
+  --sage-400: #7fb47f;
+  --mint-400: #6cbf91;
+  --clay-400: #e08b5e;
+  --sky-400: #72a6e0;
+  --rose-400: #dc84b0;
+  --paper-100: #f3efe8;
+  --paper-0: #fbf9f5;
+  --paper-200: #e8e3da;
+  --paper-300: #ddd6ca;
+  --paper-500: #b7ae9f;
+  --ink-600: #5b564c;
+  --ink-900: #1b1a17;
+  --amber-700: #8a5300;
+  --amber-600: #925800;
+}
 
-  /* Colour: semantic names point at primitives */
-  --color-bg-page: var(--ink-900);
-  --color-bg-surface: var(--ink-800);
-  --color-bg-raised: var(--ink-700);
-  --color-text-primary: var(--ink-50);
-  --color-text-secondary: var(--ink-300);
-  --color-border-default: var(--ink-700);
-  --color-action-primary: var(--violet-500);
-  --color-action-primary-hover: var(--violet-400);
-  --color-action-on-primary: var(--white);
-  --color-accent-highlight: var(--lime-400);
-  --color-focus-ring: var(--lime-400);
+/* Colour: components only ever use these semantic names. Dark is the default; .theme-dark keeps
+   a section dark in the light theme too (the Home billboard sits on key art either way).
+   The theme itself is set on <html> by a small script in each page's <head>. */
+:root,
+.theme-dark {
+  color-scheme: dark;
+  --color-bg-page: var(--charcoal-900);
+  --color-bg-surface: var(--charcoal-850);
+  --color-bg-raised: var(--charcoal-800);
+  --color-bg-sunken: var(--charcoal-950);
+  --color-text-primary: var(--paper-50);
+  --color-text-secondary: var(--stone-400);
+  --color-border-default: var(--charcoal-700);
+  --color-border-strong: var(--charcoal-600);
+  --color-action-primary: var(--amber-400);
+  --color-action-primary-hover: var(--amber-300);
+  --color-action-on-primary: var(--charcoal-950);
+  --color-action-tint: rgb(242 172 62 / 0.12);
+  --color-accent-highlight: var(--amber-400);
+  --color-focus-ring: var(--amber-300);
+  --color-rating: var(--amber-400);
+  /* The unfilled part of a star row. 3:1 against cards, because in the log form the stars are the control. */
+  --color-star-empty: #76705f;
   --color-status-error: var(--red-400);
-  --color-status-success: var(--green-400);
-  --color-status-warning: var(--amber-400);
-  --color-category-games: var(--green-400);
-  --color-category-movies: var(--orange-400);
-  --color-category-tv: var(--blue-400);
-  --color-category-anime: var(--pink-400);
+  --color-status-error-tint: rgb(230 104 92 / 0.12);
+  --color-status-success: var(--sage-400);
+  --color-status-warning: var(--amber-300);
+  --color-category-games: var(--mint-400);
+  --color-category-movies: var(--clay-400);
+  --color-category-tv: var(--sky-400);
+  --color-category-anime: var(--rose-400);
+  --color-header-bg: rgb(20 19 17 / 0.86);
+  --color-scrim: rgb(14 13 11 / 0.72);
+  --color-skeleton-shine: var(--charcoal-700);
+  /* Sits on top of content with text over it (the spoiler cover), unlike the dialog backdrop scrim. */
+  --color-overlay: rgb(14 13 11 / 0.72);
+  --shadow-card: 0 18px 40px -12px rgb(6 5 3 / 0.6);
+  --shadow-float: 0 24px 60px -16px rgb(6 5 3 / 0.75);
+}
 
+/* Everything else is shared by both themes. */
+:root {
   /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
@@ -51,34 +87,34 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  /* Radius: tighter on small, inner things, softer on containers */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* Typography */
-  --font-family: "Inter", system-ui, sans-serif;
+  /* Typography: Big Shoulders Display for titles and numbers, Figtree for everything you read */
+  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --font-family: "Figtree", system-ui, sans-serif;
   --font-weight-regular: 400;
+  --font-weight-medium: 500;
   --font-weight-semibold: 600;
+  --font-weight-heavy: 800;
 
-  --text-display-xl: var(--font-weight-semibold)
-    clamp(2.25rem, 1.5rem + 3.2vw, 3.5rem) / 1.07 var(--font-family);
-  --text-h1: var(--font-weight-semibold) clamp(2rem, 1.6rem + 1.6vw, 2.5rem) /
-    1.2 var(--font-family);
-  --text-h2: var(--font-weight-semibold)
-    clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem) / 1.29 var(--font-family);
-  --text-h3: var(--font-weight-semibold) 1.375rem / 1.36 var(--font-family);
-  --text-body-l: var(--font-weight-regular) 1.125rem / 1.56 var(--font-family);
-  --text-body-m: var(--font-weight-regular) 1rem / 1.5 var(--font-family);
-  --text-body-s: var(--font-weight-regular) 0.9375rem / 1.47 var(--font-family);
-  --text-label-m: var(--font-weight-semibold) 0.9375rem / 1.47
-    var(--font-family);
-  --text-caption: var(--font-weight-regular) 0.8125rem / 1.38 var(--font-family);
+  --text-display-xl: var(--font-weight-heavy) clamp(3rem, 1.9rem + 4.4vw, 5.25rem) / 0.92 var(--font-display);
+  --text-h1: var(--font-weight-heavy) clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem) / 0.95 var(--font-display);
+  --text-h2: 700 clamp(1.75rem, 1.45rem + 1.2vw, 2.25rem) / 1 var(--font-display);
+  --text-h3: var(--font-weight-semibold) 1.1875rem / 1.3 var(--font-family);
+  --text-body-l: var(--font-weight-regular) 1.125rem / 1.6 var(--font-family);
+  --text-body-m: var(--font-weight-regular) 1rem / 1.55 var(--font-family);
+  --text-body-s: var(--font-weight-regular) 0.9375rem / 1.5 var(--font-family);
+  --text-label-m: var(--font-weight-semibold) 0.9375rem / 1.4 var(--font-family);
+  --text-caption: var(--font-weight-medium) 0.8125rem / 1.4 var(--font-family);
 
   /* Effects */
-  --shadow-card: 0 8px 24px rgb(0 0 0 / 0.35);
-  --focus-ring: 3px solid var(--color-focus-ring);
+  --grain-opacity: 0.05;
+  --focus-ring: 2px solid var(--color-focus-ring);
 
   /* Layout */
   --container-max: 1344px;
@@ -89,7 +125,9 @@
 
   /* Motion */
   --duration-fast: 150ms;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 @media (min-width: 768px) {
@@ -103,4 +141,38 @@
     --container-gutter: var(--space-12);
     --header-height: 72px;
   }
+}
+
+/* Light theme: warm paper and ink, the same amber. Amber is too pale to read as text on paper,
+   so text and focus use a deeper amber; filled buttons keep the bright one with dark text. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg-page: var(--paper-100);
+  --color-bg-surface: var(--paper-0);
+  --color-bg-raised: var(--paper-200);
+  --color-bg-sunken: var(--paper-300);
+  --color-text-primary: var(--ink-900);
+  --color-text-secondary: var(--ink-600);
+  --color-border-default: var(--paper-300);
+  --color-border-strong: var(--paper-500);
+  --color-action-tint: rgb(242 172 62 / 0.18);
+  --color-accent-highlight: var(--amber-600);
+  --color-focus-ring: var(--amber-700);
+  --color-rating: #c27a0a;
+  --color-star-empty: #8c8475;
+  --color-status-error: #b8392d;
+  --color-status-error-tint: rgb(184 57 45 / 0.1);
+  --color-status-success: #3f7a43;
+  --color-status-warning: var(--amber-700);
+  --color-category-games: #256f48;
+  --color-category-movies: #b4552a;
+  --color-category-tv: #2f68ad;
+  --color-category-anime: #a83f74;
+  --color-header-bg: rgb(243 239 232 / 0.86);
+  --color-scrim: rgb(27 26 23 / 0.45);
+  --color-skeleton-shine: var(--paper-100);
+  --color-overlay: rgb(251 249 245 / 0.8);
+  --shadow-card: 0 18px 40px -16px rgb(74 56 28 / 0.22);
+  --shadow-float: 0 24px 60px -18px rgb(74 56 28 / 0.3);
+  --grain-opacity: 0.035;
 }
