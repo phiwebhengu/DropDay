@@ -6,39 +6,41 @@ function toCacheKey(url) {
   return STORAGE_KEYS.cachePrefix + cleanUrl.toString();
 }
 
-function readEntry(cacheKey) {
+function readEntry(storage, cacheKey) {
   try {
-    const entry = JSON.parse(sessionStorage.getItem(cacheKey));
+    const entry = JSON.parse(storage.getItem(cacheKey));
     return entry?.savedAt ? entry : null;
   } catch {
     return null;
   }
 }
 
-function clearCache() {
-  Object.keys(sessionStorage)
+function clearCache(storage) {
+  Object.keys(storage)
     .filter((key) => key.startsWith(STORAGE_KEYS.cachePrefix))
-    .forEach((key) => sessionStorage.removeItem(key));
+    .forEach((key) => storage.removeItem(key));
 }
 
-function writeEntry(cacheKey, data) {
+function writeEntry(storage, cacheKey, data) {
   const entry = JSON.stringify({ savedAt: Date.now(), data });
   try {
-    sessionStorage.setItem(cacheKey, entry);
+    storage.setItem(cacheKey, entry);
   } catch {
-    clearCache();
+    clearCache(storage);
     try {
-      sessionStorage.setItem(cacheKey, entry);
+      storage.setItem(cacheKey, entry);
     } catch {}
   }
 }
 
 export async function cachedFetch(
   url,
-  { headers = {}, maxAge = CACHE_TTL } = {},
+  { headers = {}, maxAge = CACHE_TTL, persist = false } = {},
 ) {
+  // persist keeps the response across visits (localStorage) instead of just this tab.
+  const storage = persist ? localStorage : sessionStorage;
   const cacheKey = toCacheKey(url);
-  const cached = readEntry(cacheKey);
+  const cached = readEntry(storage, cacheKey);
 
   if (cached && Date.now() - cached.savedAt < maxAge) {
     return { data: cached.data, savedAt: cached.savedAt, isStale: false };
@@ -53,7 +55,7 @@ export async function cachedFetch(
       );
     }
     const data = await response.json();
-    writeEntry(cacheKey, data);
+    writeEntry(storage, cacheKey, data);
     return { data, savedAt: Date.now(), isStale: false };
   } catch (error) {
     if (cached && error.status !== 404) {

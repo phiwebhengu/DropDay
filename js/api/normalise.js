@@ -41,6 +41,11 @@ export function getTmdbImage(path, size = "w342") {
   return path ? `${TMDB_IMAGE_BASE_URL}/${size}${path}` : null;
 }
 
+// Game detail and the Home hero show the art large, so it gets a bigger, uncropped copy than the cards.
+function resizeRawgCover(url) {
+  return url ? url.replace("/media/games/", "/media/resize/1280/-/games/") : null;
+}
+
 export function normaliseRawgGame(game) {
   const date = game.released ?? null;
   return {
@@ -51,6 +56,8 @@ export function normaliseRawgGame(game) {
     date,
     tba: Boolean(game.tba) || !date,
     image: resizeRawgImage(game.background_image),
+    cover: resizeRawgCover(game.background_image),
+    season: null,
     platforms: (game.platforms ?? []).map(({ platform }) => platform.name),
     genres: (game.genres ?? []).map((genre) => genre.name),
     rating: game.rating > 0 ? game.rating : null,
@@ -78,6 +85,7 @@ export function normaliseTmdbItem(item, type) {
     date,
     tba: !date,
     image: getTmdbImage(item.poster_path),
+    season: null,
     platforms: [],
     genres: (item.genre_ids ?? []).map((id) => TMDB_GENRES[id]).filter(Boolean),
     rating:

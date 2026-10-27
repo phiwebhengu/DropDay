@@ -12,11 +12,780 @@
 .page-intro__eyebrow {
   color: var(--color-accent-highlight);
   font: var(--text-label-m);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .page-intro__text {
   color: var(--color-text-secondary);
+}
+
+/* Discover */
+
+.discover {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.discover__header {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.discover__title {
+  font: var(--text-display-xl);
+}
+
+.discover__summary {
+  color: var(--color-text-secondary);
+  font: var(--text-body-l);
+}
+
+.discover__clear {
+  justify-self: start;
+  min-height: var(--touch-target);
+  margin-block: calc(var(--space-3) * -1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-highlight);
+  font: var(--text-label-m);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.release-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .release-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .release-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .release-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.discover-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .discover-filters {
+    grid-template-columns: repeat(3, minmax(0, 260px));
+  }
+}
+
+.discover__more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
+.discover__note {
+  margin-bottom: var(--space-4);
+  color: var(--color-status-warning);
+  font: var(--text-body-s);
+}
+
+.discover__state {
+  padding-block: var(--space-8);
+}
+
+/* Game detail */
+
+.game {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.game__hero {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.game__cover {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 358 / 220;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
+}
+
+.game__cover.skeleton {
+  background: var(--color-bg-raised);
+}
+
+.game__cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: transparent;
+}
+
+.game__info {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.game__eyebrow {
+  color: var(--color-category-games);
+  font: var(--text-label-m);
+}
+
+.game__title {
+  font: var(--text-display-xl);
+  text-wrap: balance;
+}
+
+.game__meta {
+  color: var(--color-text-secondary);
+  font: var(--text-body-l);
+}
+
+.game__platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.game__rating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.game__rating-value {
+  font: var(--text-label-m);
+}
+
+.game__rating-source {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.game__library-label {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+}
+
+.game__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-6);
+}
+
+@media (max-width: 767px) {
+  .game__log-button {
+    flex-basis: 100%;
+  }
+}
+
+.game__state {
+  padding-block: var(--space-8);
+}
+
+.game__section {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}
+
+.game__section-title {
+  font: var(--text-h2);
+}
+
+.your-log {
+  justify-items: stretch;
+}
+
+.your-log__card {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  max-width: 48rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.your-log__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--text-label-m);
+}
+
+.your-log__meta,
+.your-log__empty {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.review + .your-log__meta,
+.your-log__meta + .review {
+  margin-top: var(--space-2);
+}
+
+.game__description {
+  display: -webkit-box;
+  max-width: 75ch;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  color: var(--color-text-secondary);
+  white-space: pre-line;
+}
+
+.game__description--expanded {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .game__hero {
+    grid-template-columns: 340px 1fr;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .game__cover {
+    aspect-ratio: 340 / 450;
+  }
+}
+
+.game__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.game__see-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  color: var(--color-accent-highlight);
+  font: var(--text-label-m);
+  text-decoration: none;
+}
+
+.game__see-all:hover {
+  text-decoration: underline;
+}
+
+.game__section--wide {
+  justify-items: stretch;
+}
+
+/* Screenshots: swipe row on phones (scroll-snap), four across on desktop */
+
+.screenshots {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 75%;
+  gap: var(--space-3);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.screenshots > li {
+  scroll-snap-align: start;
+}
+
+.screenshots__image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  object-fit: cover;
+  color: transparent;
+}
+
+@media (min-width: 768px) {
+  .screenshots {
+    grid-auto-columns: calc((100% - 3 * var(--space-6)) / 4);
+    gap: var(--space-6);
+  }
+}
+
+/* A single row: show only as many similar games as fit, so the last row is never half empty. */
+.release-grid--row > li:nth-child(n + 5) {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .release-grid--row > li:nth-child(5) {
+    display: block;
+  }
+}
+
+/* My Library */
+
+.library {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.library__header {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.library__title {
+  font: var(--text-display-xl);
+}
+
+.library__intro {
+  color: var(--color-text-secondary);
+  font: var(--text-body-l);
+}
+
+.library-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.library-stats__item {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.library-stats__label {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.library-stats__count {
+  font: var(--text-h1);
+  font-variant-numeric: tabular-nums;
+}
+
+.library__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.library__panel:focus {
+  outline: none;
+}
+
+@media (min-width: 768px) {
+  .library-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+/* Diary: Played as a Letterboxd-style log, one block per month */
+
+.diary {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.diary__month {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.diary__heading {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-default);
+  font: var(--text-h2);
+}
+
+/* Library layout: the list, with Activity beside it on desktop and below it on phones */
+
+.library__layout {
+  display: grid;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.library__reset {
+  margin-top: calc(var(--space-2) * -1);
+}
+
+.activity {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.activity__title {
+  font: var(--text-h3);
+}
+
+.activity__list {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.activity__item {
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.activity__time {
+  white-space: nowrap;
+}
+
+.activity__empty,
+.activity__note {
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+}
+
+@media (min-width: 1024px) {
+  .library__layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
+/* Home */
+
+.home {
+  display: grid;
+  gap: var(--space-12);
+}
+
+/* Billboard: the art fills the hero on desktop with the text over a scrim; on phones the art sits on top. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.hero__media {
+  position: relative;
+  container-type: size;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--color-bg-raised);
+}
+
+.hero__media.skeleton {
+  border-radius: 0;
+}
+
+/* A tinted panel only stands in when there's no art; behind real art it stays plain so the reveal is clean. */
+.hero__media:not(.skeleton):not(:has(img)) {
+  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
+}
+
+/* The scrim isn't decoration: it keeps the title readable whatever colour the art is. */
+.hero__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-bg-surface), transparent 45%);
+  pointer-events: none;
+}
+
+.hero__image,
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: transparent;
+}
+
+.hero__video {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit) and
+   ignores the pointer, which keeps hover on the hero and stops clicks landing on YouTube. */
+.hero__video--embed {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 177.78cqh);
+  height: max(100cqh, 56.25cqw);
+  border: 0;
+  pointer-events: none;
+  translate: -50% -50%;
+}
+
+.hero--playing .hero__video {
+  opacity: 1;
+}
+
+.hero__content {
+  display: grid;
+  justify-items: start;
+  align-content: end;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-6);
+}
+
+.hero__eyebrow {
+  color: var(--color-accent-highlight);
+  font: var(--text-label-m);
+}
+
+.hero__title {
+  max-width: 100%;
+  font: var(--text-display-xl);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* Sized like the real title and date line, so nothing shifts when the game arrives. */
+.hero__skeleton {
+  width: min(480px, 80%);
+  height: 1.07em;
+}
+
+.hero__link {
+  text-decoration: none;
+}
+
+.hero__link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.12em;
+}
+
+.hero__meta {
+  min-height: 1.75rem;
+  color: var(--color-text-secondary);
+  font: var(--text-body-l);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.hero .countdown__unit {
+  background: color-mix(in srgb, var(--color-bg-sunken) 75%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.hero__sound {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-scrim);
+  backdrop-filter: blur(8px);
+  transition: border-color var(--duration-fast) ease;
+}
+
+.hero__sound:hover {
+  border-color: var(--color-text-primary);
+}
+
+.hero--message .hero__media {
+  display: none;
+}
+
+.hero--message .hero__content {
+  justify-items: stretch;
+}
+
+/* Without a featured game there's no art to fill, so the billboard shrinks to its message. */
+@media (min-width: 1024px) {
+  .hero--message {
+    min-height: 0;
+  }
+
+  .hero--message .hero__content {
+    max-width: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero__content {
+    padding: var(--space-8) var(--space-12) var(--space-12);
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    min-height: clamp(480px, 68vh, 640px);
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    aspect-ratio: auto;
+  }
+
+  .hero__media::after {
+    background:
+      linear-gradient(to right, color-mix(in srgb, var(--color-bg-sunken) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg-sunken) 60%, transparent) 40%, transparent 70%),
+      linear-gradient(to top, color-mix(in srgb, var(--color-bg-sunken) 70%, transparent), transparent 40%);
+  }
+
+  .hero__content {
+    max-width: 40rem;
+  }
+
+  .hero__sound {
+    top: var(--space-6);
+    right: var(--space-6);
+  }
+}
+
+.home__section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+}
+
+.home__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.home__section-title {
+  font: var(--text-h2);
+}
+
+.home__see-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  color: var(--color-accent-highlight);
+  font: var(--text-label-m);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home__see-all:hover {
+  text-decoration: underline;
+}
+
+.home__empty {
+  color: var(--color-text-secondary);
+}
+
+@media (min-width: 1024px) {
+  .home__backlog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Horizontal strip: swipe with snap points; M2 pins it on desktop later (#27) */
+
+.release-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - var(--space-3)) / 2.2);
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.release-strip > li {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .release-strip {
+    grid-auto-columns: calc((100% - 2 * var(--space-6)) / 3.2);
+    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .release-strip {
+    grid-auto-columns: calc((100% - 4 * var(--space-6)) / 5);
+  }
+}
+
+/* Pinned strip (M2, desktop): GSAP moves it, so it drops its own scrollbar and may run past the container */
+
+.site-main {
+  overflow-x: clip;
+}
+
+.release-strip--pinned {
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+.release-strip__progress {
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-raised);
+}
+
+.release-strip__progress > span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent-highlight);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* While the next set of releases loads, the current cards dim instead of vanishing (M3 needs them for Flip). */
+.release-grid > li {
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.release-grid[aria-busy="true"] > li:has(.release-card:not(.release-card--loading)) {
+  opacity: 0.45;
 }

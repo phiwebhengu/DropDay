@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-ZA">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Components · Drop Day</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
+    <link rel="stylesheet" href="../css/tokens.css">
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+      main { display: grid; gap: var(--space-12); padding-block: var(--space-8) var(--space-16); }
+      section { display: grid; gap: var(--space-4); }
+      .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-6); }
+      .preview-log { color: var(--color-text-secondary); font: var(--text-caption); }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <div>
+        <h1>Components</h1>
+        <p class="preview-log">Developer-only page for checking components against Figma. Not linked from the site.</p>
+      </div>
+
+      <section>
+        <h2>Release card · live data</h2>
+        <div class="preview-grid" id="live"></div>
+      </section>
+
+      <section>
+        <h2>Release card · states and edge cases</h2>
+        <div class="preview-grid" id="states"></div>
+      </section>
+
+      <p class="preview-log" id="log" role="status">Click a card or a save button to see its event here.</p>
+    </main>
+
+    <script type="module">
+      import * as rawg from '../js/api/rawg.js';
+      import * as tmdb from '../js/api/tmdb.js';
+      import { getQuickRange } from '../js/utils/dates.js';
+      import { createReleaseCard, createCardSkeleton, setCardSaved } from '../js/ui/card.js';
+
+      const live = document.getElementById('live');
+      const states = document.getElementById('states');
+      const log = document.getElementById('log');
+
+      live.append(...Array.from({ length: 4 }, createCardSkeleton));
+
+      const range = getQuickRange('quarter');
+      const [games, movies, shows, anime] = await Promise.all([
+        rawg.getGames(range),
+        tmdb.getMovies(range),
+        tmdb.getShows(range),
+        tmdb.getAnime(range),
+      ]);
+      const releases = [games.results[0], movies.results[0], shows.results[0], anime.results[0]].filter(Boolean);
+      live.replaceChildren(...releases.map((release) => createReleaseCard(release)));
+
+      const base = { source: 'rawg', id: 1, type: 'game', date: '2026-11-19', tba: false, image: null, genres: [], rating: null };
+      states.append(
+        createReleaseCard({ ...base, title: 'Saved state', platforms: ['PC', 'PlayStation 5'] }, { saved: true }),
+        createReleaseCard({ ...base, title: 'A very long release title that has to clamp to two lines neatly', platforms: ['PC', 'PlayStation 5', 'Xbox Series S/X', 'Nintendo Switch', 'macOS'] }),
+        createReleaseCard({ ...base, type: 'anime', title: 'No image, TBA date', date: null, tba: true, platforms: [] }),
+        createCardSkeleton(),
+      );
+
+      document.addEventListener('release:save', ({ target, detail }) => {
+        const saved = target.querySelector('.release-card__save').getAttribute('aria-pressed') !== 'true';
+        setCardSaved(target, detail.release.type, saved);
+        log.textContent = `release:save → ${detail.release.title} (${saved ? 'saved' : 'removed'})`;
+      });
+
+      document.addEventListener('release:quickview', ({ detail }) => {
+        log.textContent = `release:quickview → ${detail.release.title}`;
+      });
+    </script>
+  </body>
+</html>
