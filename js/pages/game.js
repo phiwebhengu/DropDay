@@ -1,7 +1,7 @@
 import * as rawg from '../api/rawg.js';
-import { getEntry, getStatus } from '../store/library.js';
+import { getEntry } from '../store/library.js';
 import { createReleaseCard, getDateText } from '../ui/card.js';
-import { removeRelease, setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
+import { removeRelease, setReleaseStatus, setReminder, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
 import { posterFallback } from '../ui/poster.js';
 import { createStars, formatRating } from '../ui/rating.js';
@@ -9,6 +9,7 @@ import { createReview } from '../ui/review.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatShortDate } from '../utils/dates.js';
+import { getStatusLabel, isReleased } from '../utils/media.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 
@@ -16,10 +17,6 @@ const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;
 const STANDARD_EDITION = 'Standard edition';
 
-const LOG_STATUS_NAMES = {
-  played: 'Played',
-  playing: 'Playing',
-};
 const SIMILAR_COUNT = 5;
 
 const backLink = document.getElementById('back-link');
@@ -36,6 +33,7 @@ const statusButtons = [...document.querySelectorAll('.status-button')];
 const logButton = document.getElementById('log-button');
 const shareButton = document.getElementById('share-button');
 const removeButton = document.getElementById('remove-button');
+const remindButton = document.getElementById('remind-button');
 const yourLog = document.getElementById('your-log');
 const yourLogCard = document.getElementById('your-log-card');
 const about = document.getElementById('game-about');
@@ -99,7 +97,7 @@ function createElement(tag, className, text) {
 }
 
 function renderStatus() {
-  const status = getStatus(game);
+  const status = getEntry(game)?.status ?? null;
   // Roving tabindex: Tab lands on the chosen status (or the first), arrow keys move within the group.
   const focusable = status ?? statusButtons[0].dataset.status;
   statusButtons.forEach((button) => {
@@ -110,6 +108,12 @@ function renderStatus() {
   removeButton.hidden = !status;
   logButton.disabled = false;
   logButton.textContent = getEntry(game)?.loggedAt ? 'Edit your log' : 'Log or review';
+
+  // A reminder only makes sense before release day.
+  const remind = Boolean(getEntry(game)?.remind);
+  remindButton.hidden = isReleased(game);
+  remindButton.setAttribute('aria-pressed', String(remind));
+  remindButton.textContent = remind ? '🔔 Reminder on' : '🔔 Remind me';
   renderYourLog();
 }
 
@@ -120,7 +124,7 @@ function renderYourLog() {
   if (yourLog.hidden) return;
 
   const details = [
-    LOG_STATUS_NAMES[entry.status],
+    getStatusLabel(game.type, entry.status),
     `Logged ${formatShortDate(entry.loggedAt)}`,
     entry.platform,
     entry.edition !== STANDARD_EDITION ? entry.edition : null,
@@ -213,7 +217,7 @@ function renderSimilar(games) {
   similarList.replaceChildren(
     ...games.map((release) => {
       const item = document.createElement('li');
-      item.append(createReleaseCard(release, { status: getStatus(release) }));
+      item.append(createReleaseCard(release, { entry: getEntry(release) }));
       return item;
     }),
   );
@@ -297,10 +301,12 @@ async function share() {
 }
 
 statusButtons.forEach((button, index) => {
-  // Played and Playing open the Log modal set to that status; Backlog and Radar save straight away (Figma note 9).
+  // Done opens the Log modal for a rating and review; the others save straight away. Pressing the
+  // list a game is already in takes it out again, which is what testers expected that tap to do.
   button.addEventListener('click', () => {
     const { status } = button.dataset;
-    if (status === 'played' || status === 'playing') openLogModal(game, { trigger: button, status });
+    if (status === getEntry(game)?.status) removeRelease(game);
+    else if (status === 'done') openLogModal(game, { trigger: button, status });
     else setReleaseStatus(game, status);
   });
 
@@ -311,6 +317,8 @@ statusButtons.forEach((button, index) => {
     statusButtons[(index + step + statusButtons.length) % statusButtons.length].focus();
   });
 });
+
+remindButton.addEventListener('click', () => setReminder(game, !getEntry(game)?.remind));
 
 removeButton.addEventListener('click', () => {
   removeRelease(game);

@@ -2,7 +2,7 @@ import * as tmdb from '../api/tmdb.js';
 import { getDateText, getSaveText } from './card.js';
 import { posterFallback } from './poster.js';
 import { createStateMessage } from './states.js';
-import { getStatus } from '../store/library.js';
+import { getEntry } from '../store/library.js';
 import { toggleSave } from './library-actions.js';
 import { closeDialog, openDialog } from '../motion.js';
 
@@ -115,9 +115,9 @@ function createDialog() {
 
 function renderSaveButton() {
   const button = dialog.querySelector('.quick-view__save');
-  const status = getStatus(current);
-  button.setAttribute('aria-pressed', String(Boolean(status)));
-  button.textContent = getSaveText(current.type, status);
+  const entry = getEntry(current);
+  button.setAttribute('aria-pressed', String(Boolean(entry)));
+  button.textContent = getSaveText(current, entry);
 }
 
 // The video only loads when asked for, which saves data and keeps sound from starting by surprise.

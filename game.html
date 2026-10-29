@@ -139,35 +139,35 @@
 
             <h2 class="game__library-label" id="library-label">Add to your Library</h2>
             <div class="status-buttons" id="status-buttons" role="radiogroup" aria-labelledby="library-label">
-              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="played" disabled>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="m5 12 5 5L20 7" />
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="want" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 4h10v16l-5-4-5 4z" />
                 </svg>
-                Played
+                Want to play
               </button>
-              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="playing" disabled>
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="doing" disabled>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7 4.5v15l12-7.5z" />
                 </svg>
                 Playing
               </button>
-              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="backlog" disabled>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                  <path d="M5 7h14M5 12h14M5 17h14" />
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="done" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m5 12 5 5L20 7" />
                 </svg>
-                Backlog
+                Played
               </button>
-              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="radar" disabled>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                  <circle cx="12" cy="12" r="8" />
-                  <circle cx="12" cy="12" r="3.5" />
+              <button class="status-button" type="button" role="radio" aria-checked="false" data-status="dropped" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                  <path d="m6 6 12 12M18 6 6 18" />
                 </svg>
-                Radar
+                Dropped
               </button>
             </div>
 
             <div class="game__actions">
               <button class="button button--primary game__log-button" id="log-button" type="button" disabled>Log or review</button>
+              <button class="button button--outline" id="remind-button" type="button" aria-pressed="false" hidden>🔔 Remind me</button>
               <button class="text-button" id="share-button" type="button">Share</button>
               <button class="text-button" id="remove-button" type="button" hidden>Remove from Library</button>
             </div>

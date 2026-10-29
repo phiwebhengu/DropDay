@@ -371,12 +371,31 @@
 
 .library-stats__item {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: var(--space-1);
+  width: 100%;
   padding: var(--space-4) var(--space-6);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
   background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.library-stats__item:hover {
+  border-color: var(--color-border-strong);
+}
+
+.library-stats__item:active {
+  transform: scale(0.97);
+}
+
+.library-stats__item--current {
+  border-color: var(--color-accent-highlight);
 }
 
 .library-stats__label {
@@ -750,7 +769,7 @@
 }
 
 @media (min-width: 1024px) {
-  .home__backlog {
+  .home__up-next {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

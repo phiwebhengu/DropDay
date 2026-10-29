@@ -1,9 +1,9 @@
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
 import * as youtube from '../api/youtube.js';
-import { getStatus, listByStatus } from '../store/library.js';
+import { getEntry, listByStatus } from '../store/library.js';
 import { createReleaseCard, createCardSkeleton, getSaveText } from '../ui/card.js';
-import { setReleaseStatus, syncCards, toggleSave } from '../ui/library-actions.js';
+import { syncCards, toggleSave } from '../ui/library-actions.js';
 import { createLibraryRow } from '../ui/library-row.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { setupHeroTrailer } from '../ui/hero-trailer.js';
@@ -42,8 +42,8 @@ const monthStrip = document.getElementById('month-strip');
 const monthState = document.getElementById('month-state');
 const monthSection = document.getElementById('month-section');
 const monthProgress = document.getElementById('month-progress');
-const backlogList = document.getElementById('backlog-list');
-const backlogEmpty = document.getElementById('backlog-empty');
+const upNextList = document.getElementById('up-next-list');
+const upNextEmpty = document.getElementById('up-next-empty');
 
 let featured = null;
 let countdownTimer;
@@ -88,10 +88,10 @@ function tick() {
 }
 
 function renderHeroSave() {
-  const status = getStatus(featured);
+  const entry = getEntry(featured);
   heroSave.disabled = false;
-  heroSave.setAttribute('aria-pressed', String(Boolean(status)));
-  heroSave.textContent = status ? getSaveText('game', status) : '+ Add to Radar';
+  heroSave.setAttribute('aria-pressed', String(Boolean(entry)));
+  heroSave.textContent = getSaveText(featured, entry);
 }
 
 function renderHero(game) {
@@ -262,26 +262,21 @@ async function loadMonth() {
   }
 
   monthStrip.replaceChildren(
-    ...releases.map((release) => wrapInListItem(createReleaseCard(release, { status: getStatus(release) }))),
+    ...releases.map((release) => wrapInListItem(createReleaseCard(release, { entry: getEntry(release) }))),
   );
   stripMotion?.revert();
   stripMotion = setupPinnedStrip(monthSection, monthStrip, monthProgress);
 }
 
-/* Continue your Backlog: localStorage only, so it renders even offline */
+/* Up next from your list: localStorage only, so it renders even offline */
 
-function renderBacklog() {
-  const entries = listByStatus('backlog').slice(0, BACKLOG_ROWS);
-  backlogEmpty.hidden = entries.length > 0;
-  backlogList.replaceChildren(...entries.map((entry) => createLibraryRow(entry)));
+function renderUpNext() {
+  const entries = listByStatus('want').slice(0, BACKLOG_ROWS);
+  upNextEmpty.hidden = entries.length > 0;
+  upNextList.replaceChildren(...entries.map((entry) => createLibraryRow(entry)));
 }
 
-heroSave.addEventListener('click', () => {
-  const status = getStatus(featured);
-  if (!status) setReleaseStatus(featured, 'radar');
-  else if (status === 'radar') toggleSave(featured);
-  else location.href = `game.html?id=${featured.id}`;
-});
+heroSave.addEventListener('click', () => toggleSave(featured));
 
 monthStrip.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 monthStrip.addEventListener('release:quickview', (event) => {
@@ -291,9 +286,9 @@ monthStrip.addEventListener('release:quickview', (event) => {
 window.addEventListener('library:change', () => {
   if (featured) renderHeroSave();
   syncCards(monthStrip);
-  renderBacklog();
+  renderUpNext();
 });
 
-renderBacklog();
+renderUpNext();
 loadHero();
 loadMonth();

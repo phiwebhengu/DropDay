@@ -7,7 +7,7 @@ import { createStateMessage } from '../ui/states.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { animateGrid, captureGrid } from '../motion.js';
 import { syncCards, toggleSave } from '../ui/library-actions.js';
-import { getStatus } from '../store/library.js';
+import { getEntry } from '../store/library.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 
@@ -240,7 +240,7 @@ function fetchPage(state, page) {
 }
 
 function appendCards(results) {
-  const cards = results.map((release) => createReleaseCard(release, { status: getStatus(release) }));
+  const cards = results.map((release) => createReleaseCard(release, { entry: getEntry(release) }));
   grid.append(...cards.map(wrapInListItem));
   return cards;
 }
