@@ -28,10 +28,12 @@ const PAST_PREFIXES = {
   manga: 'Started',
 };
 
-export function getDateText({ type, date, tba, season }) {
+export function getDateText({ type, date, tba, season, status }) {
   if (tba) return 'Release date TBA';
 
   const today = toIsoDate(new Date());
+  // A manga that's still coming out matters more than the day its first chapter appeared.
+  if (type === 'manga' && status === 'RELEASING' && date <= today) return `Ongoing since ${date.slice(0, 4)}`;
   if (date === today) return season > 1 ? `Season ${season} out today` : 'Out today';
 
   const isPast = date < today;

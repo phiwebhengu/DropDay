@@ -61,6 +61,8 @@ const CATEGORIES = {
     load: anilist.getManga,
     search: anilist.searchManga,
     loadGenres: anilist.getGenres,
+    // Manga has no release dates worth browsing, so this tab lists what's trending instead.
+    trending: true,
   },
 };
 
@@ -86,6 +88,7 @@ const monthSelect = document.getElementById('filter-month');
 const platformSelect = document.getElementById('filter-platform');
 const genreSelect = document.getElementById('filter-genre');
 const platformField = document.getElementById('platform-field');
+const monthField = document.getElementById('month-field');
 const panel = document.getElementById('discover-results');
 const grid = document.getElementById('release-grid');
 const summary = document.getElementById('discover-summary');
@@ -167,9 +170,13 @@ function renderSummary(state) {
     summary.textContent = resultCount === null ? `Results for “${state.q}”` : `${getSubject(state.cat)} found for “${state.q}”`;
     return;
   }
+  const genre = selectedText(genreSelect);
+  if (CATEGORIES[state.cat].trending) {
+    summary.textContent = `Trending ${CATEGORIES[state.cat].many} right now${genre ? ` · ${genre}` : ''}`;
+    return;
+  }
   const when = state.month ? `in ${selectedText(monthSelect) || state.month}` : RANGES[state.range];
   const platform = selectedText(platformSelect);
-  const genre = selectedText(genreSelect);
   let text = `${getSubject(state.cat)} dropping ${when}`;
   if (platform) text += ` on ${platform}`;
   if (genre) text += ` · ${genre}`;
@@ -189,8 +196,10 @@ function renderControls(state) {
   });
 
   // Search looks across all dates, so the date and filter controls step aside while it's on.
-  quickRange.hidden = Boolean(state.q);
+  const { trending } = CATEGORIES[state.cat];
+  quickRange.hidden = Boolean(state.q) || trending;
   filters.hidden = Boolean(state.q);
+  monthField.hidden = trending;
   clearSearchButton.hidden = !state.q;
   searchForms.forEach((form) => {
     form.elements.q.value = state.q;

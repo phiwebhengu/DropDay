@@ -220,7 +220,6 @@ async function loadMonth() {
     tmdb.getMovies(range),
     tmdb.getShows(range),
     anilist.getAnime(range),
-    anilist.getManga(range),
   ];
   // One category failing shouldn't empty the whole strip.
   const results = await Promise.allSettled(requests);

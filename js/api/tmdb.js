@@ -24,11 +24,22 @@ function buildUrl(path, params = {}) {
   return url.toString();
 }
 
+// Anime lives on its own tab (from AniList), so Japanese animation is kept out of Movies and TV.
+// Language catches anime that TMDB files under another country, like Solo Leveling; Pixar stays in.
+function isAnime(item) {
+  return (
+    item.genre_ids?.includes(ANIMATION_GENRE_ID) &&
+    (item.original_language === "ja" || item.origin_country?.includes("JP"))
+  );
+}
+
 async function getPage(url, type, page) {
   const { data, savedAt, isStale } = await cachedFetch(url, { headers });
+  const items = data.results.filter((item) => !isAnime(item));
   return {
-    results: data.results.map((item) => normaliseTmdbItem(item, type)),
-    count: data.total_results,
+    results: items.map((item) => normaliseTmdbItem(item, type)),
+    // TMDB's total includes what was filtered out, so it's only shown when nothing was.
+    count: items.length === data.results.length ? data.total_results : null,
     page,
     hasMore: page < data.total_pages,
     savedAt,
@@ -133,13 +144,6 @@ export function getShows({ start, end, genres, page = 1 } = {}) {
 export function searchMovies({ query, page = 1 } = {}) {
   const url = buildUrl("/search/movie", { query, region: TMDB_REGION, page });
   return getPage(url, "movie", page);
-}
-
-function isAnime(item) {
-  return (
-    item.genre_ids?.includes(ANIMATION_GENRE_ID) &&
-    item.origin_country?.includes("JP")
-  );
 }
 
 // TMDB search has one TV list, so anime (now from AniList) is taken out here. Like getSeasonDrops,
