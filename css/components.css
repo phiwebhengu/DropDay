@@ -391,22 +391,15 @@
   font: var(--text-caption);
 }
 
-/* Release card */
+/* Release card: a 2:3 poster with the title and date below, like a shelf in Apple TV or Letterboxd */
 
 .release-card {
   --card-accent: var(--color-category-games);
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
   height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
-  transition:
-    transform var(--duration-base) var(--ease-out),
-    border-color var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease;
 }
 
 .release-card--movie {
@@ -425,9 +418,18 @@
   --card-accent: var(--color-category-manga);
 }
 
-.release-card__media {
-  aspect-ratio: 13 / 15;
-  background: color-mix(in srgb, var(--card-accent) 16%, var(--color-bg-raised));
+.release-card__poster {
+  /* A game's key art doesn't fill the poster, so the band around it takes the art's own colour. */
+  --poster-fill: color-mix(in srgb, var(--poster-tint, var(--card-accent)) 22%, var(--color-bg-raised));
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--poster-fill);
+  /* A hairline inside the edge keeps dark posters from melting into the page. */
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.2);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
 }
 
 .release-card__image {
@@ -442,34 +444,129 @@
   opacity: 1;
 }
 
-.release-card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-
-.release-card__category {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-  font: var(--text-caption);
-}
-
-.release-card__category::before {
+/* Games: the wide key art across the middle on a blurred copy of itself, the title below like a box cover */
+.release-card__poster::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  position: absolute;
+  inset: -12%;
+  background: var(--poster-art, none) center / cover;
+  filter: blur(18px) saturate(1.3) brightness(0.55);
+}
+
+.release-card--game .release-card__image {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  translate: 0 -50%;
+}
+
+.release-card__box-title {
+  position: absolute;
+  inset: auto 0 0;
+  display: -webkit-box;
+  height: calc(50% - 28cqi);
+  padding: 0 7cqi 7cqi;
+  overflow: hidden;
+  align-content: end;
+  /* Always on darkened art, so it stays light in both themes. */
+  color: #fff;
+  font: var(--font-weight-heavy) clamp(1rem, 11cqi, 1.75rem) / 0.95 var(--font-display);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* The ticket stub: the drop date in release-board type, or the rating once it's out. */
+.release-card__stub {
+  position: absolute;
+  top: 6cqi;
+  left: 6cqi;
+  display: grid;
+  justify-items: center;
+  min-width: 13cqi;
+  padding: 1.5cqi 3cqi 2cqi;
+  border-radius: var(--radius-xs);
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+  font: var(--font-weight-heavy) clamp(1.125rem, 12cqi, 1.75rem) / 0.9 var(--font-display);
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.5);
+}
+
+.release-card__stub-month {
+  font-size: 0.5em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.release-card__stub--today,
+.release-card__stub--rating {
+  font-size: clamp(0.875rem, 8cqi, 1.125rem);
+  line-height: 1;
+}
+
+.release-card__stub--today {
+  text-transform: uppercase;
+}
+
+.release-card__stub--rating {
+  background: rgb(14 13 11 / 0.72);
+  /* Always on dark glass, so it keeps the dark theme's star colour in both themes. */
+  color: var(--amber-400);
+  backdrop-filter: blur(8px);
+}
+
+/* Save sits on the poster's top corner, opposite the stub, like Apple TV's "+". It's the card's child,
+   not the poster's: the poster is its own layer (container queries), which would trap it under the
+   card's stretched title link. */
+.release-card__save {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid rgb(255 255 255 / 0.18);
   border-radius: 50%;
-  background: var(--card-accent);
+  background: rgb(14 13 11 / 0.62);
+  color: #fff;
+  backdrop-filter: blur(12px) saturate(160%);
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.release-card__save[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+}
+
+.release-card__save:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* GSAP runs the press (M4). This is only the fallback when it isn't loaded; html.has-motion turns it off. */
+html:not(.has-motion) .release-card__save:active {
+  transform: scale(0.94);
+}
+
+.release-card__body {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .release-card__title {
   display: -webkit-box;
   overflow: hidden;
-  font: var(--text-h3);
+  font: var(--font-weight-semibold) 1rem / 1.3 var(--font-family);
   /* base.css balances headings, which spreads short titles over too many lines before the clamp. */
   text-wrap: wrap;
   -webkit-box-orient: vertical;
@@ -492,7 +589,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  border-radius: inherit;
+  border-radius: var(--radius-md);
 }
 
 .release-card__link:focus-visible {
@@ -501,64 +598,56 @@
 
 .release-card__link:focus-visible::after {
   outline: var(--focus-ring);
-  outline-offset: -3px;
+  outline-offset: 3px;
 }
 
-.release-card__date {
+.release-card__date,
+.release-card__meta {
   color: var(--color-text-secondary);
-  font: var(--text-body-s);
+  font: var(--text-caption);
 }
 
-.release-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.release-card__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.release-card__save {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  margin-top: auto;
-  padding-inline: var(--space-3);
-  white-space: nowrap;
-  transition:
-    background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    color var(--duration-fast) ease;
-}
-
-/* GSAP runs the press (M4). This is only the fallback when it isn't loaded; html.has-motion turns it off. */
-html:not(.has-motion) .release-card__save:active {
-  transform: scale(0.97);
-}
-
-.release-card--saved {
-  border-color: color-mix(in srgb, var(--color-accent-highlight) 50%, var(--color-border-default));
-}
-
-.release-card--saved .release-card__save {
-  border-color: var(--color-accent-highlight);
-  background: var(--color-action-tint);
-  color: var(--color-accent-highlight);
+.release-card__category::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--card-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .release-card:not(.release-card--loading):hover {
-    transform: translateY(-4px);
-    border-color: var(--color-border-strong);
-    box-shadow: var(--shadow-card);
+  .release-card:not(.release-card--loading):hover .release-card__poster {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1), var(--shadow-card);
   }
 
-  .release-card--saved:hover {
-    border-color: var(--color-accent-highlight);
+  .release-card__save:hover {
+    background: rgb(14 13 11 / 0.82);
+  }
+
+  .release-card__save[aria-pressed="true"]:hover {
+    background: var(--color-action-primary-hover);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .release-card:hover,
+  .release-card:hover .release-card__poster,
   .release-card__save:active {
     transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .release-card__save,
+  .release-card__stub--rating {
+    background: var(--charcoal-950);
+    backdrop-filter: none;
   }
 }
 
@@ -577,8 +666,8 @@ html:not(.has-motion) .release-card__save:active {
   animation: skeleton-shimmer 1.4s linear infinite;
 }
 
-.release-card__media.skeleton {
-  border-radius: 0;
+.release-card__poster.skeleton {
+  border-radius: var(--radius-md);
 }
 
 .skeleton--line {
@@ -595,11 +684,6 @@ html:not(.has-motion) .release-card__save:active {
   height: 24px;
 }
 
-.skeleton--button {
-  height: var(--touch-target);
-  margin-top: auto;
-}
-
 @keyframes skeleton-shimmer {
   to {
     background-position: -150% 0;
@@ -612,28 +696,66 @@ html:not(.has-motion) .release-card__save:active {
   }
 }
 
-/* Category tabs */
+/* Segmented controls (category tabs and the When range): a sunken track with the chosen option
+   raised out of it, like iOS. The raised, outlined shape marks the choice without relying on colour. */
 
-.category-tabs {
+.category-tabs,
+.quick-range__options {
   display: flex;
-  flex-wrap: wrap;
+  gap: 2px;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--color-segment-track);
+  scrollbar-width: none;
+}
+
+.category-tab,
+.quick-range__option {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
   gap: var(--space-2);
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 3px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.category-tab[aria-selected="true"],
+.quick-range__option[aria-pressed="true"] {
+  border-color: var(--color-border-strong);
+  background: var(--color-segment-selected);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.category-tab:active,
+.quick-range__option:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .category-tab[aria-selected="false"]:hover,
+  .quick-range__option[aria-pressed="false"]:hover {
+    color: var(--color-text-primary);
+  }
 }
 
 .category-tab {
   --tab-accent: var(--color-category-games);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--touch-target);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-surface);
-  font: var(--text-label-m);
-  transition: background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) var(--ease-out);
 }
 
 .category-tab--movies {
@@ -653,32 +775,10 @@ html:not(.has-motion) .release-card__save:active {
 }
 
 .category-tab__dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--tab-accent);
-}
-
-.category-tab[aria-selected="true"] {
-  border-color: var(--tab-accent);
-  box-shadow: inset 0 0 0 1px var(--tab-accent);
-  background: var(--color-bg-raised);
-}
-
-/* The tick is the non-colour cue for the selected tab. */
-.category-tab[aria-selected="true"]::before {
-  content: "✓";
-  content: "✓" / "";
-}
-
-.category-tab:active {
-  transform: scale(0.97);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .category-tab[aria-selected="false"]:hover {
-    border-color: var(--tab-accent);
-  }
 }
 
 /* Quick range */
@@ -687,46 +787,27 @@ html:not(.has-motion) .release-card__save:active {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .quick-range__label {
-  margin-inline-end: var(--space-1);
   color: var(--color-text-secondary);
   font: var(--text-caption);
 }
 
-.quick-range__option {
-  min-height: var(--touch-target);
-  padding: var(--space-3) var(--space-6);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  font: var(--text-label-m);
-  transition: background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) var(--ease-out);
-}
-
-.quick-range__option[aria-pressed="true"] {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
-}
-
-.quick-range__option:active {
-  transform: scale(0.97);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .quick-range__option[aria-pressed="false"]:hover {
-    background: var(--color-action-tint);
-  }
-}
-
 @media (max-width: 479px) {
+  .category-tab,
   .quick-range__option {
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-3);
+  }
+
+  /* Five tabs don't fit a phone, so the track scrolls; the fading edge shows there's more. */
+  .category-tabs {
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+
+  .category-tabs.is-scrolled-end {
+    mask-image: none;
   }
 
   .quick-range__label,
@@ -1548,24 +1629,24 @@ html:has(.log-modal[open]) {
   opacity: 0.85;
 }
 
-/* View toggle (List / Grid) */
+/* View toggle (List / Grid): the same segmented control as Discover's tabs */
 
 .view-toggle {
   display: inline-flex;
-  gap: var(--space-1);
-  padding: 2px;
-  border: 1px solid var(--color-border-default);
+  gap: 2px;
+  padding: 3px;
   border-radius: var(--radius-md);
+  background: var(--color-segment-track);
 }
 
 .view-toggle__option {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: var(--touch-target);
+  min-height: 40px;
   padding: 0 var(--space-4);
-  border: 0;
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 3px);
   background: none;
   color: var(--color-text-secondary);
   font: var(--text-label-m);
@@ -1575,8 +1656,16 @@ html:has(.log-modal[open]) {
 }
 
 .view-toggle__option[aria-pressed="true"] {
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
+  border-color: var(--color-border-strong);
+  background: var(--color-segment-selected);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .view-toggle__option[aria-pressed="false"]:hover {
+    color: var(--color-text-primary);
+  }
 }
 
 /* Library row */
@@ -1915,7 +2004,7 @@ html:has(.log-modal[open]) {
 
 /* Poster fallback: the title as a title card when there's no art */
 
-.release-card__media,
+.release-card__poster,
 .library-row__cover,
 .quick-view__poster {
   position: relative;

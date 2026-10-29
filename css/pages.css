@@ -52,28 +52,35 @@
   text-underline-offset: 0.2em;
 }
 
+/* Posters read best small and many, like a video shop wall: 2 across on phones, up to 6 on wide screens. */
 .release-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-6) var(--space-3);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 560px) {
   .release-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .release-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-6);
   }
 }
 
 @media (min-width: 1024px) {
   .release-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1280px) {
   .release-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
@@ -332,12 +339,31 @@
 }
 
 /* A single row: show only as many similar games as fit, so the last row is never half empty. */
-.release-grid--row > li:nth-child(n + 5) {
+/* One row only: as many as the grid has columns at each width. */
+.release-grid--row > li:nth-child(n + 3) {
   display: none;
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 560px) {
+  .release-grid--row > li:nth-child(3) {
+    display: block;
+  }
+}
+
+@media (min-width: 768px) {
+  .release-grid--row > li:nth-child(4) {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
   .release-grid--row > li:nth-child(5) {
+    display: block;
+  }
+}
+
+@media (min-width: 1280px) {
+  .release-grid--row > li:nth-child(6) {
     display: block;
   }
 }
@@ -779,7 +805,7 @@
 .release-strip {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: calc((100% - var(--space-3)) / 2.2);
+  grid-auto-columns: calc((100% - 2 * var(--space-3)) / 2.4);
   gap: var(--space-3);
   padding-bottom: var(--space-2);
   overflow-x: auto;
@@ -794,14 +820,14 @@
 
 @media (min-width: 640px) {
   .release-strip {
-    grid-auto-columns: calc((100% - 2 * var(--space-6)) / 3.2);
+    grid-auto-columns: calc((100% - 3 * var(--space-6)) / 4.3);
     gap: var(--space-6);
   }
 }
 
 @media (min-width: 1024px) {
   .release-strip {
-    grid-auto-columns: calc((100% - 4 * var(--space-6)) / 5);
+    grid-auto-columns: calc((100% - 5 * var(--space-6)) / 6);
   }
 }
 

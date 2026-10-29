@@ -83,6 +83,7 @@ const CURRENT_PLATFORM_IDS = [RAWG_PLATFORMS.pc, RAWG_PLATFORMS.ps5, RAWG_PLATFO
 const monthFormat = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' });
 
 const tabs = [...document.querySelectorAll('.category-tab')];
+const tabList = document.querySelector('.category-tabs');
 const rangeButtons = [...document.querySelectorAll('.quick-range__option')];
 const monthSelect = document.getElementById('filter-month');
 const platformSelect = document.getElementById('filter-platform');
@@ -183,6 +184,19 @@ function renderSummary(state) {
   summary.textContent = text;
 }
 
+// On phones the tabs scroll sideways inside their track. Only the track moves, never the page.
+function showSelectedTab(tab) {
+  if (!tab) return;
+  const track = tabList.getBoundingClientRect();
+  const box = tab.getBoundingClientRect();
+  if (box.left < track.left) tabList.scrollLeft -= track.left - box.left;
+  else if (box.right > track.right) tabList.scrollLeft += box.right - track.right;
+}
+
+function updateTabEdge() {
+  tabList.classList.toggle('is-scrolled-end', tabList.scrollLeft + tabList.clientWidth >= tabList.scrollWidth - 2);
+}
+
 function renderControls(state) {
   tabs.forEach((tab) => {
     const selected = tab.dataset.cat === state.cat;
@@ -190,6 +204,7 @@ function renderControls(state) {
     tab.tabIndex = selected ? 0 : -1;
   });
   panel.setAttribute('aria-labelledby', `tab-${state.cat}`);
+  showSelectedTab(tabs.find((tab) => tab.dataset.cat === state.cat));
 
   rangeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.range === state.range));
@@ -428,6 +443,9 @@ function updateAfterPause(changes) {
   clearTimeout(filterTimer);
   filterTimer = setTimeout(() => update(changes), FILTER_DELAY);
 }
+
+tabList.addEventListener('scroll', updateTabEdge, { passive: true });
+updateTabEdge();
 
 tabs.forEach((tab, index) => {
   // Genre and platform ids mean different things per category, so they reset on a tab change.

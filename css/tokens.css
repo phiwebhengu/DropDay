@@ -71,6 +71,9 @@
   --color-header-bg: rgb(20 19 17 / 0.86);
   --color-scrim: rgb(14 13 11 / 0.72);
   --color-skeleton-shine: var(--charcoal-700);
+  /* Segmented controls: a sunken track with the chosen option raised out of it, like iOS. */
+  --color-segment-track: var(--charcoal-950);
+  --color-segment-selected: var(--charcoal-700);
   /* Sits on top of content with text over it (the spoiler cover), unlike the dialog backdrop scrim. */
   --color-overlay: rgb(14 13 11 / 0.72);
   --shadow-card: 0 18px 40px -12px rgb(6 5 3 / 0.6);
@@ -153,6 +156,8 @@
   --color-bg-surface: var(--paper-0);
   --color-bg-raised: var(--paper-200);
   --color-bg-sunken: var(--paper-300);
+  --color-segment-track: var(--paper-200);
+  --color-segment-selected: var(--paper-0);
   --color-text-primary: var(--ink-900);
   --color-text-secondary: var(--ink-600);
   --color-border-default: var(--paper-300);

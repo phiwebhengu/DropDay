@@ -17,7 +17,7 @@ const MEDIA_FIELDS = `
   id type format status countryOfOrigin
   title { english romaji }
   startDate { year month day }
-  coverImage { extraLarge large }
+  coverImage { extraLarge large color }
   bannerImage genres averageScore
 `;
 

@@ -46,6 +46,13 @@ function resizeRawgCover(url) {
   return url ? url.replace("/media/games/", "/media/resize/1280/-/games/") : null;
 }
 
+// The art's own colour, used to frame it (a game's wide key art sits inside a poster-shaped card).
+// RAWG sends "0f0f0f", AniList "#e4a15d"; anything else is ignored.
+function toTint(color) {
+  const hex = color?.replace("#", "");
+  return /^[0-9a-f]{6}$/i.test(hex ?? "") ? `#${hex}` : null;
+}
+
 export function normaliseRawgGame(game) {
   const date = game.released ?? null;
   return {
@@ -61,6 +68,7 @@ export function normaliseRawgGame(game) {
     platforms: (game.platforms ?? []).map(({ platform }) => platform.name),
     genres: (game.genres ?? []).map((genre) => genre.name),
     rating: game.rating > 0 ? game.rating : null,
+    tint: toTint(game.dominant_color),
   };
 }
 
@@ -131,6 +139,7 @@ export function normaliseAniListMedia(media) {
     platforms: [],
     genres: media.genres ?? [],
     rating: media.averageScore ? Math.round(media.averageScore / 2) / 10 : null,
+    tint: toTint(media.coverImage?.color),
   };
 }
 
