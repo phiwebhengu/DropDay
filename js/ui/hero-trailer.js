@@ -1,3 +1,5 @@
+import { showToast } from "./toast.js";
+
 const HOVER_DELAY = 500;
 const FADE_OUT = 500;
 const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com";
@@ -6,6 +8,10 @@ const YOUTUBE_PLAYING = 1;
 // Sound rises over this long instead of starting at full volume (testers found the start loud).
 const SOUND_FADE_IN = 1200;
 const SOUND_FADE_STEPS = 12;
+// The player ignores messages until its own script has started, so it's asked again until it answers.
+const HANDSHAKE_INTERVAL = 250;
+// If no frames show by then, the trailer isn't coming (blocked, removed or a dead connection).
+const LOAD_TIMEOUT = 10000;
 
 const SOUND_ICONS = {
   off: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -48,14 +54,25 @@ function createYouTubePlayer(
   };
 
   // Asking to "listen" makes the player report its state, which is how the hero knows frames are showing.
-  frame.addEventListener("load", () => {
+  let handshake;
+  const listen = () => {
     frame.contentWindow?.postMessage(
       JSON.stringify({ event: "listening", id: 1, channel: "widget" }),
       YOUTUBE_ORIGIN,
     );
+  };
+  frame.addEventListener("load", () => {
+    clearInterval(handshake);
+    const started = Date.now();
+    listen();
+    handshake = setInterval(() => {
+      if (!frame.isConnected || Date.now() - started > LOAD_TIMEOUT) clearInterval(handshake);
+      else listen();
+    }, HANDSHAKE_INTERVAL);
   });
   window.addEventListener("message", (event) => {
     if (event.source !== frame.contentWindow) return;
+    clearInterval(handshake);
     let data;
     try {
       data = JSON.parse(event.data);
@@ -151,6 +168,7 @@ export function setupHeroTrailer({
   let mutedOnReveal = true;
   let hoverTimer;
   let resetTimer;
+  let loadTimer;
 
   const canAutoplay = () =>
     canHover.matches && !reducedMotion.matches && !saveData;
@@ -195,6 +213,7 @@ export function setupHeroTrailer({
   // Sound and its button arrive with the picture, so nothing plays behind the art.
   function reveal() {
     if (!playing || !loading) return;
+    clearTimeout(loadTimer);
     loading = false;
     hero.classList.add("hero--playing");
     if (mutedOnReveal) player.muted = true;
@@ -211,6 +230,8 @@ export function setupHeroTrailer({
     loading = true;
     startedBy = source;
     renderPlayButton();
+    clearTimeout(loadTimer);
+    loadTimer = setTimeout(giveUp, LOAD_TIMEOUT);
     mutedOnReveal = !(soundWanted && canPlaySound());
     if (player) {
       // Silent until the picture shows (see reveal).
@@ -225,7 +246,7 @@ export function setupHeroTrailer({
         title,
         muted: true,
         onPlaying: reveal,
-        onError: remove,
+        onError: fail,
       });
       media.append(player.element);
       if (!trailer.youtubeId) player.play().catch(() => stop());
@@ -235,6 +256,7 @@ export function setupHeroTrailer({
 
   function stop() {
     clearTimeout(hoverTimer);
+    clearTimeout(loadTimer);
     clearInterval(fadeTimer);
     if (!playing) return;
     playing = false;
@@ -256,6 +278,17 @@ export function setupHeroTrailer({
     player?.element.remove();
     player = null;
     playButton.hidden = true;
+  }
+
+  // Only a press of the button gets told; a hover preview fails quietly.
+  function fail() {
+    const pressed = startedBy === "button";
+    remove();
+    if (pressed) showToast({ type: "error", message: "This trailer couldn’t load." });
+  }
+
+  function giveUp() {
+    if (loading) fail();
   }
 
   function startOnHover() {

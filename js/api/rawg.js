@@ -8,13 +8,26 @@ import { addDays, toIsoDate } from "../utils/dates.js";
 
 const FEATURED_CANDIDATES = 10;
 
-// RAWG has no filter for adult games, so they are dropped here before anything renders. Only adult-only
-// tags count: "nudity" and "sexual-content" also sit on mainstream mature games like The Witcher 3.
-const ADULT_TAGS = new Set(["nsfw", "hentai"]);
+// RAWG has no adult flag (TMDB and AniList do), so explicit games are caught here before anything renders.
+// Checked against real RAWG data: many explicit games carry no tell-tale tag at all, so three signals are used.
+const ADULT_TAGS = new Set(["nsfw", "hentai", "khentai", "eroge", "erotic", "porn", "adult"]);
+// These also sit on mainstream games like The Witcher 3, which always have an age rating; explicit games don't.
+const MATURE_TAGS = new Set(["nudity", "sexual-content", "nagota", "seksualnyi-kontent"]);
+const ADULT_TITLE = /\b(futa|futanari|hentai|nsfw|porn|porno|xxx|erotic|eroge|lewd|nude|nudes|sexy|sex|milf|femboy)\b/i;
 
-function isSafe(game) {
-  if (game.esrb_rating?.slug === "adults-only") return false;
-  return !(game.tags ?? []).some((tag) => ADULT_TAGS.has(tag.slug));
+function isAdult(game) {
+  if (game.esrb_rating?.slug === "adults-only") return true;
+  if (ADULT_TITLE.test(game.name ?? "")) return true;
+  const tags = (game.tags ?? []).map((tag) => tag.slug);
+  if (tags.some((tag) => ADULT_TAGS.has(tag))) return true;
+  return !game.esrb_rating && tags.some((tag) => MATURE_TAGS.has(tag));
+}
+
+// Browsing lists only show games at least one RAWG user is tracking, the way Letterboxd surfaces films people
+// actually log. It clears out untracked shovelware and adult uploads; searching by name still finds anything.
+function isListed(game, { tracked }) {
+  if (isAdult(game)) return false;
+  return !tracked || game.added !== 0;
 }
 import { cachedFetch } from "./cache.js";
 import {
@@ -34,11 +47,13 @@ function buildUrl(path, params = {}) {
   return url.toString();
 }
 
-function toPage(response, page) {
+function toPage(response, page, { tracked = true } = {}) {
   const { data, savedAt, isStale } = response;
+  const games = data.results.filter((game) => isListed(game, { tracked }));
   return {
-    results: data.results.filter(isSafe).map(normaliseRawgGame),
-    count: data.count,
+    results: games.map(normaliseRawgGame),
+    // RAWG's total includes what was filtered out, so it's only shown when nothing was.
+    count: games.length === data.results.length ? data.count : null,
     page,
     hasMore: Boolean(data.next),
     savedAt,
@@ -66,7 +81,7 @@ export async function getGames({
     page,
     page_size: PAGE_SIZE,
   });
-  return toPage(await cachedFetch(url), page);
+  return toPage(await cachedFetch(url), page, { tracked: !search });
 }
 
 // RAWG counts some TBA games as "in range" through a placeholder date, so it asks for a few and
@@ -82,11 +97,13 @@ export async function getFeaturedGame(today = new Date()) {
   return { game, savedAt, isStale };
 }
 
+// A direct link to an adult game opens nothing: the game page shows it as not found.
 export async function getGame(id) {
   const { data, savedAt, isStale } = await cachedFetch(
     buildUrl(`/games/${id}`),
   );
-  return { game: normaliseRawgGameDetail(data), savedAt, isStale };
+  const game = isAdult(data) ? null : normaliseRawgGameDetail(data);
+  return { game, savedAt, isStale };
 }
 
 export async function getScreenshots(id) {
