@@ -1,3 +1,4 @@
+import * as anilist from '../api/anilist.js';
 import * as tmdb from '../api/tmdb.js';
 import { getDateText, getSaveText } from './card.js';
 import { posterFallback } from './poster.js';
@@ -5,12 +6,8 @@ import { createStateMessage } from './states.js';
 import { getEntry } from '../store/library.js';
 import { toggleSave } from './library-actions.js';
 import { closeDialog, openDialog } from '../motion.js';
-
-const CATEGORY_LABELS = {
-  movie: 'Movie',
-  tv: 'TV',
-  anime: 'Anime',
-};
+import { formatShortDate } from '../utils/dates.js';
+import { getTypeLabel } from '../utils/media.js';
 
 let dialog;
 let opener;
@@ -38,10 +35,23 @@ function formatRuntime(minutes) {
   return rest ? `${hours}h ${rest}m` : `${hours}h`;
 }
 
+function count(number, word) {
+  return `${number} ${word}${number === 1 ? '' : 's'}`;
+}
+
 function getFacts(details) {
-  if (details.runtime) return formatRuntime(details.runtime);
-  if (details.seasons) return details.seasons === 1 ? '1 season' : `${details.seasons} seasons`;
-  return '';
+  const facts = [];
+  if (details.runtime) facts.push(formatRuntime(details.runtime));
+  if (details.seasons) facts.push(count(details.seasons, 'season'));
+  if (details.episodes) facts.push(count(details.episodes, 'episode'));
+  if (details.chapters) facts.push(count(details.chapters, 'chapter'));
+  else if (details.type === 'manga' && details.status === 'RELEASING') facts.push('Ongoing');
+  if (details.volumes) facts.push(count(details.volumes, 'volume'));
+  if (details.nextEpisode) {
+    facts.push(`Episode ${details.nextEpisode.number} out ${formatShortDate(details.nextEpisode.at)}`);
+  }
+  if (details.studios?.length) facts.push(details.studios[0]);
+  return facts.join(' · ');
 }
 
 function createElement(tag, className, text) {
@@ -136,7 +146,7 @@ function playTrailer() {
 
 function renderIntro(release) {
   dialog.dataset.type = release.type;
-  dialog.querySelector('.quick-view__category').textContent = CATEGORY_LABELS[release.type];
+  dialog.querySelector('.quick-view__category').textContent = getTypeLabel(release);
   dialog.querySelector('.quick-view__title').textContent = release.title;
   dialog.querySelector('.quick-view__date').textContent = getDateText(release);
   dialog.querySelector('.quick-view__facts').textContent = '';
@@ -175,16 +185,20 @@ function createSection(title) {
   return section;
 }
 
-function createProviders(providers) {
-  const section = createSection('Where to watch in South Africa');
+// TMDB lists South African streaming services; AniList lists official sites worldwide, as links.
+function createProviders({ source, type, providers }) {
+  const fromAniList = source === 'anilist';
+  const verb = type === 'manga' ? 'read' : 'watch';
+  const section = createSection(fromAniList ? `Where to ${verb}` : 'Where to watch in South Africa');
   if (!providers.length) {
-    section.append(createElement('p', 'quick-view__muted', 'Not streaming in South Africa yet.'));
+    const empty = fromAniList ? `No official ${verb === 'read' ? 'reading' : 'streaming'} links yet.` : 'Not streaming in South Africa yet.';
+    section.append(createElement('p', 'quick-view__muted', empty));
     return section;
   }
 
   const list = createElement('ul', 'quick-view__providers');
   list.setAttribute('role', 'list');
-  providers.forEach(({ name, logo }) => {
+  providers.forEach(({ name, logo, url }) => {
     const item = createElement('li', 'quick-view__provider');
     if (logo) {
       const image = createElement('img', 'quick-view__provider-logo');
@@ -194,12 +208,22 @@ function createProviders(providers) {
       image.height = 32;
       item.append(image);
     }
-    item.append(createElement('span', '', name));
+    if (url) {
+      const link = createElement('a', 'quick-view__provider-link', name);
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.append(createElement('span', 'visually-hidden', ' (opens in a new tab)'));
+      item.append(link);
+    } else {
+      item.append(createElement('span', '', name));
+    }
     list.append(item);
   });
 
   // TMDB's terms ask for JustWatch to be credited wherever provider data is shown.
-  section.append(list, createElement('p', 'quick-view__credit', 'Streaming data from JustWatch'));
+  const credit = fromAniList ? 'Links from AniList' : 'Streaming data from JustWatch';
+  section.append(list, createElement('p', 'quick-view__credit', credit));
   return section;
 }
 
@@ -211,7 +235,7 @@ function renderDetails(details) {
   about.append(createElement('p', 'quick-view__overview', details.overview || 'No description yet.'));
 
   const container = dialog.querySelector('.quick-view__details');
-  container.replaceChildren(about, createProviders(details.providers));
+  container.replaceChildren(about, createProviders(details));
   container.setAttribute('aria-busy', 'false');
 }
 
@@ -229,12 +253,18 @@ function renderError(release) {
   );
 }
 
+function getDetails({ source, type, id }) {
+  if (source === 'anilist') return anilist.getMedia(id);
+  return type === 'movie' ? tmdb.getMovie(id) : tmdb.getShow(id, type);
+}
+
 async function loadDetails(release) {
   const id = ++requestId;
   renderLoading();
   try {
-    const details = release.type === 'movie' ? await tmdb.getMovie(release.id) : await tmdb.getShow(release.id, release.type);
+    const details = await getDetails(release);
     if (id !== requestId) return;
+    if (!details) throw new Error('Not available');
     current = { ...release, ...details, date: release.date, season: release.season };
     renderDetails(details);
   } catch {

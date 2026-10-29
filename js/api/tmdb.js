@@ -130,18 +130,6 @@ export function getShows({ start, end, genres, page = 1 } = {}) {
   );
 }
 
-// TMDB has no anime genre, so anime is approximated as Japanese animation and labelled "Anime (from TMDB)" in the UI.
-export function getAnime({ start, end, genres, page = 1 } = {}) {
-  const withGenres = genres
-    ? `${ANIMATION_GENRE_ID},${genres}`
-    : ANIMATION_GENRE_ID;
-  return getSeasonDrops(
-    "anime",
-    { with_genres: withGenres, with_origin_country: "JP" },
-    { start, end, page },
-  );
-}
-
 export function searchMovies({ query, page = 1 } = {}) {
   const url = buildUrl("/search/movie", { query, region: TMDB_REGION, page });
   return getPage(url, "movie", page);
@@ -154,7 +142,7 @@ function isAnime(item) {
   );
 }
 
-// TMDB search has one TV list, so TV and anime are split here. Like getSeasonDrops,
+// TMDB search has one TV list, so anime (now from AniList) is taken out here. Like getSeasonDrops,
 // keep reading pages until there are enough results to show.
 async function searchTv(type, keep, { query, page = 1 }) {
   const results = [];
@@ -191,10 +179,6 @@ async function searchTv(type, keep, { query, page = 1 }) {
 
 export function searchShows(options) {
   return searchTv("tv", (item) => !isAnime(item), options);
-}
-
-export function searchAnime(options) {
-  return searchTv("anime", isAnime, options);
 }
 
 // kind is "movie" or "tv"; TMDB keeps a separate genre list for each.

@@ -33,13 +33,15 @@ function writeEntry(storage, cacheKey, data) {
   }
 }
 
+// body turns the request into a POST (AniList's GraphQL API only takes POST); it's part of the cache key,
+// since every AniList query goes to the same URL.
 export async function cachedFetch(
   url,
-  { headers = {}, maxAge = CACHE_TTL, persist = false } = {},
+  { headers = {}, body, maxAge = CACHE_TTL, persist = false } = {},
 ) {
   // persist keeps the response across visits (localStorage) instead of just this tab.
   const storage = persist ? localStorage : sessionStorage;
-  const cacheKey = toCacheKey(url);
+  const cacheKey = toCacheKey(url) + (body ? `#${body}` : "");
   const cached = readEntry(storage, cacheKey);
 
   if (cached && Date.now() - cached.savedAt < maxAge) {
@@ -47,7 +49,10 @@ export async function cachedFetch(
   }
 
   try {
-    const response = await fetch(url, { headers });
+    const response = await fetch(
+      url,
+      body ? { method: "POST", headers, body } : { headers },
+    );
     if (!response.ok) {
       throw new ApiError(
         response.status,
