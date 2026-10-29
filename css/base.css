@@ -9,7 +9,6 @@
 }
 
 html {
-  color-scheme: dark;
   background: var(--color-bg-page);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -106,7 +105,9 @@ h3 {
   width: 100%;
   max-width: calc(var(--container-max) + var(--container-gutter) * 2);
   margin-inline: auto;
-  padding-inline: var(--container-gutter);
+  /* The safe areas keep content clear of the notch on landscape iPhones. */
+  padding-left: max(var(--container-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--container-gutter), env(safe-area-inset-right));
 }
 
 .visually-hidden {

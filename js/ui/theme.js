@@ -1,5 +1,6 @@
-// The header toggle switches between light and dark and remembers the choice on this device.
-// Until someone picks, the site follows the system setting (the <head> script sets the first value).
+// The header toggle switches between light and dark. Picking the theme your system already uses
+// clears the saved choice, so the site goes back to following the system from then on.
+// (The <head> script sets the first value before the page paints.)
 const STORAGE_KEY = 'dropday.theme';
 const BROWSER_BAR_COLOURS = { dark: '#141311', light: '#f3efe8' };
 
@@ -21,16 +22,19 @@ function apply(theme) {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', BROWSER_BAR_COLOURS[theme]);
 }
 
+const systemTheme = () => (systemLight.matches ? 'light' : 'dark');
+
 toggle?.addEventListener('click', () => {
   const next = root.dataset.theme === 'light' ? 'dark' : 'light';
   apply(next);
   try {
-    localStorage.setItem(STORAGE_KEY, next);
+    if (next === systemTheme()) localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, next);
   } catch {}
 });
 
-systemLight.addEventListener('change', (event) => {
-  if (!readSaved()) apply(event.matches ? 'light' : 'dark');
+systemLight.addEventListener('change', () => {
+  if (!readSaved()) apply(systemTheme());
 });
 
 apply(root.dataset.theme === 'light' ? 'light' : 'dark');

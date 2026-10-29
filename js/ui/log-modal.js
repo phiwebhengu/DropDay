@@ -138,6 +138,52 @@ function renderSaveButton() {
   form.querySelector('[type="submit"]').disabled = !form.elements.status.value;
 }
 
+// RAWG's platform list for a game is often incomplete, so common platforms are always offered too.
+// It's also in no useful order (one tester got Linux preselected), so the familiar ones come first.
+const COMMON_PLATFORMS = [
+  'PC',
+  'PlayStation 5',
+  'Xbox Series S/X',
+  'Nintendo Switch 2',
+  'Nintendo Switch',
+  'PlayStation 4',
+  'Xbox One',
+  'iOS',
+  'Android',
+  'macOS',
+];
+
+function byFamiliarity(a, b) {
+  const rank = (name) => (COMMON_PLATFORMS.includes(name) ? COMMON_PLATFORMS.indexOf(name) : COMMON_PLATFORMS.length);
+  return rank(a) - rank(b);
+}
+
+function createOption(text) {
+  const option = document.createElement('option');
+  option.value = text;
+  option.textContent = text;
+  return option;
+}
+
+function fillPlatforms(selected) {
+  const select = form.elements.platform;
+  const released = [...game.platforms].sort(byFamiliarity);
+  const others = COMMON_PLATFORMS.filter((name) => !released.includes(name));
+
+  if (released.length) {
+    const releasedGroup = document.createElement('optgroup');
+    releasedGroup.label = 'Released on';
+    releasedGroup.append(...released.map(createOption));
+    const othersGroup = document.createElement('optgroup');
+    othersGroup.label = 'Other platforms';
+    othersGroup.append(...others.map(createOption));
+    select.replaceChildren(releasedGroup, othersGroup);
+  } else {
+    select.replaceChildren(...COMMON_PLATFORMS.map(createOption));
+  }
+  select.value = selected && [...released, ...others].includes(selected) ? selected : (released[0] ?? COMMON_PLATFORMS[0]);
+}
+
 function fillSelect(select, options, selected) {
   select.replaceChildren(
     ...options.map((text) => {
@@ -155,6 +201,7 @@ function getPlatformFromDiscover() {
   try {
     const { search } = JSON.parse(sessionStorage.getItem('dropday.discover.return'));
     const platformId = Number(new URLSearchParams(search).get('platform'));
+    if (!platformId) return null;
     return game.platforms[game.platformIds.indexOf(platformId)] ?? null;
   } catch {
     return null;
@@ -182,7 +229,7 @@ function fillForm(status) {
   const presetStatus = status ?? entry?.status;
   form.elements.status.value = ['played', 'playing', 'backlog'].includes(presetStatus) ? presetStatus : '';
 
-  fillSelect(form.elements.platform, game.platforms, entry?.platform ?? getPlatformFromDiscover());
+  fillPlatforms(entry?.platform ?? getPlatformFromDiscover());
   fillEditions(entry?.edition);
 
   if (entry?.rating) form.elements.rating.value = String(entry.rating);

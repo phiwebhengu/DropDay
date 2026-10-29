@@ -4,6 +4,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  padding-top: env(safe-area-inset-top);
   border-bottom: 1px solid var(--color-border-default);
   background: var(--color-header-bg);
   backdrop-filter: blur(12px) saturate(1.2);
@@ -64,6 +65,12 @@
 
 .theme-toggle:hover {
   background: var(--color-bg-raised);
+}
+
+/* Dark shows the sun (switch to light), light shows the moon (switch to dark). */
+:root[data-theme="light"] .theme-toggle__icon--sun,
+:root:not([data-theme="light"]) .theme-toggle__icon--moon {
+  display: none;
 }
 
 /* Main navigation (desktop) */
@@ -169,13 +176,24 @@
 
 /* Bottom navigation (mobile) */
 
+/* Frosted like the header, so on iPhones (where Safari's own bar floats over the page) content showing
+   through looks intended rather than like a gap. The safe-area padding keeps the links above the home bar. */
 .bottom-nav {
   position: sticky;
   bottom: 0;
   z-index: 50;
-  border-top: 1px solid var(--color-border-default);
-  background: var(--color-bg-page);
   padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-header-bg);
+  backdrop-filter: blur(12px) saturate(1.2);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-header,
+  .bottom-nav {
+    background: var(--color-bg-page);
+    backdrop-filter: none;
+  }
 }
 
 .bottom-nav__list {

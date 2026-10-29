@@ -7,6 +7,15 @@ import {
 import { addDays, toIsoDate } from "../utils/dates.js";
 
 const FEATURED_CANDIDATES = 10;
+
+// RAWG has no filter for adult games, so they are dropped here before anything renders. Only adult-only
+// tags count: "nudity" and "sexual-content" also sit on mainstream mature games like The Witcher 3.
+const ADULT_TAGS = new Set(["nsfw", "hentai"]);
+
+function isSafe(game) {
+  if (game.esrb_rating?.slug === "adults-only") return false;
+  return !(game.tags ?? []).some((tag) => ADULT_TAGS.has(tag.slug));
+}
 import { cachedFetch } from "./cache.js";
 import {
   normaliseRawgGame,
@@ -28,7 +37,7 @@ function buildUrl(path, params = {}) {
 function toPage(response, page) {
   const { data, savedAt, isStale } = response;
   return {
-    results: data.results.map(normaliseRawgGame),
+    results: data.results.filter(isSafe).map(normaliseRawgGame),
     count: data.count,
     page,
     hasMore: Boolean(data.next),
