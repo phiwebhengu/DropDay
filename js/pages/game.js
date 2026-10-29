@@ -59,15 +59,33 @@ function readReturnLink() {
 }
 
 // Coming from Discover, Back keeps the user's filters, loaded cards and scroll (see discover.js).
-function renderBackLink() {
-  const saved = readReturnLink();
-  if (!saved) return;
-  backLink.href = `discover.html${saved.search}`;
-  backLinkText.textContent = saved.label ? `Back to results · ${saved.label}` : 'Back to results';
+// The page this game was opened from, if it's one of ours ("" for Home).
+function getPreviousPage() {
+  if (!document.referrer) return null;
+  const from = new URL(document.referrer);
+  return from.origin === location.origin ? { name: from.pathname.split('/').pop(), search: from.search } : null;
+}
 
-  const cameFromDiscover = document.referrer && new URL(document.referrer).pathname.endsWith('/discover.html');
+// Back goes to wherever the user came from. From Discover it keeps their filters, loaded cards and
+// scroll (see discover.js); history.back() is used when possible so the browser restores the scroll too.
+function renderBackLink() {
+  const previous = getPreviousPage();
+  const saved = readReturnLink();
+
+  if (previous?.name === 'library.html') {
+    backLink.href = `library.html${previous.search}`;
+    backLinkText.textContent = 'Back to My Library';
+  } else if (previous?.name === 'index.html' || previous?.name === '') {
+    backLink.href = 'index.html';
+    backLinkText.textContent = 'Back to Home';
+  } else if (saved) {
+    backLink.href = `discover.html${saved.search}`;
+    backLinkText.textContent = saved.label ? `Back to results · ${saved.label}` : 'Back to results';
+  }
+
+  const goesToPrevious = previous && backLink.pathname === new URL(document.referrer).pathname;
   backLink.addEventListener('click', (event) => {
-    if (!cameFromDiscover || history.length < 2) return;
+    if (!goesToPrevious || history.length < 2) return;
     event.preventDefault();
     history.back();
   });

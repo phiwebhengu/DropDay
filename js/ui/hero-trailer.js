@@ -1,12 +1,11 @@
 const HOVER_DELAY = 500;
 const FADE_OUT = 500;
-// If sound was blocked and nothing is showing by now, it starts again muted instead of sitting there.
-const BLOCKED_FALLBACK = 1500;
 const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com";
 const YOUTUBE_ENDED = 0;
 const YOUTUBE_PLAYING = 1;
-// YouTube shows its pause button for about 3 s whenever playback starts, so the art stays up until it has faded.
-const YOUTUBE_SETTLE = 1800;
+// Sound rises over this long instead of starting at full volume (testers found the start loud).
+const SOUND_FADE_IN = 1200;
+const SOUND_FADE_STEPS = 12;
 
 const SOUND_ICONS = {
   off: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -93,6 +92,7 @@ function createYouTubePlayer(
       muted = value;
       send(value ? "mute" : "unMute");
     },
+    setVolume: (value) => send("setVolume", [Math.round(value * 100)]),
   };
 }
 
@@ -121,6 +121,9 @@ function createVideoPlayer({ src }, { muted, onPlaying, onError }) {
     set muted(value) {
       video.muted = value;
     },
+    setVolume: (value) => {
+      video.volume = value;
+    },
   };
 }
 
@@ -140,12 +143,12 @@ export function setupHeroTrailer({
 
   let player = null;
   let playing = false;
+  let loading = false;
+  let fadeTimer;
   let startedBy = null;
   let stoppedByUser = false;
   let soundWanted = true;
-  let blockedTimer;
   let mutedOnReveal = true;
-  let revealTimer;
   let hoverTimer;
   let resetTimer;
 
@@ -164,52 +167,55 @@ export function setupHeroTrailer({
     soundButton.innerHTML = soundOn ? SOUND_ICONS.on : SOUND_ICONS.off;
   }
 
+  // The label follows what's actually on screen: testers saw "Stop trailer" while nothing was showing yet.
   function renderPlayButton() {
-    playButton.textContent = playing ? "Stop trailer" : "Play trailer";
+    const label = loading ? "Loading trailer…" : playing ? "Stop trailer" : "Play trailer";
+    playButton.textContent = label;
     playButton.setAttribute(
       "aria-label",
-      `${playing ? "Stop" : "Play"} the ${title} trailer`,
+      loading ? `Loading the ${title} trailer, press to cancel` : `${playing ? "Stop" : "Play"} the ${title} trailer`,
     );
+    playButton.toggleAttribute("aria-busy", loading);
+    hero.classList.toggle("hero--loading", loading);
+  }
+
+  function fadeInSound() {
+    clearInterval(fadeTimer);
+    let step = 0;
+    player.setVolume(0);
+    player.muted = false;
+    fadeTimer = setInterval(() => {
+      step += 1;
+      player?.setVolume(step / SOUND_FADE_STEPS);
+      if (step >= SOUND_FADE_STEPS) clearInterval(fadeTimer);
+    }, SOUND_FADE_IN / SOUND_FADE_STEPS);
   }
 
   // The art only gives way once real frames are showing, so a slow connection never flashes black.
+  // Sound and its button arrive with the picture, so nothing plays behind the art.
   function reveal() {
-    if (!playing) return;
-    clearTimeout(blockedTimer);
-    clearTimeout(revealTimer);
-    revealTimer = setTimeout(
-      () => {
-        if (!playing) return;
-        hero.classList.add("hero--playing");
-        // Sound and its button only arrive with the picture, so nothing plays behind the art.
-        player.muted = mutedOnReveal;
-        soundButton.hidden = false;
-        renderSound();
-      },
-      trailer.youtubeId ? YOUTUBE_SETTLE : 0,
-    );
-  }
-
-  function playMuted() {
-    if (!playing || !player) return;
-    mutedOnReveal = true;
-    player.muted = true;
+    if (!playing || !loading) return;
+    loading = false;
+    hero.classList.add("hero--playing");
+    if (mutedOnReveal) player.muted = true;
+    else fadeInSound();
+    soundButton.hidden = false;
+    renderPlayButton();
     renderSound();
-    player.play().catch(() => stop());
   }
 
   function play(source) {
     clearTimeout(hoverTimer);
     clearTimeout(resetTimer);
     playing = true;
+    loading = true;
     startedBy = source;
     renderPlayButton();
-    const muted = !(soundWanted && canPlaySound());
-    mutedOnReveal = muted;
+    mutedOnReveal = !(soundWanted && canPlaySound());
     if (player) {
-      // YouTube waits behind the art first (see reveal), so it stays silent until then.
-      player.muted = trailer.youtubeId || muted;
-      player.play().catch(playMuted);
+      // Silent until the picture shows (see reveal).
+      player.muted = true;
+      player.play().catch(() => stop());
     } else {
       // A new YouTube embed starts by itself once it loads; a video file needs telling.
       const create = trailer.youtubeId
@@ -217,26 +223,22 @@ export function setupHeroTrailer({
         : createVideoPlayer;
       player = create(trailer, {
         title,
-        muted: Boolean(trailer.youtubeId) || muted,
+        muted: true,
         onPlaying: reveal,
         onError: remove,
       });
       media.append(player.element);
-      if (!trailer.youtubeId) player.play().catch(playMuted);
+      if (!trailer.youtubeId) player.play().catch(() => stop());
     }
-    // Only a video file can be refused for having sound; YouTube always starts muted here.
-    clearTimeout(blockedTimer);
-    if (!muted && !trailer.youtubeId)
-      blockedTimer = setTimeout(playMuted, BLOCKED_FALLBACK);
     renderSound();
   }
 
   function stop() {
     clearTimeout(hoverTimer);
-    clearTimeout(blockedTimer);
-    clearTimeout(revealTimer);
+    clearInterval(fadeTimer);
     if (!playing) return;
     playing = false;
+    loading = false;
     startedBy = null;
     hero.classList.remove("hero--playing");
     soundButton.hidden = true;
