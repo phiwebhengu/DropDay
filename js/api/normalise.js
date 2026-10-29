@@ -121,6 +121,7 @@ export function normaliseAniListMedia(media) {
     id: media.id,
     type,
     subtype: type === "manga" ? MANGA_SUBTYPES[media.countryOfOrigin] ?? "Manga" : null,
+    status: media.status ?? null,
     title: media.title?.english || media.title?.romaji || "Untitled",
     date,
     tba: !date,
@@ -137,7 +138,6 @@ export function normaliseAniListDetail(media) {
   return {
     ...normaliseAniListMedia(media),
     overview: toPlainText(media.description),
-    status: media.status ?? null,
     episodes: media.episodes ?? null,
     chapters: media.chapters ?? null,
     volumes: media.volumes ?? null,
