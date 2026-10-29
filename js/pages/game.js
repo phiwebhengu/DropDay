@@ -256,6 +256,10 @@ async function loadGame() {
   hero.hidden = false;
   try {
     ({ game } = await rawg.getGame(id));
+    if (!game) {
+      showNotFound();
+      return;
+    }
     renderGame();
     loadExtras();
     // "Edit log" in My Library links here with ?log=1 so the modal opens straight away.
