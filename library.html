@@ -7,7 +7,7 @@
     <title>My Library · Drop Day</title>
     <meta
       name="description"
-      content="Your Played, Playing, Backlog and Radar lists, saved on this device."
+      content="Everything you want to play, watch and read, what you’re on now and what you’ve finished, saved on this device."
     />
     <meta name="theme-color" content="#141311" />
     <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
@@ -122,38 +122,46 @@
           <p class="library__intro">Saved on this device. No account needed.</p>
         </header>
 
-        <dl class="library-stats" id="library-stats">
-          <div class="library-stats__item library-stats__item--played">
-            <dt class="library-stats__label">Played</dt>
-            <dd class="library-stats__count" data-count="played">0</dd>
-          </div>
-          <div class="library-stats__item library-stats__item--playing">
-            <dt class="library-stats__label">Playing</dt>
-            <dd class="library-stats__count" data-count="playing">0</dd>
-          </div>
-          <div class="library-stats__item library-stats__item--backlog">
-            <dt class="library-stats__label">Backlog</dt>
-            <dd class="library-stats__count" data-count="backlog">0</dd>
-          </div>
-          <div class="library-stats__item library-stats__item--radar">
-            <dt class="library-stats__label">Radar</dt>
-            <dd class="library-stats__count" data-count="radar">0</dd>
-          </div>
-        </dl>
+        <ul class="library-stats" id="library-stats" role="list" aria-label="Your lists">
+          <li>
+            <button class="library-stats__item library-stats__item--want" type="button" data-stat="want" aria-controls="library-panel">
+              <span class="library-stats__count" data-count="want">0</span>
+              <span class="library-stats__label">Want to</span>
+            </button>
+          </li>
+          <li>
+            <button class="library-stats__item library-stats__item--doing" type="button" data-stat="doing" aria-controls="library-panel">
+              <span class="library-stats__count" data-count="doing">0</span>
+              <span class="library-stats__label">In progress</span>
+            </button>
+          </li>
+          <li>
+            <button class="library-stats__item library-stats__item--done" type="button" data-stat="done" aria-controls="library-panel">
+              <span class="library-stats__count" data-count="done">0</span>
+              <span class="library-stats__label">Done</span>
+            </button>
+          </li>
+          <li>
+            <button class="library-stats__item library-stats__item--dropped" type="button" data-stat="dropped" aria-controls="library-panel">
+              <span class="library-stats__count" data-count="dropped">0</span>
+              <span class="library-stats__label">Dropped</span>
+            </button>
+          </li>
+        </ul>
 
         <div class="library__controls">
           <div class="library-tabs" role="tablist" aria-label="Library lists">
-            <button class="library-tab" id="tab-played" type="button" role="tab" data-tab="played" aria-controls="library-panel">
-              Played <span class="library-tab__count" data-tab-count="played">0</span>
+            <button class="library-tab" id="tab-want" type="button" role="tab" data-tab="want" aria-controls="library-panel">
+              Want to <span class="library-tab__count" data-tab-count="want">0</span>
             </button>
-            <button class="library-tab" id="tab-playing" type="button" role="tab" data-tab="playing" aria-controls="library-panel">
-              Playing <span class="library-tab__count" data-tab-count="playing">0</span>
+            <button class="library-tab" id="tab-doing" type="button" role="tab" data-tab="doing" aria-controls="library-panel">
+              In progress <span class="library-tab__count" data-tab-count="doing">0</span>
             </button>
-            <button class="library-tab" id="tab-backlog" type="button" role="tab" data-tab="backlog" aria-controls="library-panel">
-              Backlog <span class="library-tab__count" data-tab-count="backlog">0</span>
+            <button class="library-tab" id="tab-done" type="button" role="tab" data-tab="done" aria-controls="library-panel">
+              Done <span class="library-tab__count" data-tab-count="done">0</span>
             </button>
-            <button class="library-tab" id="tab-radar" type="button" role="tab" data-tab="radar" aria-controls="library-panel">
-              Radar <span class="library-tab__count" data-tab-count="radar">0</span>
+            <button class="library-tab" id="tab-dropped" type="button" role="tab" data-tab="dropped" aria-controls="library-panel">
+              Dropped <span class="library-tab__count" data-tab-count="dropped">0</span>
             </button>
           </div>
 
@@ -177,7 +185,7 @@
         </div>
 
         <div class="library__layout">
-          <section class="library__panel" id="library-panel" role="tabpanel" aria-labelledby="tab-played" tabindex="-1"></section>
+          <section class="library__panel" id="library-panel" role="tabpanel" aria-labelledby="tab-want" tabindex="-1"></section>
 
           <aside class="activity" aria-labelledby="activity-title">
             <h2 class="activity__title" id="activity-title">Activity</h2>

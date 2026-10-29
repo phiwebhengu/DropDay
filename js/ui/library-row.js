@@ -1,27 +1,14 @@
 import { getDateText } from './card.js';
-import { removeRelease, setReleaseStatus } from './library-actions.js';
+import { removeRelease, setReleaseStatus, setReminder } from './library-actions.js';
 import { openQuickView } from './quick-view.js';
 import { createStars, formatRating } from './rating.js';
 import { formatShortDate, formatWeekday } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
+import { getStatusesFor, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import { posterFallback } from './poster.js';
 import { createReview } from './review.js';
 
-const STATUSES = ['played', 'playing', 'backlog', 'radar'];
 const STANDARD_EDITION = 'Standard edition';
-
-const LIST_NAMES = {
-  played: 'Played',
-  playing: 'Playing',
-  backlog: 'Backlog',
-  radar: 'Radar',
-};
-
-const CATEGORY_LABELS = {
-  movie: 'Movie',
-  tv: 'TV',
-  anime: 'Anime',
-};
 
 function getMeta(entry) {
   const parts = [];
@@ -29,10 +16,10 @@ function getMeta(entry) {
     if (entry.platform) parts.push(entry.platform);
     if (entry.edition && entry.edition !== STANDARD_EDITION) parts.push(entry.edition);
   } else {
-    parts.push(CATEGORY_LABELS[entry.type]);
+    parts.push(getTypeLabel(entry));
   }
   // Saved-for-later items care about when they drop; logged ones about when they were logged.
-  if (entry.status === 'backlog' || entry.status === 'radar') parts.push(getDateText(entry));
+  if (entry.status === 'want') parts.push(`${entry.remind ? '🔔 ' : ''}${getDateText(entry)}`);
   parts.push(entry.loggedAt ? `Logged ${formatShortDate(entry.loggedAt)}` : `Added ${formatShortDate(entry.addedAt)}`);
   return parts.join(' · ');
 }
@@ -44,11 +31,13 @@ function renderTitle(entry) {
 }
 
 function renderActions(entry, actionsId) {
-  const moves = entry.type === 'game' ? STATUSES.filter((status) => status !== entry.status) : [];
+  const moves = getStatusesFor(entry.type).filter((status) => status !== entry.status);
+  const canRemind = entry.status === 'want' && !isReleased(entry);
   return `
     <div class="library-row__actions" id="${actionsId}" hidden>
       ${entry.type === 'game' ? `<a class="button button--outline library-row__action" href="game.html?id=${entry.id}&log=1">${entry.loggedAt ? 'Edit log' : 'Log or review'}</a>` : ''}
-      ${moves.map((status) => `<button class="button button--outline library-row__action" type="button" data-move="${status}">Move to ${LIST_NAMES[status]}</button>`).join('')}
+      ${canRemind ? `<button class="button button--outline library-row__action" type="button" data-remind>${entry.remind ? 'Turn reminder off' : '🔔 Remind me'}</button>` : ''}
+      ${moves.map((status) => `<button class="button button--outline library-row__action" type="button" data-move="${status}">Move to ${getStatusLabel(entry.type, status)}</button>`).join('')}
       <button class="button button--outline library-row__action library-row__action--danger" type="button" data-remove>Remove</button>
     </div>
   `;
@@ -116,6 +105,7 @@ export function createLibraryRow(entry, { diary = false } = {}) {
     const button = event.target.closest('button');
     if (!button) return;
     if (button.dataset.move) setReleaseStatus(entry, button.dataset.move);
+    if ('remind' in button.dataset) setReminder(entry, !entry.remind);
     if ('remove' in button.dataset) removeRelease(entry);
   });
 

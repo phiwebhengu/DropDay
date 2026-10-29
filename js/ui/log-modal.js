@@ -47,19 +47,19 @@ function createDialog() {
         <legend class="visually-hidden">Status</legend>
         <div class="status-options">
           <label class="status-option">
-            <input class="status-option__input" type="radio" name="status" value="played">
+            <input class="status-option__input" type="radio" name="status" value="done">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7" /></svg>
             Played
           </label>
           <label class="status-option">
-            <input class="status-option__input" type="radio" name="status" value="playing">
+            <input class="status-option__input" type="radio" name="status" value="doing">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" /></svg>
             Playing
           </label>
           <label class="status-option">
-            <input class="status-option__input" type="radio" name="status" value="backlog">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
-            Backlog
+            <input class="status-option__input" type="radio" name="status" value="dropped">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            Dropped
           </label>
         </div>
       </fieldset>
@@ -227,7 +227,8 @@ function fillForm(status) {
   dialog.querySelector('#log-title').textContent = `Log ${game.title}`;
 
   const presetStatus = status ?? entry?.status;
-  form.elements.status.value = ['played', 'playing', 'backlog'].includes(presetStatus) ? presetStatus : '';
+  // A log is a review of something you've played, are playing or gave up on; Want to has nothing to review yet.
+  form.elements.status.value = ['done', 'doing', 'dropped'].includes(presetStatus) ? presetStatus : 'done';
 
   fillPlatforms(entry?.platform ?? getPlatformFromDiscover());
   fillEditions(entry?.edition);
@@ -292,7 +293,7 @@ function setUpForm() {
   });
 }
 
-// release is the full game from the detail page (it needs platformIds); status presets Played or Playing.
+// release is the full game from the detail page (it needs platformIds); status presets the list to log into.
 export function openLogModal(release, { trigger, status } = {}) {
   if (!dialog) {
     dialog = createDialog();

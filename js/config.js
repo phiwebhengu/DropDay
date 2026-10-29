@@ -19,7 +19,9 @@ export const LIST_CACHE_TTL = 24 * 60 * 60 * 1000;
 export const TRAILER_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 export const STORAGE_KEYS = {
-  library: "dropday.library.v1",
+  library: "dropday.library.v2",
+  // The first version's data, kept untouched as a backup after it's carried over.
+  legacyLibrary: "dropday.library.v1",
   cachePrefix: "dropday.cache.",
 };
 

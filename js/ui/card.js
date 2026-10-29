@@ -1,21 +1,16 @@
 import { formatReleaseDate, toIsoDate } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
+import { getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import { posterFallback } from './poster.js';
 
 const MAX_PLATFORM_TAGS = 3;
-
-const CATEGORY_LABELS = {
-  game: 'Game',
-  movie: 'Movie',
-  tv: 'TV',
-  anime: 'Anime',
-};
 
 const DATE_PREFIXES = {
   game: 'Releases',
   movie: 'In cinemas',
   tv: 'Premieres',
   anime: 'Streams',
+  manga: 'Starts',
 };
 
 const PLATFORM_NAMES = {
@@ -30,6 +25,7 @@ const PAST_PREFIXES = {
   movie: 'Released',
   tv: 'Premiered',
   anime: 'Premiered',
+  manga: 'Started',
 };
 
 export function getDateText({ type, date, tba, season }) {
@@ -52,17 +48,12 @@ function getTags({ type, platforms }) {
   return extra > 0 ? [...names.slice(0, MAX_PLATFORM_TAGS), `+${extra}`] : names;
 }
 
-const SAVED_TEXT = {
-  played: '✓ Played',
-  playing: '✓ Playing',
-  backlog: '✓ In Backlog',
-  radar: '✓ On Radar',
-};
-
-// status is the item's Library status, or null when it isn't saved.
-export function getSaveText(type, status) {
-  if (status) return SAVED_TEXT[status];
-  return type === 'game' ? '+ Backlog' : '+ Radar';
+// entry is the item's Library entry, or null when it isn't saved. Upcoming releases offer a reminder;
+// released ones go straight to Want to.
+export function getSaveText(release, entry) {
+  if (entry?.status === 'want' && entry.remind) return '🔔 Reminder on';
+  if (entry) return `✓ ${getStatusLabel(release.type, entry.status)}`;
+  return isReleased(release) ? `+ ${getStatusLabel(release.type, 'want')}` : '🔔 Remind me';
 }
 
 // Games open their own page; movies, TV and anime open the Quick view drawer (PRD sitemap rules).
@@ -74,10 +65,11 @@ function renderTitle(release) {
   return `<button class="release-card__link" type="button">${title}</button>`;
 }
 
-export function createReleaseCard(release, { status = null } = {}) {
+export function createReleaseCard(release, { entry = null } = {}) {
   const card = document.createElement('article');
   card.className = `release-card release-card--${release.type}`;
-  card.classList.toggle('release-card--saved', Boolean(status));
+  card.classList.toggle('release-card--saved', Boolean(entry));
+  card.dataset.source = release.source;
   card.dataset.id = release.id;
   card.dataset.type = release.type;
   // Lets GSAP Flip recognise the same release across a re-render (M3).
@@ -93,12 +85,12 @@ export function createReleaseCard(release, { status = null } = {}) {
       ${release.image ? `<img class="release-card__image" src="${escapeHtml(release.image)}" alt="" width="600" height="400" loading="lazy" decoding="async">` : ''}
     </div>
     <div class="release-card__body">
-      <p class="release-card__category">${CATEGORY_LABELS[release.type]}</p>
+      <p class="release-card__category">${escapeHtml(getTypeLabel(release))}</p>
       <h3 class="release-card__title">${renderTitle(release)}</h3>
       <p class="release-card__date">${getDateText(release)}</p>
       ${tags ? `<ul class="release-card__tags" role="list">${tags}</ul>` : ''}
-      <button class="button button--outline release-card__save" type="button" aria-pressed="${Boolean(status)}">
-        ${getSaveText(release.type, status)}
+      <button class="button button--outline release-card__save" type="button" aria-pressed="${Boolean(entry)}">
+        ${getSaveText(release, entry)}
         <span class="visually-hidden">: ${escapeHtml(release.title)}</span>
       </button>
     </div>
@@ -120,14 +112,16 @@ export function createReleaseCard(release, { status = null } = {}) {
     });
   }
 
+  // Kept so the save button can be relabelled later without looking the release up again.
+  card.release = release;
   return card;
 }
 
-export function setCardStatus(card, status) {
-  card.classList.toggle('release-card--saved', Boolean(status));
+export function setCardStatus(card, entry) {
+  card.classList.toggle('release-card--saved', Boolean(entry));
   const button = card.querySelector('.release-card__save');
-  button.setAttribute('aria-pressed', String(Boolean(status)));
-  button.firstChild.textContent = `${getSaveText(card.dataset.type, status)}\n`;
+  button.setAttribute('aria-pressed', String(Boolean(entry)));
+  button.firstChild.textContent = `${getSaveText(card.release, entry)}\n`;
 }
 
 export function createCardSkeleton() {

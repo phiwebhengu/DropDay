@@ -1161,7 +1161,7 @@ html:has(.quick-view[open]) {
   color: transparent;
 }
 
-/* Status buttons (Played / Playing / Backlog / Radar) */
+/* Status buttons (Want to / In progress / Done / Dropped) */
 
 .status-buttons {
   display: grid;
@@ -1633,6 +1633,8 @@ html:has(.log-modal[open]) {
 
 /* The title link stretches over the whole row; the ⋯ button and actions sit above it. */
 .library-row__link {
+  display: inline-block;
+  min-height: 24px;
   padding: 0;
   border: 0;
   background: none;

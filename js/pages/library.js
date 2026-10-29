@@ -6,28 +6,22 @@ import { openQuickView } from '../ui/quick-view.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatMonthYear, formatRelative, toIsoDate } from '../utils/dates.js';
+import { LIST_NAMES, STATUSES, getStatusLabel } from '../utils/media.js';
 import { countTo } from '../motion.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 
-const TABS = ['played', 'playing', 'backlog', 'radar'];
 const VIEWS = ['list', 'grid'];
 
-const LIST_NAMES = {
-  played: 'Played',
-  playing: 'Playing',
-  backlog: 'Backlog',
-  radar: 'Radar',
-};
-
 const EMPTY_TEXT = {
-  played: "Log a game you've finished and it starts your diary here.",
-  playing: 'Mark a game as Playing to keep it close.',
-  backlog: 'Tap + Backlog on any game to save it for later.',
-  radar: 'Tap + Radar on a game, movie, show or anime to track its release.',
+  want: 'Save anything you want to play, watch or read. Upcoming titles get a 🔔 so you know when they drop.',
+  doing: 'Start something from your Want to list and it moves here.',
+  done: "Log something you've finished and it starts your diary here.",
+  dropped: "Anything you stop partway goes here, so it's out of the way but not forgotten.",
 };
 
 const tabs = [...document.querySelectorAll('.library-tab')];
+const statButtons = [...document.querySelectorAll('[data-stat]')];
 const viewButtons = [...document.querySelectorAll('.view-toggle__option')];
 const panel = document.getElementById('library-panel');
 const activityList = document.getElementById('activity-list');
@@ -37,7 +31,7 @@ const exportButton = document.getElementById('export-button');
 function readState() {
   const params = new URLSearchParams(location.search);
   return {
-    tab: TABS.includes(params.get('tab')) ? params.get('tab') : 'played',
+    tab: STATUSES.includes(params.get('tab')) ? params.get('tab') : 'want',
     view: VIEWS.includes(params.get('view')) ? params.get('view') : 'list',
   };
 }
@@ -64,6 +58,7 @@ function renderControls(state) {
     tab.setAttribute('aria-selected', String(selected));
     tab.tabIndex = selected ? 0 : -1;
   });
+  statButtons.forEach((button) => button.classList.toggle('library-stats__item--current', button.dataset.stat === state.tab));
   panel.setAttribute('aria-labelledby', `tab-${state.tab}`);
   viewButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.view === state.view)));
 }
@@ -76,7 +71,7 @@ function createList(entries) {
   return list;
 }
 
-// Played, as a list, reads like a Letterboxd diary: grouped by the month each game was logged.
+// Done, as a list, reads like a Letterboxd diary: grouped by the month each title was logged.
 function createDiary(entries) {
   const sorted = [...entries].sort((a, b) => (b.loggedAt ?? b.updatedAt).localeCompare(a.loggedAt ?? a.updatedAt));
   const months = new Map();
@@ -111,19 +106,22 @@ function createGrid(entries) {
   grid.append(
     ...entries.map((entry) => {
       const item = document.createElement('li');
-      item.append(createReleaseCard(entry, { status: entry.status }));
+      item.append(createReleaseCard(entry, { entry }));
       return item;
     }),
   );
   return grid;
 }
 
-function describeActivity({ action, title, status, rating }) {
+function describeActivity({ action, title, type, status, rating }) {
   const name = `“${title}”`;
-  if (action === 'logged') return `You logged ${name} as ${LIST_NAMES[status]}${rating ? ` · ${rating}★` : ''}`;
-  if (action === 'moved') return `You moved ${name} to ${LIST_NAMES[status]}`;
+  const list = getStatusLabel(type, status);
+  if (action === 'logged') return `You logged ${name} as ${list}${rating ? ` · ${rating}★` : ''}`;
+  if (action === 'moved') return `You moved ${name} to ${list}`;
   if (action === 'removed') return `You removed ${name}`;
-  return `You added ${name} to ${LIST_NAMES[status]}`;
+  if (action === 'reminded') return `You set a reminder for ${name}`;
+  if (action === 'unreminded') return `You turned off the reminder for ${name}`;
+  return `You added ${name} to ${list}`;
 }
 
 function renderActivity() {
@@ -223,7 +221,7 @@ function renderPanel() {
     return;
   }
 
-  if (state.tab === 'played' && state.view === 'list') {
+  if (state.tab === 'done' && state.view === 'list') {
     panel.replaceChildren(createDiary(entries));
     return;
   }
@@ -251,6 +249,14 @@ tabs.forEach((tab, index) => {
     const next = tabs[(index + step + tabs.length) % tabs.length];
     next.focus();
     next.click();
+  });
+});
+
+// The big counts open their list too, since testers tapped them expecting that.
+statButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    update({ tab: button.dataset.stat });
+    document.getElementById(`tab-${button.dataset.stat}`).focus();
   });
 });
 
