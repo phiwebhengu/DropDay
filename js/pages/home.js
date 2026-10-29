@@ -1,3 +1,4 @@
+import * as anilist from '../api/anilist.js';
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
 import * as youtube from '../api/youtube.js';
@@ -218,7 +219,8 @@ async function loadMonth() {
     rawg.getGames({ ...range, ordering: '-added' }),
     tmdb.getMovies(range),
     tmdb.getShows(range),
-    tmdb.getAnime(range),
+    anilist.getAnime(range),
+    anilist.getManga(range),
   ];
   // One category failing shouldn't empty the whole strip.
   const results = await Promise.allSettled(requests);

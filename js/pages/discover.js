@@ -1,3 +1,4 @@
+import * as anilist from '../api/anilist.js';
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
 import { RAWG_PLATFORMS } from '../config.js';
@@ -49,9 +50,17 @@ const CATEGORIES = {
     label: 'Anime',
     one: 'anime',
     many: 'anime',
-    load: tmdb.getAnime,
-    search: tmdb.searchAnime,
-    loadGenres: () => tmdb.getGenres('tv'),
+    load: anilist.getAnime,
+    search: anilist.searchAnime,
+    loadGenres: anilist.getGenres,
+  },
+  manga: {
+    label: 'Manga',
+    one: 'manga',
+    many: 'manga',
+    load: anilist.getManga,
+    search: anilist.searchManga,
+    loadGenres: anilist.getGenres,
   },
 };
 
@@ -68,7 +77,6 @@ const RANGES = {
 };
 
 const CURRENT_PLATFORM_IDS = [RAWG_PLATFORMS.pc, RAWG_PLATFORMS.ps5, RAWG_PLATFORMS.xboxSeries, RAWG_PLATFORMS.switch];
-const ANIMATION_GENRE_ID = 16;
 
 const monthFormat = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' });
 
@@ -103,6 +111,12 @@ function isId(value) {
   return /^\d+$/.test(value ?? '');
 }
 
+// RAWG and TMDB genres are numbers; AniList's are names like "Slice of Life" or "Sci-Fi".
+function isValidGenre(cat, value) {
+  if (cat === 'anime' || cat === 'manga') return /^[\w &-]{1,40}$/.test(value ?? '');
+  return isId(value);
+}
+
 function readState() {
   const params = new URLSearchParams(location.search);
   const cat = Object.hasOwn(CATEGORIES, params.get('cat')) ? params.get('cat') : 'games';
@@ -113,7 +127,7 @@ function readState() {
     month,
     range: month ? '' : range,
     platform: cat === 'games' && isId(params.get('platform')) ? params.get('platform') : '',
-    genre: isId(params.get('genre')) ? params.get('genre') : '',
+    genre: isValidGenre(cat, params.get('genre')) ? params.get('genre') : '',
     q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH),
   };
 }
@@ -218,13 +232,21 @@ async function fillPlatformOptions() {
   platformSelect.append(...current.map(({ id, name }) => createOption(id, name)), olderGroup);
 }
 
+// The list empties first, so a failed load never leaves another category's genres behind,
+// and genresFor is cleared on failure so the next visit tries again.
 async function fillGenreOptions(cat) {
   if (genresFor === cat) return;
   genresFor = cat;
-  const genres = await CATEGORIES[cat].loadGenres();
+  genreSelect.replaceChildren(createOption('', 'All genres'));
+  let genres;
+  try {
+    genres = await CATEGORIES[cat].loadGenres();
+  } catch (error) {
+    if (genresFor === cat) genresFor = null;
+    throw error;
+  }
   if (genresFor !== cat) return;
-  const usable = cat === 'anime' ? genres.filter((genre) => genre.id !== ANIMATION_GENRE_ID) : genres;
-  genreSelect.replaceChildren(createOption('', 'All genres'), ...usable.map(({ id, name }) => createOption(id, name)));
+  genreSelect.replaceChildren(createOption('', 'All genres'), ...genres.map(({ id, name }) => createOption(id, name)));
 }
 
 function wrapInListItem(element) {
@@ -334,7 +356,7 @@ async function loadReleases(state) {
           };
       showState(createStateMessage({ type: 'empty', ...message }));
     }
-  } catch {
+  } catch (error) {
     if (id !== requestId) return;
     clearTimeout(skeletonTimer);
     grid.replaceChildren();
@@ -344,7 +366,8 @@ async function loadReleases(state) {
       createStateMessage({
         type: 'error',
         title: 'We could not load releases',
-        text: 'Check your connection, then try again.',
+        // AniList allows a limited number of requests a minute, so a fast browse can hit it.
+        text: error?.status === 429 ? 'Too many requests at once. Wait a minute, then try again.' : 'Check your connection, then try again.',
         actionLabel: 'Retry',
         onAction: () => update({}),
       }),

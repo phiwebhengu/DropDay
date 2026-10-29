@@ -8,6 +8,7 @@ export const YOUTUBE_API_KEY = "AIzaSyAP52Y6Y74yq5nKbdzN8gygAiDuJVb3rNQ";
 export const RAWG_BASE_URL = "https://api.rawg.io/api";
 export const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 export const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+export const ANILIST_URL = "https://graphql.anilist.co";
 export const YOUTUBE_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
 export const TMDB_REGION = "ZA";

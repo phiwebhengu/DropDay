@@ -24,6 +24,7 @@
   --clay-400: #e08b5e;
   --sky-400: #72a6e0;
   --rose-400: #dc84b0;
+  --violet-400: #a99ae6;
   --paper-100: #f3efe8;
   --paper-0: #fbf9f5;
   --paper-200: #e8e3da;
@@ -66,6 +67,7 @@
   --color-category-movies: var(--clay-400);
   --color-category-tv: var(--sky-400);
   --color-category-anime: var(--rose-400);
+  --color-category-manga: var(--violet-400);
   --color-header-bg: rgb(20 19 17 / 0.86);
   --color-scrim: rgb(14 13 11 / 0.72);
   --color-skeleton-shine: var(--charcoal-700);
@@ -168,6 +170,7 @@
   --color-category-movies: #b4552a;
   --color-category-tv: #2f68ad;
   --color-category-anime: #a83f74;
+  --color-category-manga: #6b51b8;
   --color-header-bg: rgb(243 239 232 / 0.86);
   --color-scrim: rgb(27 26 23 / 0.45);
   --color-skeleton-shine: var(--paper-100);
