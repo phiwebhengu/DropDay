@@ -243,8 +243,9 @@
 .game__cover {
   position: relative;
   container-type: inline-size;
-  width: min(44vw, 200px);
-  aspect-ratio: 2 / 3;
+  width: min(44vw, 210px);
+  /* IGDB covers are 3:4, so the frame matches and the whole cover shows. */
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   border-radius: var(--radius-md);
   background: var(--ink-850);

@@ -24,9 +24,12 @@ function isKnown(entry) {
 }
 
 // Covers never change, so each game is only asked about once per browser.
-async function fetchCovers(slugs) {
+// Names and years let the proxy find a game whose IGDB slug differs from RAWG's.
+async function fetchCovers(games) {
   const url = new URL("/covers", IGDB_PROXY_URL);
-  url.searchParams.set("slugs", slugs.join(","));
+  url.searchParams.set("slugs", games.map((game) => game.slug).join(","));
+  url.searchParams.set("names", games.map((game) => game.title.replaceAll("|", " ")).join("|"));
+  url.searchParams.set("years", games.map((game) => game.date?.slice(0, 4) ?? "").join(","));
   const response = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT) });
   if (!response.ok) throw new Error(`Covers failed: ${response.status}`);
   return response.json();
@@ -37,12 +40,14 @@ async function fetchCovers(slugs) {
 export async function addCovers(games) {
   if (!IGDB_PROXY_URL || !games.length) return games;
   const covers = readCovers();
-  const missing = [...new Set(games.map((game) => game.slug).filter((slug) => slug && !isKnown(covers[slug])))];
+  const missing = [
+    ...new Map(games.filter((game) => game.slug && !isKnown(covers[game.slug])).map((game) => [game.slug, game])).values(),
+  ];
 
   if (missing.length) {
     try {
       const found = await fetchCovers(missing);
-      missing.forEach((slug) => {
+      missing.forEach(({ slug }) => {
         covers[slug] = { id: found[slug] ?? null, at: Date.now() };
       });
       writeCovers(covers);

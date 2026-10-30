@@ -112,11 +112,18 @@ function isBoxArt(release) {
   return release.type === 'game' && !release.poster && Boolean(release.image);
 }
 
+// Game covers are 3:4, a little wider than the poster, so they're shown whole on a blurred copy of
+// themselves instead of losing their edges (and often part of the logo) to a crop.
+function isGameCover(release) {
+  return release.type === 'game' && Boolean(release.poster);
+}
+
 function renderPoster(release) {
   const boxArt = isBoxArt(release);
   const src = release.poster ?? release.image;
+  const modifier = boxArt ? ' release-card__image--wide' : isGameCover(release) ? ' release-card__image--whole' : '';
   const image = src
-    ? `<img class="release-card__image${boxArt ? ' release-card__image--wide' : ''}" src="${escapeHtml(src)}" alt="" ${boxArt ? 'width="640" height="360"' : 'width="342" height="513"'} loading="lazy" decoding="async">`
+    ? `<img class="release-card__image${modifier}" src="${escapeHtml(src)}" alt="" ${boxArt ? 'width="640" height="360"' : 'width="342" height="513"'} loading="lazy" decoding="async">`
     : '';
   const boxTitle = boxArt ? `<span class="release-card__box-title" aria-hidden="true">${escapeHtml(release.title)}</span>` : '';
   return `${posterFallback(release.title)}${image}${boxTitle}${renderStub(release)}`;
@@ -134,6 +141,7 @@ export function createReleaseCard(release, { entry = null } = {}) {
   if (release.tint) card.style.setProperty('--poster-tint', release.tint);
   // A game's own art, blurred, fills the poster around its wide key art.
   if (isBoxArt(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.image)}")`);
+  if (isGameCover(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.poster)}")`);
 
   const platforms = getPlatforms(release);
 
