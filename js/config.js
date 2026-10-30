@@ -10,7 +10,7 @@ export const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 export const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 export const ANILIST_URL = "https://graphql.anilist.co";
 // Drop Day's own Cloudflare Worker for official game covers (proxy/igdb-worker.js). Empty = box-art fallback.
-export const IGDB_PROXY_URL = "";
+export const IGDB_PROXY_URL = "https://dropday-igdb.bhengu080104.workers.dev";
 export const YOUTUBE_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
 export const TMDB_REGION = "ZA";
