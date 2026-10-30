@@ -124,6 +124,12 @@ export function getAnime({ start, end, genres, page = 1 } = {}) {
   return getPage("ANIME", filters, { page, keep: hasFullDate });
 }
 
+// Shows airing right now, hottest first (Simkl's "Airing now").
+export function getAiringAnime({ genres, page = 1 } = {}) {
+  const filters = { status: "RELEASING", genre: genres || undefined, sort: ["TRENDING_DESC", "POPULARITY_DESC"] };
+  return getPage("ANIME", filters, { page });
+}
+
 // Ongoing series, hottest first; the date range doesn't apply.
 export function getManga({ genres, page = 1 } = {}) {
   const filters = { status: "RELEASING", genre: genres || undefined, sort: ["TRENDING_DESC", "POPULARITY_DESC"] };

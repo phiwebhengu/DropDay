@@ -59,6 +59,12 @@ export function getMovies({ start, end, genres, page = 1 } = {}) {
   return getPage(url, "movie", page);
 }
 
+// What's showing in South African cinemas right now (#77).
+export function getNowPlaying({ page = 1 } = {}) {
+  const url = buildUrl("/movie/now_playing", { region: TMDB_REGION, page });
+  return getPage(url, "movie", page);
+}
+
 const MIN_SHOW_RESULTS = 12;
 const MAX_SHOW_PAGES = 3;
 

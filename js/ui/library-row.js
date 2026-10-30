@@ -7,19 +7,28 @@ import { escapeHtml } from '../utils/html.js';
 import { getStatusesFor, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import { posterFallback } from './poster.js';
 import { createReview } from './review.js';
+import { STATUS_ICONS } from './status-icons.js';
 
 const STANDARD_EDITION = 'Standard edition';
 
+const PLATFORM_NAMES = {
+  'Xbox Series S/X': 'Xbox',
+  'PlayStation 5': 'PS5',
+  'PlayStation 4': 'PS4',
+  'Nintendo Switch': 'Switch',
+};
+const MAX_PLATFORMS = 3;
+
+// The same details a poster shows (type dot, platforms, date), plus what only the Library knows.
 function getMeta(entry) {
-  const parts = [];
+  const parts = [`<span class="library-row__category">${escapeHtml(getTypeLabel(entry))}</span>`];
   if (entry.type === 'game') {
-    if (entry.platform) parts.push(entry.platform);
-    if (entry.edition && entry.edition !== STANDARD_EDITION) parts.push(entry.edition);
-  } else {
-    parts.push(getTypeLabel(entry));
+    const played = entry.platform ? [entry.platform] : (entry.platforms ?? []).slice(0, MAX_PLATFORMS).map((name) => PLATFORM_NAMES[name] ?? name);
+    if (played.length) parts.push(escapeHtml(played.join(', ')));
+    if (entry.edition && entry.edition !== STANDARD_EDITION) parts.push(escapeHtml(entry.edition));
   }
   // Saved-for-later items care about when they drop; logged ones about when they were logged.
-  if (entry.status === 'want') parts.push(`${entry.remind ? '🔔 ' : ''}${getDateText(entry)}`);
+  if (entry.status === 'want') parts.push(`${entry.remind ? '🔔 ' : ''}${escapeHtml(getDateText(entry))}`);
   parts.push(entry.loggedAt ? `Logged ${formatShortDate(entry.loggedAt)}` : `Added ${formatShortDate(entry.addedAt)}`);
   return parts.join(' · ');
 }
@@ -35,10 +44,10 @@ function renderActions(entry, actionsId) {
   const canRemind = entry.status === 'want' && !isReleased(entry);
   return `
     <div class="library-row__actions" id="${actionsId}" hidden>
-      ${entry.type === 'game' ? `<a class="button button--outline library-row__action" href="game.html?id=${entry.id}&log=1">${entry.loggedAt ? 'Edit log' : 'Log or review'}</a>` : ''}
-      ${canRemind ? `<button class="button button--outline library-row__action" type="button" data-remind>${entry.remind ? 'Turn reminder off' : '🔔 Remind me'}</button>` : ''}
-      ${moves.map((status) => `<button class="button button--outline library-row__action" type="button" data-move="${status}">Move to ${getStatusLabel(entry.type, status)}</button>`).join('')}
-      <button class="button button--outline library-row__action library-row__action--danger" type="button" data-remove>Remove</button>
+      ${entry.type === 'game' ? `<a class="button button--outline library-row__action" href="game.html?id=${entry.id}&log=1">${STATUS_ICONS.log}${entry.loggedAt ? 'Edit log' : 'Log or review'}</a>` : ''}
+      ${canRemind ? `<button class="button button--outline library-row__action" type="button" data-remind>${STATUS_ICONS.remind}${entry.remind ? 'Turn reminder off' : 'Remind me'}</button>` : ''}
+      ${moves.map((status) => `<button class="button button--outline library-row__action" type="button" data-move="${status}">${STATUS_ICONS[status]}Move to ${getStatusLabel(entry.type, status)}</button>`).join('')}
+      <button class="button button--outline library-row__action library-row__action--danger" type="button" data-remove>${STATUS_ICONS.remove}Remove</button>
     </div>
   `;
 }
@@ -63,11 +72,11 @@ export function createLibraryRow(entry, { diary = false } = {}) {
     }
     <div class="library-row__cover">
       ${posterFallback(entry.title, { initial: true })}
-      ${entry.image ? `<img class="library-row__image" src="${escapeHtml(entry.image)}" alt="" loading="lazy" decoding="async">` : ''}
+      ${entry.poster ?? entry.image ? `<img class="library-row__image" src="${escapeHtml(entry.poster ?? entry.image)}" alt="" loading="lazy" decoding="async">` : ''}
     </div>
     <div class="library-row__body">
       <h3 class="library-row__title">${renderTitle(entry)}</h3>
-      <p class="library-row__meta">${escapeHtml(getMeta(entry))}</p>
+      <p class="library-row__meta">${getMeta(entry)}</p>
     </div>
     <button class="library-row__more" type="button" aria-expanded="false" aria-controls="${actionsId}">
       <span aria-hidden="true">⋯</span>

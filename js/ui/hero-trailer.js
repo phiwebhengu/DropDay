@@ -169,6 +169,9 @@ export function setupHeroTrailer({
   let hoverTimer;
   let resetTimer;
   let loadTimer;
+  // The billboard turns the trailer off while it shows another release, and back on when it returns.
+  let enabled = true;
+  let available = true;
 
   const canAutoplay = () =>
     canHover.matches && !reducedMotion.matches && !saveData;
@@ -277,6 +280,7 @@ export function setupHeroTrailer({
     stop();
     player?.element.remove();
     player = null;
+    available = false;
     playButton.hidden = true;
   }
 
@@ -292,7 +296,7 @@ export function setupHeroTrailer({
   }
 
   function startOnHover() {
-    if (playing || stoppedByUser || !canAutoplay()) return;
+    if (!enabled || playing || stoppedByUser || !canAutoplay()) return;
     clearTimeout(hoverTimer);
     hoverTimer = setTimeout(() => play("hover"), HOVER_DELAY);
   }
@@ -318,6 +322,7 @@ export function setupHeroTrailer({
   });
 
   playButton.addEventListener("click", () => {
+    if (!enabled) return;
     if (!playing) {
       play("button");
       return;
@@ -340,4 +345,12 @@ export function setupHeroTrailer({
   playButton.hidden = false;
   renderPlayButton();
   renderSound();
+
+  return {
+    setEnabled(value) {
+      enabled = value;
+      if (!value) stop();
+      playButton.hidden = !value || !available;
+    },
+  };
 }

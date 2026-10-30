@@ -121,76 +121,21 @@ export function tickDigit(element, previous) {
   );
 }
 
-/* M2 · "Dropping this month": on desktop the section pins and vertical scroll drives the strip sideways.
-   Below 1024 px, and with reduced motion, it stays a native swipe row with scroll-snap. */
+/* M2 · Home billboard: moving to the next featured release, the new art fades up out of a slight zoom
+   (1.1 s) while its title, details and buttons rise in on a short stagger. Reduced motion: a plain fade.
+   It replaces the pinned horizontal strip, which testers found trapped their scrolling (#76). */
 
-export function setupPinnedStrip(section, strip, progress) {
-  return withMotion(({ full, desktop }) => {
-    const distance = () => strip.scrollWidth - strip.clientWidth;
-    if (!full || !desktop || distance() <= 0) return undefined;
-
-    strip.classList.add("release-strip--pinned");
-    progress.hidden = false;
-    const header = document.querySelector(".site-header");
-
-    const slide = gsap.to(strip, {
-      x: () => -distance(),
-      ease: "none",
-      scrollTrigger: {
-        trigger: section,
-        start: () => `top ${header.offsetHeight + 24}px`,
-        end: () => `+=${distance()}`,
-        pin: true,
-        scrub: 0.8,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) =>
-          gsap.set(progress.firstElementChild, { scaleX: self.progress }),
-      },
-    });
-
-    // Cards still off to the right sit back slightly and come forward as they slide in.
-    [...strip.children].forEach((card) => {
-      gsap.from(card, {
-        scale: 0.9,
-        opacity: 0.35,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: card,
-          containerAnimation: slide,
-          start: "left right",
-          end: "left 75%",
-          scrub: true,
-        },
-      });
-    });
-
-    // Tabbing to a card that's still off screen scrolls the page to the point where it's in view.
-    const onFocus = (event) => {
-      const card = event.target.closest(".release-strip > li");
-      if (!card) return;
-      const trigger = slide.scrollTrigger;
-      const share = Math.min(
-        1,
-        Math.max(
-          0,
-          (card.offsetLeft - strip.clientWidth / 2 + card.offsetWidth / 2) /
-            distance(),
-        ),
-      );
-      window.scrollTo({
-        top: trigger.start + share * (trigger.end - trigger.start),
-        behavior: "instant",
-      });
-    };
-    strip.addEventListener("focusin", onFocus);
-
-    return () => {
-      strip.classList.remove("release-strip--pinned");
-      progress.hidden = true;
-      strip.removeEventListener("focusin", onFocus);
-    };
-  });
+export function swapBillboard(image, content) {
+  if (!hasMotion) return;
+  const parts = [...content.children].filter((part) => !part.hidden);
+  if (prefersReducedMotion()) {
+    fadeIn([image, ...parts], { duration: 0.3 });
+    return;
+  }
+  gsap
+    .timeline({ defaults: { ease: "power3.out" } })
+    .fromTo(image, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 1.1, ease: "power2.out" })
+    .from(parts, { y: 16, opacity: 0, duration: 0.6, stagger: 0.06, clearProps: "transform,opacity" }, 0.15);
 }
 
 /* M3 · Discover grid: when filters change, releases that stay glide to their new places (Flip),

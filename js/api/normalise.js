@@ -58,6 +58,7 @@ export function normaliseRawgGame(game) {
   return {
     source: "rawg",
     id: game.id,
+    slug: game.slug ?? null,
     type: "game",
     title: game.name || "Untitled",
     date,
@@ -93,6 +94,7 @@ export function normaliseTmdbItem(item, type) {
     date,
     tba: !date,
     image: getTmdbImage(item.poster_path),
+    cover: getTmdbImage(item.backdrop_path, "w1280"),
     season: null,
     platforms: [],
     genres: (item.genre_ids ?? []).map((id) => TMDB_GENRES[id]).filter(Boolean),

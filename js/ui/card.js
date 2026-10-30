@@ -106,17 +106,19 @@ function renderTitle(release) {
   return `<button class="release-card__link" type="button">${title}</button>`;
 }
 
-// Every card is a 2:3 poster. RAWG has no box art, so a game's wide key art sits in the middle of the
-// poster on its own colour, with the title set below it like a box cover.
+// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the wide
+// RAWG key art sits in the middle of the poster on a blurred copy of itself, titled below like a box cover.
+function isBoxArt(release) {
+  return release.type === 'game' && !release.poster && Boolean(release.image);
+}
+
 function renderPoster(release) {
-  const isWide = release.type === 'game';
-  const size = isWide ? 'width="640" height="360"' : 'width="342" height="513"';
-  const image = release.image
-    ? `<img class="release-card__image" src="${escapeHtml(release.image)}" alt="" ${size} loading="lazy" decoding="async">`
+  const boxArt = isBoxArt(release);
+  const src = release.poster ?? release.image;
+  const image = src
+    ? `<img class="release-card__image${boxArt ? ' release-card__image--wide' : ''}" src="${escapeHtml(src)}" alt="" ${boxArt ? 'width="640" height="360"' : 'width="342" height="513"'} loading="lazy" decoding="async">`
     : '';
-  const boxTitle = isWide && release.image
-    ? `<span class="release-card__box-title" aria-hidden="true">${escapeHtml(release.title)}</span>`
-    : '';
+  const boxTitle = boxArt ? `<span class="release-card__box-title" aria-hidden="true">${escapeHtml(release.title)}</span>` : '';
   return `${posterFallback(release.title)}${image}${boxTitle}${renderStub(release)}`;
 }
 
@@ -131,7 +133,7 @@ export function createReleaseCard(release, { entry = null } = {}) {
   card.dataset.flipId = `${release.type}:${release.id}`;
   if (release.tint) card.style.setProperty('--poster-tint', release.tint);
   // A game's own art, blurred, fills the poster around its wide key art.
-  if (release.type === 'game' && release.image) card.style.setProperty('--poster-art', `url("${encodeURI(release.image)}")`);
+  if (isBoxArt(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.image)}")`);
 
   const platforms = getPlatforms(release);
 

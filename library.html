@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700;800&display=swap"
     />
     <script>
       // Sets the theme before anything paints: the saved choice, otherwise the system setting.
@@ -121,47 +121,23 @@
           <h1 class="library__title">My Library</h1>
           <p class="library__intro">Saved on this device. No account needed.</p>
         </header>
-
-        <ul class="library-stats" id="library-stats" role="list" aria-label="Your lists">
-          <li>
-            <button class="library-stats__item library-stats__item--want" type="button" data-stat="want" aria-controls="library-panel">
-              <span class="library-stats__count" data-count="want">0</span>
-              <span class="library-stats__label">Want to</span>
-            </button>
-          </li>
-          <li>
-            <button class="library-stats__item library-stats__item--doing" type="button" data-stat="doing" aria-controls="library-panel">
-              <span class="library-stats__count" data-count="doing">0</span>
-              <span class="library-stats__label">In progress</span>
-            </button>
-          </li>
-          <li>
-            <button class="library-stats__item library-stats__item--done" type="button" data-stat="done" aria-controls="library-panel">
-              <span class="library-stats__count" data-count="done">0</span>
-              <span class="library-stats__label">Done</span>
-            </button>
-          </li>
-          <li>
-            <button class="library-stats__item library-stats__item--dropped" type="button" data-stat="dropped" aria-controls="library-panel">
-              <span class="library-stats__count" data-count="dropped">0</span>
-              <span class="library-stats__label">Dropped</span>
-            </button>
-          </li>
-        </ul>
-
         <div class="library__controls">
           <div class="library-tabs" role="tablist" aria-label="Library lists">
             <button class="library-tab" id="tab-want" type="button" role="tab" data-tab="want" aria-controls="library-panel">
-              Want to <span class="library-tab__count" data-tab-count="want">0</span>
+              <span class="library-tab__count" data-count="want">0</span>
+              <span class="library-tab__label">Want to</span>
             </button>
             <button class="library-tab" id="tab-doing" type="button" role="tab" data-tab="doing" aria-controls="library-panel">
-              In progress <span class="library-tab__count" data-tab-count="doing">0</span>
+              <span class="library-tab__count" data-count="doing">0</span>
+              <span class="library-tab__label">In progress</span>
             </button>
             <button class="library-tab" id="tab-done" type="button" role="tab" data-tab="done" aria-controls="library-panel">
-              Done <span class="library-tab__count" data-tab-count="done">0</span>
+              <span class="library-tab__count" data-count="done">0</span>
+              <span class="library-tab__label">Done</span>
             </button>
             <button class="library-tab" id="tab-dropped" type="button" role="tab" data-tab="dropped" aria-controls="library-panel">
-              Dropped <span class="library-tab__count" data-tab-count="dropped">0</span>
+              <span class="library-tab__count" data-count="dropped">0</span>
+              <span class="library-tab__label">Dropped</span>
             </button>
           </div>
 

@@ -5,9 +5,28 @@
   top: 0;
   z-index: 50;
   padding-top: env(safe-area-inset-top);
-  border-bottom: 1px solid var(--color-border-default);
   background: var(--color-header-bg);
-  backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* No hard divider: a soft edge only where content scrolls under the glass (Apple's scroll edge). */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-default) 20%, var(--color-border-default) 80%, transparent);
+}
+
+/* Home's billboard runs under the header, so there it starts clear and frosts once the page scrolls. */
+.site-header--over-art:not(.is-scrolled) {
+  background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
+  backdrop-filter: none;
+  color: #fff;
+}
+
+.site-header--over-art:not(.is-scrolled)::after {
+  display: none;
 }
 
 .site-header__inner {
@@ -81,35 +100,41 @@
 
 .site-nav__list {
   display: flex;
-  gap: var(--space-6);
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  backdrop-filter: blur(20px) saturate(180%);
 }
 
 .site-nav__link {
   position: relative;
   display: inline-flex;
   align-items: center;
-  min-height: var(--touch-target);
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
   color: var(--color-text-secondary);
   font: var(--text-label-m);
   text-decoration: none;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
-.site-nav__link:hover,
-.site-nav__link[aria-current="page"] {
+.site-nav__link:hover {
   color: var(--color-text-primary);
 }
 
-.site-nav__link[aria-current="page"]::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 6px;
-  width: 20px;
-  height: 3px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-highlight);
-  transform: translateX(-50%);
+/* The current page is the raised pill; its shape marks it, not just colour. */
+.site-nav__link[aria-current="page"] {
+  background: var(--color-action-strong);
+  color: var(--color-action-on-strong);
+}
+
+.site-header--over-art:not(.is-scrolled) .site-nav__link:not([aria-current="page"]) {
+  color: rgb(255 255 255 / 0.82);
 }
 
 @media (min-width: 1024px) {
@@ -251,7 +276,8 @@
   width: auto;
 }
 
-/* Buttons */
+/* Buttons: pills, like Apple TV. Strong (white on dark, black on light) is the one main action;
+   primary (amber) is the brand action; glass sits on artwork; outline is the quiet option. */
 
 .button {
   display: inline-flex;
@@ -261,12 +287,26 @@
   min-height: var(--touch-target);
   padding: 0 var(--space-6);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font: var(--text-label-m);
+  border-radius: var(--radius-pill);
+  font: var(--font-weight-semibold) 0.9375rem / 1.2 var(--font-family);
   text-decoration: none;
   transition:
     background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button--strong {
+  background: var(--color-action-strong);
+  color: var(--color-action-on-strong);
+}
+
+.button--strong:hover {
+  background: color-mix(in srgb, var(--color-action-strong) 86%, transparent);
 }
 
 .button--primary {
@@ -278,14 +318,39 @@
   background: var(--color-action-primary-hover);
 }
 
+.button--glass {
+  border-color: var(--color-glass-border);
+  background: var(--color-glass);
+  color: #fff;
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.button--glass:hover {
+  background: rgb(60 60 66 / 0.72);
+}
+
 .button--outline {
   border-color: var(--color-border-strong);
   background: transparent;
 }
 
 .button--outline:hover {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-tint);
+  border-color: var(--color-text-secondary);
+  background: var(--color-bg-raised);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .button--glass,
+  .site-nav__list {
+    background: var(--ink-850);
+    backdrop-filter: none;
+  }
 }
 
 .button:disabled {
@@ -453,7 +518,7 @@
   filter: blur(18px) saturate(1.3) brightness(0.55);
 }
 
-.release-card--game .release-card__image {
+.release-card__image--wide {
   position: absolute;
   inset: 50% 0 auto;
   height: auto;
@@ -1218,14 +1283,17 @@ html:has(.quick-view[open]) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: var(--touch-target);
+  min-height: 40px;
   max-width: 100%;
   padding: 0 var(--space-4) 0 var(--space-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  color: #fff;
   font: var(--text-label-m);
   text-decoration: none;
-  transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(20px) saturate(180%);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .back-link span {
@@ -1235,8 +1303,7 @@ html:has(.quick-view[open]) {
 }
 
 .back-link:hover {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-tint);
+  background: rgb(60 60 66 / 0.72);
 }
 
 /* Text button: low-emphasis actions like Share and Read more */
@@ -1274,44 +1341,50 @@ html:has(.quick-view[open]) {
   color: transparent;
 }
 
-/* Status buttons (Want to / In progress / Done / Dropped) */
+/* Status buttons (Want to / In progress / Done / Dropped): glass pills over the detail art; the chosen
+   one turns into the solid white pill, so its shape and fill mark it, not just colour. */
 
 .status-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
 .status-button {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: var(--space-1);
-  min-width: 0;
-  min-height: 68px;
-  padding: var(--space-2) var(--space-1);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4) 0 var(--space-3);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  color: #fff;
   font: var(--text-label-m);
+  backdrop-filter: blur(20px) saturate(180%);
   transition:
     background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
 
+.status-button svg {
+  width: 18px;
+  height: 18px;
+}
+
 .status-button:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
+  background: rgb(60 60 66 / 0.72);
 }
 
 html:not(.has-motion) .status-button:active:not(:disabled) {
   transform: scale(0.96);
 }
 
-.status-button[aria-checked="true"] {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
+.status-button[aria-checked="true"],
+.status-button[aria-checked="true"]:hover {
+  border-color: #fff;
+  background: #fff;
+  color: var(--ink-950);
 }
 
 .status-button:disabled {
@@ -1319,9 +1392,11 @@ html:not(.has-motion) .status-button:active:not(:disabled) {
   cursor: progress;
 }
 
-@media (min-width: 768px) {
-  .status-buttons {
-    grid-template-columns: repeat(4, 84px);
+@media (prefers-reduced-transparency: reduce) {
+  .status-button,
+  .back-link {
+    background: var(--ink-850);
+    backdrop-filter: none;
   }
 }
 
@@ -1588,27 +1663,29 @@ html:has(.log-modal[open]) {
   }
 }
 
-/* Library tabs: the selected list is a filled pill, the rest read as links (Figma) */
+/* Library tabs: the four lists as big numbers over their names, like a Letterboxd profile's stats.
+   The bar under the chosen one marks it, so it doesn't rely on colour alone. */
 
 .library-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  border-bottom: 1px solid var(--color-border-default);
+  gap: var(--space-2) var(--space-8);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .library-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+  display: grid;
+  justify-items: start;
+  gap: 2px;
   min-height: var(--touch-target);
   margin-bottom: -1px;
-  padding: 0 var(--space-1);
+  padding: 0 0 var(--space-3);
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   background: none;
   color: var(--color-text-secondary);
-  font: var(--text-label-m);
+  text-align: start;
+  white-space: nowrap;
   transition:
     color var(--duration-fast) ease,
     border-color var(--duration-fast) ease;
@@ -1618,15 +1695,22 @@ html:has(.log-modal[open]) {
   color: var(--color-text-primary);
 }
 
-/* The bar under the tab marks the selection, so it doesn't rely on colour alone. */
 .library-tab[aria-selected="true"] {
   border-bottom-color: var(--color-action-primary);
   color: var(--color-text-primary);
 }
 
 .library-tab__count {
+  font: var(--font-weight-heavy) clamp(2rem, 1.7rem + 1.4vw, 2.75rem) / 1 var(--font-display);
   font-variant-numeric: tabular-nums;
-  opacity: 0.85;
+}
+
+.library-tab__label {
+  font: var(--text-label-m);
+}
+
+.library-tab[aria-selected="false"] .library-tab__count {
+  opacity: 0.7;
 }
 
 /* View toggle (List / Grid): the same segmented control as Discover's tabs */
@@ -1776,6 +1860,36 @@ html:has(.log-modal[open]) {
   border-radius: inherit;
 }
 
+.library-row__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.library-row__category::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--row-accent, var(--color-category-games));
+}
+
+.library-row--movie {
+  --row-accent: var(--color-category-movies);
+}
+
+.library-row--tv {
+  --row-accent: var(--color-category-tv);
+}
+
+.library-row--anime {
+  --row-accent: var(--color-category-anime);
+}
+
+.library-row--manga {
+  --row-accent: var(--color-category-manga);
+}
+
 .library-row__meta {
   color: var(--color-text-secondary);
   font: var(--text-body-s);
@@ -1834,6 +1948,7 @@ html:has(.log-modal[open]) {
 }
 
 .library-row__action {
+  gap: var(--space-2);
   min-height: 40px;
   padding-inline: var(--space-4);
   font-size: 0.875rem;
@@ -1888,7 +2003,7 @@ html:has(.log-modal[open]) {
 }
 
 .countdown__value {
-  font: var(--text-h1);
+  font: var(--font-weight-heavy) clamp(2rem, 1.6rem + 1.8vw, 2.75rem) / 1 var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
