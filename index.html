@@ -36,7 +36,7 @@
   <body data-page="home">
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <header class="site-header site-header--over-art">
+    <header class="site-header">
       <div class="site-header__inner container">
         <a class="site-header__logo" href="index.html">
           <span class="site-header__logo-dot" aria-hidden="true"></span>
@@ -152,18 +152,21 @@
                 Watch trailer
               </button>
               <button class="button button--glass" id="hero-save" type="button" disabled>🔔 Remind me</button>
-              <a class="button button--glass" id="hero-details" href="discover.html" hidden>Details</a>
+              <a class="button button--glass" id="hero-details" href="discover.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" stroke-linecap="round" /></svg>
+                More info
+              </a>
             </div>
           </div>
           <div class="billboard__controls" id="hero-controls" hidden>
             <div class="billboard__dots" id="hero-dots" role="group" aria-label="Choose a featured release"></div>
-            <button class="billboard__pause" id="hero-pause" type="button" aria-pressed="false" aria-label="Pause the featured releases">
+            <button class="hero__sound billboard__button" id="hero-sound" type="button" aria-pressed="false" aria-label="Trailer sound" hidden></button>
+            <button class="billboard__pause billboard__button" id="hero-pause" type="button" aria-pressed="false" aria-label="Pause the featured releases">
               <svg class="billboard__pause-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
               <svg class="billboard__play-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
             </button>
           </div>
         </div>
-        <button class="hero__sound" id="hero-sound" type="button" aria-pressed="false" aria-label="Trailer sound" hidden></button>
       </section>
 
       <div class="home container">

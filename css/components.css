@@ -508,40 +508,22 @@
   opacity: 1;
 }
 
-/* Games: the wide key art across the middle on a blurred copy of itself, the title below like a box cover */
-.release-card__poster::before {
-  content: "";
-  position: absolute;
-  inset: -12%;
-  background: var(--poster-art, none) center / cover;
-  filter: blur(18px) saturate(1.3) brightness(0.55);
-}
-
-.release-card__image--whole {
-  position: relative;
-  object-fit: contain;
-}
-
+/* Games with no official cover: the key art fills the poster and the title sits on a dark fade at the
+   bottom, like a streaming tile. */
 .release-card__image--wide {
-  position: absolute;
-  inset: 50% 0 auto;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  translate: 0 -50%;
+  object-position: 50% 30%;
 }
 
 .release-card__box-title {
   position: absolute;
   inset: auto 0 0;
   display: -webkit-box;
-  height: calc(50% - 28cqi);
-  padding: 0 7cqi 7cqi;
+  padding: 30cqi 7cqi 7cqi;
   overflow: hidden;
-  align-content: end;
   /* Always on darkened art, so it stays light in both themes. */
+  background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.55) 55%, transparent);
   color: #fff;
   font: var(--font-weight-heavy) clamp(1rem, 11cqi, 1.75rem) / 0.95 var(--font-display);
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
   text-transform: uppercase;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
