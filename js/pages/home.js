@@ -8,7 +8,8 @@ import { syncCards, toggleSave } from '../ui/library-actions.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
 import '../ui/immersive-header.js';
-import { setupHeroTrailer } from '../ui/hero-trailer.js';
+import { canPreview, createBillboardPreview } from '../ui/hero-trailer.js';
+import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { createStateMessage } from '../ui/states.js';
 import { playHeroIntro, swapBillboard, tickDigit } from '../motion.js';
 import { getMonthRange, toMonthKey } from '../utils/dates.js';
@@ -54,7 +55,6 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let slides = [];
 let current = -1;
 let featured = null;
-let trailer = null;
 let countdownTimer;
 let countdownStarted = false;
 let slideTimer;
@@ -170,10 +170,7 @@ function renderDots() {
       dot.className = 'billboard__dot';
       dot.type = 'button';
       dot.setAttribute('aria-label', `Show ${release.title}`);
-      dot.addEventListener('click', () => {
-        showSlide(index);
-        restartTimer();
-      });
+      dot.addEventListener('click', () => showSlide(index));
       return dot;
     }),
   );
@@ -206,47 +203,75 @@ async function showSlide(index) {
 
   previous?.image.classList.remove('is-active');
   image.classList.add('is-active');
-  trailer?.setEnabled(index === 0);
   [...heroDots.children].forEach((dot, dotIndex) => {
     dot.setAttribute('aria-current', String(dotIndex === index));
   });
 
   if (first) playHeroIntro(hero);
   else swapBillboard(image, heroSlide);
+  startSlideTrailer(index);
 }
 
-// Auto-advance waits while someone is reading or watching: pointer or focus inside, a trailer playing,
-// the tab hidden, or the pause button pressed (which reduced motion starts on).
-function advance() {
-  const busy = holding || trailer?.isActive();
-  if (!paused && !busy && !document.hidden && slides.length > 1) showSlide((current + 1) % slides.length);
+/* Trailers: every slide plays its own preview, then the billboard moves on (Netflix, Apple TV) */
+
+const trailers = new Map();
+
+// Games: YouTube finds the official trailer (RAWG only has clips for games on Steam). Films and shows
+// come from TMDB, anime from AniList. Each is looked up once per visit.
+function findTrailer(release) {
+  const key = `${release.source}:${release.type}:${release.id}`;
+  if (!trailers.has(key)) {
+    const lookup = {
+      game: async () => (await youtube.findTrailer(release.title).catch(() => null)) ?? rawg.getTrailer(release.id),
+      movie: async () => (await tmdb.getMovie(release.id)).trailerKey,
+      tv: async () => (await tmdb.getShow(release.id, 'tv')).trailerKey,
+      anime: async () => (await anilist.getMedia(release.id))?.trailerKey,
+    }[release.type];
+    const found = (lookup?.() ?? Promise.resolve(null))
+      .then((result) => (typeof result === 'string' ? { youtubeId: result } : result ?? null))
+      .catch(() => null);
+    trailers.set(key, found);
+  }
+  return trailers.get(key);
 }
 
-function restartTimer() {
-  clearInterval(slideTimer);
-  slideTimer = setInterval(advance, SLIDE_TIME);
+const preview = createBillboardPreview({
+  hero,
+  media: heroArt,
+  soundButton: heroSound,
+  onFinish: () => queueAdvance(0),
+});
+
+function nextIndex() {
+  return (current + 1) % slides.length;
+}
+
+// Moves on after delay, unless paused, hidden or someone is reading the billboard (pointer or focus in it).
+function queueAdvance(delay = SLIDE_TIME) {
+  clearTimeout(slideTimer);
+  if (paused || slides.length < 2) return;
+  slideTimer = setTimeout(() => {
+    if (document.hidden || holding) queueAdvance(2000);
+    else showSlide(nextIndex());
+  }, delay);
+}
+
+// A slide with a trailer moves on when its preview ends; one without, after SLIDE_TIME.
+async function startSlideTrailer(index) {
+  clearTimeout(slideTimer);
+  preview.stop();
+  heroTrailer.hidden = true;
+  const trailer = await findTrailer(slides[index].release);
+  if (index !== current) return;
+  slides[index].trailer = trailer;
+  heroTrailer.hidden = !trailer;
+  if (trailer && !paused && !document.hidden && canPreview()) preview.play(trailer, slides[index].release.title);
+  else queueAdvance();
 }
 
 function renderPause() {
   heroPause.setAttribute('aria-pressed', String(paused));
   heroPause.setAttribute('aria-label', paused ? 'Play the featured releases' : 'Pause the featured releases');
-}
-
-// YouTube finds the official trailer for almost any game; RAWG only has clips for games on Steam.
-async function findTrailer(game) {
-  const fromYouTube = await youtube.findTrailer(game.title).catch(() => null);
-  return fromYouTube ?? rawg.getTrailer(game.id);
-}
-
-// The trailer is extra: it loads after the billboard is on screen, and only for the featured game.
-function loadTrailer(game) {
-  findTrailer(game)
-    .then((found) => {
-      if (!found) return;
-      trailer = setupHeroTrailer({ hero, media: heroArt, playButton: heroTrailer, soundButton: heroSound, trailer: found, title: game.title });
-      trailer.setEnabled(current === 0);
-    })
-    .catch(() => {});
 }
 
 function renderHeroMessage(message) {
@@ -294,10 +319,8 @@ function loadBillboard(sources) {
 
     createArt();
     renderDots();
-    showSlide(0);
     renderPause();
-    restartTimer();
-    if (slides[0].release.type === 'game') loadTrailer(slides[0].release);
+    showSlide(0);
   });
 }
 
@@ -410,10 +433,29 @@ hero.addEventListener('focusout', (event) => {
   if (!hero.contains(event.relatedTarget)) holding = false;
 });
 
+// Pausing stops the preview and holds the slide; playing again picks up where it is.
 heroPause.addEventListener('click', () => {
   paused = !paused;
   renderPause();
-  restartTimer();
+  if (paused) {
+    clearTimeout(slideTimer);
+    preview.stop();
+  } else {
+    startSlideTrailer(current);
+  }
+});
+
+heroTrailer.addEventListener('click', () => {
+  const { release, trailer } = slides[current];
+  preview.stop();
+  queueAdvance();
+  openTrailerDialog({ title: release.title, trailer }, heroTrailer);
+});
+
+// A hidden tab stops the preview; coming back starts this slide's again.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) preview.stop();
+  else if (!paused && slides.length) startSlideTrailer(current);
 });
 
 heroSave.addEventListener('click', () => toggleSave(featured));

@@ -1,22 +1,26 @@
-import { showToast } from "./toast.js";
+// The billboard's background preview, like Netflix and Apple TV: each featured release plays its own
+// trailer by itself, muted, behind the art, with no controls showing. No hover (testers found it
+// confusing). The full player with controls is the "Watch trailer" dialog (trailer-dialog.js).
 
-const HOVER_DELAY = 500;
-const FADE_OUT = 500;
 const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com";
 const YOUTUBE_ENDED = 0;
 const YOUTUBE_PLAYING = 1;
 const YOUTUBE_PAUSED = 2;
 const YOUTUBE_BUFFERING = 3;
-// The trailer loops (or ends) this close to the finish, so YouTube's end screen never shows.
+// The preview ends this close to the finish, so YouTube's end screen never shows.
 const END_MARGIN = 1.5;
-// On the featured slide, the preview starts on its own after this beat, like Apple TV.
-const AUTOPLAY_DELAY = 2500;
+// The art shows first; the preview starts after this beat.
+const START_DELAY = 1500;
+// A full trailer runs two or three minutes; the billboard moves on after this much.
+const PREVIEW_LENGTH = 40000;
+// A few seconds into a preview, the text steps back so the video can be seen (tester 6).
+const WATCH_DELAY = 3500;
 // Sound rises over this long instead of starting at full volume (testers found the start loud).
 const SOUND_FADE_IN = 1200;
 const SOUND_FADE_STEPS = 12;
 // The player ignores messages until its own script has started, so it's asked again until it answers.
 const HANDSHAKE_INTERVAL = 250;
-// If no frames show by then, the trailer isn't coming (blocked, removed or a dead connection).
+// If no frames show by then, this preview isn't coming (blocked, removed or a dead connection).
 const LOAD_TIMEOUT = 10000;
 
 const SOUND_ICONS = {
@@ -104,8 +108,7 @@ function createYouTubePlayer(
     if (state === YOUTUBE_PLAYING) onPlaying();
     // Paused or buffering, YouTube draws its own icons over the video, so the still art covers it.
     if (state === YOUTUBE_PAUSED || state === YOUTUBE_BUFFERING) onStall();
-    // A fallback if a position report was missed. Looping is done here: YouTube's own loop needs a
-    // playlist, which adds skip buttons to the video.
+    // A fallback in case the position report just before the end was missed.
     if (state === YOUTUBE_ENDED) onNearEnd();
   });
 
@@ -114,16 +117,6 @@ function createYouTubePlayer(
     play: () => {
       send("playVideo");
       return Promise.resolve();
-    },
-    rewind: () => {
-      send("pauseVideo");
-      send("seekTo", [0, true]);
-    },
-    // Seeking doesn't always change the reported state, so the next "playing" report counts as new.
-    restart: () => {
-      lastState = null;
-      send("seekTo", [0, true]);
-      send("playVideo");
     },
     get muted() {
       return muted;
@@ -141,7 +134,6 @@ function createVideoPlayer({ src }, { muted, onPlaying, onStall, onNearEnd, onEr
   video.className = "hero__video";
   video.src = src;
   video.muted = muted;
-  video.loop = true;
   video.playsInline = true;
   video.preload = "none";
   video.setAttribute("aria-hidden", "true");
@@ -158,12 +150,6 @@ function createVideoPlayer({ src }, { muted, onPlaying, onStall, onNearEnd, onEr
   return {
     element: video,
     play: () => video.play(),
-    rewind: () => {
-      video.pause();
-      video.currentTime = 0;
-    },
-    // A file loops by itself without a seam, so there's nothing to do.
-    restart: () => {},
     get muted() {
       return video.muted;
     },
@@ -176,63 +162,39 @@ function createVideoPlayer({ src }, { muted, onPlaying, onStall, onNearEnd, onEr
   };
 }
 
-// Hovering the billboard plays the trailer with sound, like Netflix; leaving fades back to the still art.
-// Phones, reduced motion and data saver get the Play trailer button only, so nothing starts on its own.
-export function setupHeroTrailer({
-  hero,
-  media,
-  playButton,
-  soundButton,
-  trailer,
-  title,
-}) {
-  const canHover = matchMedia("(hover: hover) and (pointer: fine)");
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  const saveData = navigator.connection?.saveData === true;
+// Reduced motion and data saver get no preview; the art stays and "Watch trailer" is still there.
+export function canPreview() {
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return !reducedMotion && navigator.connection?.saveData !== true;
+}
 
+export function createBillboardPreview({ hero, media, soundButton, onFinish }) {
   let player = null;
   let playing = false;
   let loading = false;
+  let soundWanted = false;
+  let timers = [];
   let fadeTimer;
-  let startedBy = null;
-  let stoppedByUser = false;
-  let soundWanted = true;
-  let mutedOnReveal = true;
-  let hoverTimer;
-  let resetTimer;
-  let loadTimer;
-  // The billboard turns the trailer off while it shows another release, and back on when it returns.
-  let enabled = true;
-  let available = true;
-  let autoTimer;
-  // The preview plays once by itself per visit to the slide; returning to the slide plays it again.
-  let autoplayed = false;
 
-  const canAutoplay = () =>
-    canHover.matches && !reducedMotion.matches && !saveData;
-  // Browsers only allow sound after a click or key press on the page; a hover alone doesn't count.
+  // Browsers only allow sound after a click or key press on the page.
   const canPlaySound = () => navigator.userActivation?.hasBeenActive ?? true;
 
-  function renderSound() {
-    const soundOn = Boolean(player && !player.muted);
-    soundButton.setAttribute("aria-pressed", String(soundOn));
-    soundButton.setAttribute(
-      "aria-label",
-      soundOn ? "Mute trailer" : "Unmute trailer",
-    );
-    soundButton.innerHTML = soundOn ? SOUND_ICONS.on : SOUND_ICONS.off;
+  function later(callback, delay) {
+    timers.push(setTimeout(callback, delay));
   }
 
-  // The label follows what's actually on screen: testers saw "Stop trailer" while nothing was showing yet.
-  function renderPlayButton() {
-    const label = loading ? "Loading trailer…" : playing ? "Stop trailer" : "Play trailer";
-    playButton.textContent = label;
-    playButton.setAttribute(
-      "aria-label",
-      loading ? `Loading the ${title} trailer, press to cancel` : `${playing ? "Stop" : "Play"} the ${title} trailer`,
-    );
-    playButton.toggleAttribute("aria-busy", loading);
-    hero.classList.toggle("hero--loading", loading);
+  function clearTimers() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    clearInterval(fadeTimer);
+  }
+
+  function renderSound() {
+    const soundOn = Boolean(player && playing && !player.muted);
+    soundButton.hidden = !playing || loading;
+    soundButton.setAttribute("aria-pressed", String(soundOn));
+    soundButton.setAttribute("aria-label", soundOn ? "Mute the preview" : "Turn on the preview's sound");
+    soundButton.innerHTML = soundOn ? SOUND_ICONS.on : SOUND_ICONS.off;
   }
 
   function fadeInSound() {
@@ -248,189 +210,92 @@ export function setupHeroTrailer({
   }
 
   // The art only gives way once real frames are showing, so a slow connection never flashes black.
-  // Sound and its button arrive with the picture, so nothing plays behind the art.
   function reveal() {
-    if (!playing || !loading) return;
-    clearTimeout(loadTimer);
     loading = false;
+    hero.classList.remove("hero--loading");
     hero.classList.add("hero--playing");
-    if (mutedOnReveal) player.muted = true;
-    else fadeInSound();
-    soundButton.hidden = false;
-    renderPlayButton();
+    if (soundWanted && canPlaySound()) fadeInSound();
+    later(() => hero.classList.add("hero--watching"), WATCH_DELAY);
+    later(finish, PREVIEW_LENGTH);
     renderSound();
   }
 
-  // After a pause or buffer, the video comes back; the first time, it's the reveal.
   function onPlaying() {
+    if (!playing) return;
     if (loading) reveal();
-    else if (playing) hero.classList.add("hero--playing");
+    else hero.classList.add("hero--playing");
   }
 
+  // Paused or buffering, YouTube draws its own icons over the video, so the still art covers it.
   function onStall() {
     if (playing && !loading) hero.classList.remove("hero--playing");
   }
 
-  // The autoplay preview plays once and fades back to the art; a trailer someone asked for loops.
-  function onNearEnd() {
-    if (!playing || loading) return;
-    if (startedBy === "auto") {
-      autoplayed = true;
-      stop();
-      return;
-    }
-    if (trailer.youtubeId) {
-      hero.classList.remove("hero--playing");
-      player.restart();
-    }
+  function finish() {
+    if (!playing) return;
+    stop();
+    onFinish();
   }
 
-  function scheduleAutoplay() {
-    clearTimeout(autoTimer);
-    if (!enabled || !available || playing || autoplayed || stoppedByUser || !canAutoplay()) return;
-    autoTimer = setTimeout(() => {
-      if (enabled && !playing) play("auto");
-    }, AUTOPLAY_DELAY);
+  function stop() {
+    clearTimers();
+    playing = false;
+    loading = false;
+    hero.classList.remove("hero--playing", "hero--loading", "hero--watching");
+    const old = player;
+    player = null;
+    if (old) {
+      // Silenced straight away, then removed once the fade back to the art is done.
+      old.muted = true;
+      setTimeout(() => old.element.remove(), 600);
+    }
+    renderSound();
   }
 
-  function play(source) {
-    clearTimeout(autoTimer);
-    clearTimeout(hoverTimer);
-    clearTimeout(resetTimer);
+  // Starts a release's preview after a short beat. Anything already playing stops first.
+  function play(trailer, title) {
+    stop();
+    if (!trailer || !canPreview()) return;
     playing = true;
     loading = true;
-    startedBy = source;
-    renderPlayButton();
-    clearTimeout(loadTimer);
-    loadTimer = setTimeout(giveUp, LOAD_TIMEOUT);
-    mutedOnReveal = !(soundWanted && canPlaySound());
-    if (player) {
-      // Silent until the picture shows (see reveal).
-      player.muted = true;
-      player.play().catch(() => stop());
-    } else {
-      // A new YouTube embed starts by itself once it loads; a video file needs telling.
-      const create = trailer.youtubeId
-        ? createYouTubePlayer
-        : createVideoPlayer;
+    later(() => {
+      if (!playing) return;
+      hero.classList.add("hero--loading");
+      const create = trailer.youtubeId ? createYouTubePlayer : createVideoPlayer;
       player = create(trailer, {
         title,
         muted: true,
         onPlaying,
         onStall,
-        onNearEnd,
-        onError: fail,
+        onNearEnd: finish,
+        onError: () => {
+          stop();
+          onFinish();
+        },
       });
       media.append(player.element);
       if (!trailer.youtubeId) player.play().catch(() => stop());
-    }
-    renderSound();
+      // No frames by now: give up quietly and let the billboard move on.
+      later(() => {
+        if (loading) finish();
+      }, LOAD_TIMEOUT);
+    }, START_DELAY);
   }
-
-  function stop() {
-    clearTimeout(hoverTimer);
-    clearTimeout(loadTimer);
-    clearInterval(fadeTimer);
-    if (!playing) return;
-    playing = false;
-    loading = false;
-    startedBy = null;
-    hero.classList.remove("hero--playing");
-    soundButton.hidden = true;
-    renderPlayButton();
-    if (!player) return;
-    // Silenced straight away so audio doesn't trail behind the fade. The next play goes back to the user's choice.
-    player.muted = true;
-    renderSound();
-    resetTimer = setTimeout(() => player?.rewind(), FADE_OUT);
-  }
-
-  // A broken trailer just leaves the still art, as if there were none.
-  function remove() {
-    stop();
-    player?.element.remove();
-    player = null;
-    available = false;
-    playButton.hidden = true;
-  }
-
-  // Only a press of the button gets told; a hover preview fails quietly.
-  function fail() {
-    const pressed = startedBy === "button";
-    remove();
-    if (pressed) showToast({ type: "error", message: "This trailer couldn’t load." });
-  }
-
-  function giveUp() {
-    if (loading) fail();
-  }
-
-  function startOnHover() {
-    if (!enabled || playing || stoppedByUser || !canAutoplay()) return;
-    clearTimeout(hoverTimer);
-    hoverTimer = setTimeout(() => play("hover"), HOVER_DELAY);
-  }
-
-  // Pressing Stop holds until the pointer or focus leaves, so the preview doesn't restart under the user.
-  function stopOnLeave() {
-    clearTimeout(hoverTimer);
-    stoppedByUser = false;
-    if (startedBy === "hover") stop();
-  }
-
-  hero.addEventListener("pointerenter", (event) => {
-    if (event.pointerType === "mouse") startOnHover();
-  });
-  hero.addEventListener("pointerleave", stopOnLeave);
-
-  // Keyboard users get the same preview when they tab into the billboard.
-  hero.addEventListener("focusin", (event) => {
-    if (event.target.matches(":focus-visible")) startOnHover();
-  });
-  hero.addEventListener("focusout", (event) => {
-    if (!hero.contains(event.relatedTarget)) stopOnLeave();
-  });
-
-  playButton.addEventListener("click", () => {
-    if (!enabled) return;
-    if (!playing) {
-      play("button");
-      return;
-    }
-    stoppedByUser = true;
-    stop();
-  });
 
   soundButton.addEventListener("click", () => {
     if (!player) return;
     soundWanted = player.muted;
-    player.muted = !soundWanted;
+    if (soundWanted) fadeInSound();
+    else player.muted = true;
     renderSound();
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stop();
-  });
-
-  playButton.hidden = false;
-  renderPlayButton();
   renderSound();
 
-  scheduleAutoplay();
-
   return {
-    setEnabled(value) {
-      enabled = value;
-      if (value) {
-        scheduleAutoplay();
-      } else {
-        clearTimeout(autoTimer);
-        autoplayed = false;
-        stop();
-      }
-      playButton.hidden = !value || !available;
-    },
-    // Playing or about to (paused for a moment to buffer counts too), so the billboard holds still.
+    play,
+    stop,
+    // Playing or about to, so the billboard holds still.
     isActive: () => playing,
   };
 }

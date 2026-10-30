@@ -630,6 +630,44 @@
   color: transparent;
 }
 
+/* While a preview plays, the shade lightens and the text steps back so the video can be seen,
+   like Netflix: details and countdown fold away and the title shrinks towards its corner. */
+.hero__media::after {
+  transition: opacity 800ms var(--ease-out);
+}
+
+.hero--watching .hero__media::after {
+  opacity: 0.65;
+}
+
+.billboard__eyebrow,
+.hero__meta,
+.billboard .countdown {
+  max-height: 8rem;
+  transition:
+    opacity 500ms var(--ease-out),
+    max-height 700ms var(--ease-out),
+    margin 700ms var(--ease-out);
+}
+
+.hero--watching .billboard__eyebrow,
+.hero--watching .hero__meta,
+.hero--watching .billboard .countdown {
+  max-height: 0;
+  margin-block: calc(var(--space-4) * -0.5);
+  overflow: hidden;
+  opacity: 0;
+}
+
+.hero__title {
+  transform-origin: left bottom;
+  transition: scale 700ms var(--ease-out);
+}
+
+.hero--watching .hero__title {
+  scale: 0.7;
+}
+
 /* All slides' art is stacked; the active one fades in over the others. */
 .hero__image {
   opacity: 0;

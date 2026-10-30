@@ -2049,14 +2049,88 @@ html:has(.log-modal[open]) {
   margin-left: 0;
 }
 
+/* Trailer player: the full trailer, uncropped, with its own controls, over a dark scrim */
+
+.trailer-dialog {
+  width: min(100% - 2 * var(--space-4), 1100px);
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--grey-50);
+  animation: modal-in var(--duration-base) var(--ease-out);
+}
+
+.trailer-dialog::backdrop {
+  background: rgb(0 0 0 / 0.85);
+  backdrop-filter: blur(8px);
+}
+
+html:has(.trailer-dialog[open]) {
+  overflow: hidden;
+}
+
+.trailer-dialog__panel {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.trailer-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.trailer-dialog__title {
+  overflow: hidden;
+  font: var(--text-h2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailer-dialog__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 50%;
+  background: rgb(40 40 44 / 0.8);
+  color: inherit;
+}
+
+.trailer-dialog__close:hover {
+  background: rgb(60 60 66 / 0.9);
+}
+
+.trailer-dialog__frame {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: #000;
+  box-shadow: var(--shadow-float);
+}
+
+.trailer-dialog__frame > * {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* With GSAP loaded, the dialogs' entrances and exits are animated in JS (M5); the keyframes above stay as the fallback. */
 .has-motion .log-modal[open],
-.has-motion .quick-view[open] {
+.has-motion .quick-view[open],
+.has-motion .trailer-dialog[open] {
   animation: none;
 }
 
 .log-modal,
-.quick-view {
+.quick-view,
+.trailer-dialog {
   --dialog-x: 0%;
   --dialog-y: 0%;
   --dialog-scale: 1;
