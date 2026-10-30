@@ -5,6 +5,12 @@ const FADE_OUT = 500;
 const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com";
 const YOUTUBE_ENDED = 0;
 const YOUTUBE_PLAYING = 1;
+const YOUTUBE_PAUSED = 2;
+const YOUTUBE_BUFFERING = 3;
+// The trailer loops (or ends) this close to the finish, so YouTube's end screen never shows.
+const END_MARGIN = 1.5;
+// On the featured slide, the preview starts on its own after this beat, like Apple TV.
+const AUTOPLAY_DELAY = 2500;
 // Sound rises over this long instead of starting at full volume (testers found the start loud).
 const SOUND_FADE_IN = 1200;
 const SOUND_FADE_STEPS = 12;
@@ -23,7 +29,7 @@ const SOUND_ICONS = {
 // YouTube is controlled through postMessage (the IFrame API protocol), so no extra script is loaded.
 function createYouTubePlayer(
   { youtubeId },
-  { title, muted: startMuted, onPlaying, onError },
+  { title, muted: startMuted, onPlaying, onStall, onNearEnd, onError },
 ) {
   const frame = document.createElement("iframe");
   const params = new URLSearchParams({
@@ -46,6 +52,7 @@ function createYouTubePlayer(
 
   let muted = startMuted;
   let lastState = null;
+  let nearEnd = false;
   const send = (func, args = []) => {
     frame.contentWindow?.postMessage(
       JSON.stringify({ event: "command", func, args }),
@@ -80,16 +87,26 @@ function createYouTubePlayer(
       return;
     }
     if (data.event === "onError") onError();
+
+    // The player reports its position a few times a second; just before the end, the hero decides
+    // whether to loop or finish, so YouTube's end screen and suggestions never appear.
+    const { currentTime, duration } = data.info ?? {};
+    if (duration > END_MARGIN * 2 && currentTime !== undefined) {
+      const ending = duration - currentTime < END_MARGIN;
+      if (ending && !nearEnd) onNearEnd();
+      nearEnd = ending;
+    }
+
     const state =
       data.event === "onStateChange" ? data.info : data.info?.playerState;
     if (state === undefined || state === lastState) return;
     lastState = state;
     if (state === YOUTUBE_PLAYING) onPlaying();
-    // Looping is done here: YouTube's own loop needs a playlist, which adds skip buttons to the video.
-    if (state === YOUTUBE_ENDED) {
-      send("seekTo", [0, true]);
-      send("playVideo");
-    }
+    // Paused or buffering, YouTube draws its own icons over the video, so the still art covers it.
+    if (state === YOUTUBE_PAUSED || state === YOUTUBE_BUFFERING) onStall();
+    // A fallback if a position report was missed. Looping is done here: YouTube's own loop needs a
+    // playlist, which adds skip buttons to the video.
+    if (state === YOUTUBE_ENDED) onNearEnd();
   });
 
   return {
@@ -102,6 +119,12 @@ function createYouTubePlayer(
       send("pauseVideo");
       send("seekTo", [0, true]);
     },
+    // Seeking doesn't always change the reported state, so the next "playing" report counts as new.
+    restart: () => {
+      lastState = null;
+      send("seekTo", [0, true]);
+      send("playVideo");
+    },
     get muted() {
       return muted;
     },
@@ -113,7 +136,7 @@ function createYouTubePlayer(
   };
 }
 
-function createVideoPlayer({ src }, { muted, onPlaying, onError }) {
+function createVideoPlayer({ src }, { muted, onPlaying, onStall, onNearEnd, onError }) {
   const video = document.createElement("video");
   video.className = "hero__video";
   video.src = src;
@@ -123,7 +146,14 @@ function createVideoPlayer({ src }, { muted, onPlaying, onError }) {
   video.preload = "none";
   video.setAttribute("aria-hidden", "true");
   video.addEventListener("playing", onPlaying);
+  video.addEventListener("waiting", onStall);
   video.addEventListener("error", onError, { once: true });
+  let nearEnd = false;
+  video.addEventListener("timeupdate", () => {
+    const ending = video.duration - video.currentTime < END_MARGIN;
+    if (ending && !nearEnd) onNearEnd();
+    nearEnd = ending;
+  });
 
   return {
     element: video,
@@ -132,6 +162,8 @@ function createVideoPlayer({ src }, { muted, onPlaying, onError }) {
       video.pause();
       video.currentTime = 0;
     },
+    // A file loops by itself without a seam, so there's nothing to do.
+    restart: () => {},
     get muted() {
       return video.muted;
     },
@@ -172,6 +204,9 @@ export function setupHeroTrailer({
   // The billboard turns the trailer off while it shows another release, and back on when it returns.
   let enabled = true;
   let available = true;
+  let autoTimer;
+  // The preview plays once by itself per visit to the slide; returning to the slide plays it again.
+  let autoplayed = false;
 
   const canAutoplay = () =>
     canHover.matches && !reducedMotion.matches && !saveData;
@@ -226,7 +261,40 @@ export function setupHeroTrailer({
     renderSound();
   }
 
+  // After a pause or buffer, the video comes back; the first time, it's the reveal.
+  function onPlaying() {
+    if (loading) reveal();
+    else if (playing) hero.classList.add("hero--playing");
+  }
+
+  function onStall() {
+    if (playing && !loading) hero.classList.remove("hero--playing");
+  }
+
+  // The autoplay preview plays once and fades back to the art; a trailer someone asked for loops.
+  function onNearEnd() {
+    if (!playing || loading) return;
+    if (startedBy === "auto") {
+      autoplayed = true;
+      stop();
+      return;
+    }
+    if (trailer.youtubeId) {
+      hero.classList.remove("hero--playing");
+      player.restart();
+    }
+  }
+
+  function scheduleAutoplay() {
+    clearTimeout(autoTimer);
+    if (!enabled || !available || playing || autoplayed || stoppedByUser || !canAutoplay()) return;
+    autoTimer = setTimeout(() => {
+      if (enabled && !playing) play("auto");
+    }, AUTOPLAY_DELAY);
+  }
+
   function play(source) {
+    clearTimeout(autoTimer);
     clearTimeout(hoverTimer);
     clearTimeout(resetTimer);
     playing = true;
@@ -248,7 +316,9 @@ export function setupHeroTrailer({
       player = create(trailer, {
         title,
         muted: true,
-        onPlaying: reveal,
+        onPlaying,
+        onStall,
+        onNearEnd,
         onError: fail,
       });
       media.append(player.element);
@@ -346,11 +416,21 @@ export function setupHeroTrailer({
   renderPlayButton();
   renderSound();
 
+  scheduleAutoplay();
+
   return {
     setEnabled(value) {
       enabled = value;
-      if (!value) stop();
+      if (value) {
+        scheduleAutoplay();
+      } else {
+        clearTimeout(autoTimer);
+        autoplayed = false;
+        stop();
+      }
       playButton.hidden = !value || !available;
     },
+    // Playing or about to (paused for a moment to buffer counts too), so the billboard holds still.
+    isActive: () => playing,
   };
 }

@@ -90,6 +90,9 @@ const platformSelect = document.getElementById('filter-platform');
 const genreSelect = document.getElementById('filter-genre');
 const platformField = document.getElementById('platform-field');
 const monthField = document.getElementById('month-field');
+const moreButton = document.getElementById('more-filters-button');
+const moreLabel = document.getElementById('more-filters-label');
+const moreFilters = document.getElementById('more-filters');
 const panel = document.getElementById('discover-results');
 const grid = document.getElementById('release-grid');
 const summary = document.getElementById('discover-summary');
@@ -110,6 +113,7 @@ let pagesLoaded = 0;
 let nextPage = null;
 let genresFor = null;
 let filterTimer;
+let moreOpen = false;
 
 function isId(value) {
   return /^\d+$/.test(value ?? '');
@@ -184,6 +188,17 @@ function renderSummary(state) {
   summary.textContent = text;
 }
 
+// Progressive disclosure (PRD feedback): Genre stays out front; Month and Platform wait behind
+// "More filters". The button counts the hidden ones in use, and a link that uses them opens it.
+function renderMoreFilters(state) {
+  const extras = [!monthField.hidden && state.month, !platformField.hidden && state.platform].filter(Boolean).length;
+  if (extras) moreOpen = true;
+  moreButton.hidden = monthField.hidden && platformField.hidden;
+  moreButton.setAttribute('aria-expanded', String(moreOpen));
+  moreLabel.textContent = extras ? `More filters · ${extras}` : 'More filters';
+  moreFilters.hidden = !moreOpen || moreButton.hidden;
+}
+
 // On phones the tabs scroll sideways inside their track. Only the track moves, never the page.
 function showSelectedTab(tab) {
   if (!tab) return;
@@ -221,6 +236,7 @@ function renderControls(state) {
   });
 
   platformField.hidden = state.cat !== 'games';
+  renderMoreFilters(state);
   monthSelect.value = state.month;
   platformSelect.value = state.platform;
   genreSelect.value = state.genre;
@@ -469,6 +485,11 @@ monthSelect.addEventListener('change', () => {
   updateAfterPause(monthSelect.value ? { month: monthSelect.value, range: '' } : { month: '', range: 'month' });
 });
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
+moreButton.addEventListener('click', () => {
+  moreOpen = !moreOpen;
+  renderMoreFilters(readState());
+});
+
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
 loadMoreButton.addEventListener('click', () => loadMore());
 grid.addEventListener('release:save', (event) => toggleSave(event.detail.release));

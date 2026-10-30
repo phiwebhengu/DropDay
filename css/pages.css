@@ -113,6 +113,46 @@
   font: var(--text-label-m);
 }
 
+.discover-filters__more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filter-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.filter-more:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+.filter-more svg {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.filter-more[aria-expanded="true"] {
+  border-style: solid;
+  color: var(--color-text-primary);
+}
+
+.filter-more[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
 .discover-filters .field__select:has(option:checked:not([value=""])) {
   border-color: var(--color-border-strong);
   background-color: var(--color-segment-selected);
@@ -590,19 +630,41 @@
   color: transparent;
 }
 
+/* All slides' art is stacked; the active one fades in over the others. */
+.hero__image {
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+.hero__image.is-active {
+  z-index: 1;
+  opacity: 1;
+}
+
+.hero__video {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__image {
+    transition-duration: 200ms;
+  }
+}
+
 .hero__video {
   opacity: 0;
   transition: opacity 600ms var(--ease-out);
 }
 
-/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit) and
-   ignores the pointer, which keeps hover on the hero and stops clicks landing on YouTube. */
+/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit), plus
+   a fifth more, so YouTube's title bar and corner logo fall outside the frame. It ignores the pointer,
+   which keeps hover on the hero and stops clicks landing on YouTube. */
 .hero__video--embed {
   inset: auto;
   top: 50%;
   left: 50%;
-  width: max(100cqw, 177.78cqh);
-  height: max(100cqh, 56.25cqw);
+  width: calc(max(100cqw, 177.78cqh) * 1.2);
+  height: calc(max(100cqh, 56.25cqw) * 1.2);
   border: 0;
   pointer-events: none;
   translate: -50% -50%;

@@ -18,11 +18,11 @@
   background: linear-gradient(90deg, transparent, var(--color-border-default) 20%, var(--color-border-default) 80%, transparent);
 }
 
-/* Home's billboard runs under the header, so there it starts clear and frosts once the page scrolls. */
+/* On pages that open with full-bleed art, the header starts clear over it (in the dark theme's colours,
+   set by immersive-header.js) and frosts in the page's own theme once the page scrolls. */
 .site-header--over-art:not(.is-scrolled) {
   background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
   backdrop-filter: none;
-  color: #fff;
 }
 
 .site-header--over-art:not(.is-scrolled)::after {
@@ -133,9 +133,6 @@
   color: var(--color-action-on-strong);
 }
 
-.site-header--over-art:not(.is-scrolled) .site-nav__link:not([aria-current="page"]) {
-  color: rgb(255 255 255 / 0.82);
-}
 
 @media (min-width: 1024px) {
   .site-nav {
@@ -321,12 +318,12 @@
 .button--glass {
   border-color: var(--color-glass-border);
   background: var(--color-glass);
-  color: #fff;
+  color: var(--color-glass-text);
   backdrop-filter: blur(20px) saturate(180%);
 }
 
 .button--glass:hover {
-  background: rgb(60 60 66 / 0.72);
+  background: var(--color-glass-hover);
 }
 
 .button--outline {
@@ -348,7 +345,7 @@
 @media (prefers-reduced-transparency: reduce) {
   .button--glass,
   .site-nav__list {
-    background: var(--ink-850);
+    background: var(--color-bg-raised);
     backdrop-filter: none;
   }
 }
@@ -358,22 +355,17 @@
   cursor: not-allowed;
 }
 
+/* Toasts drop in at the top centre, just under the header, where they're hard to miss on any screen
+   (PRD feedback: at the bottom they were easy to overlook on desktop). */
 .toast-region {
   position: fixed;
   inset-inline: var(--space-4);
-  bottom: calc(var(--bottom-nav-height) + var(--space-4));
+  top: calc(var(--header-height) + env(safe-area-inset-top) + var(--space-3));
   z-index: 60;
   display: grid;
   justify-items: center;
   gap: var(--space-2);
   pointer-events: none;
-}
-
-@media (min-width: 1024px) {
-  .toast-region {
-    inset-inline: auto var(--space-8);
-    bottom: var(--space-8);
-  }
 }
 
 .toast {
@@ -382,12 +374,13 @@
   align-items: center;
   gap: var(--space-3);
   max-width: min(100%, 560px);
-  min-height: 50px;
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
-  border: 1px solid var(--toast-accent);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  box-shadow: var(--shadow-card);
+  min-height: 52px;
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(24px) saturate(180%);
   pointer-events: auto;
   animation: toast-in var(--duration-base) var(--ease-out);
 }
@@ -402,8 +395,14 @@
 
 .toast__icon {
   flex: none;
-  color: var(--toast-accent);
-  font: var(--text-label-m);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--toast-accent);
+  color: var(--color-bg-page);
+  font: var(--font-weight-bold) 0.875rem / 1 var(--font-family);
 }
 
 .toast__message {
@@ -434,14 +433,14 @@
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(-8px) scale(0.98);
   }
 }
 
 @keyframes toast-out {
   to {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(-6px);
   }
 }
 
@@ -711,7 +710,7 @@ html:not(.has-motion) .release-card__save:active {
 @media (prefers-reduced-transparency: reduce) {
   .release-card__save,
   .release-card__stub--rating {
-    background: var(--charcoal-950);
+    background: var(--ink-1000);
     backdrop-filter: none;
   }
 }
@@ -1289,7 +1288,7 @@ html:has(.quick-view[open]) {
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-pill);
   background: var(--color-glass);
-  color: #fff;
+  color: var(--color-glass-text);
   font: var(--text-label-m);
   text-decoration: none;
   backdrop-filter: blur(20px) saturate(180%);
@@ -1303,7 +1302,7 @@ html:has(.quick-view[open]) {
 }
 
 .back-link:hover {
-  background: rgb(60 60 66 / 0.72);
+  background: var(--color-glass-hover);
 }
 
 /* Text button: low-emphasis actions like Share and Read more */
@@ -1359,7 +1358,7 @@ html:has(.quick-view[open]) {
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-pill);
   background: var(--color-glass);
-  color: #fff;
+  color: var(--color-glass-text);
   font: var(--text-label-m);
   backdrop-filter: blur(20px) saturate(180%);
   transition:
@@ -1373,7 +1372,7 @@ html:has(.quick-view[open]) {
 }
 
 .status-button:hover:not(:disabled) {
-  background: rgb(60 60 66 / 0.72);
+  background: var(--color-glass-hover);
 }
 
 html:not(.has-motion) .status-button:active:not(:disabled) {
@@ -1395,7 +1394,7 @@ html:not(.has-motion) .status-button:active:not(:disabled) {
 @media (prefers-reduced-transparency: reduce) {
   .status-button,
   .back-link {
-    background: var(--ink-850);
+    background: var(--color-bg-raised);
     backdrop-filter: none;
   }
 }

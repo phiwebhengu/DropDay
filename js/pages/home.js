@@ -139,22 +139,28 @@ function renderTitle(release) {
   return button;
 }
 
-// New art goes in under the trailer (if there is one) and the old art leaves once the new is in.
-function showArt(release) {
+const ART_WAIT = 1500;
+
+// Every slide's art is built (and starts downloading) as soon as the billboard loads, stacked under the
+// trailer. A slide only switches once its picture is ready, so the title and art always change together.
+function createArt() {
   heroArt.classList.remove('skeleton');
-  const previous = [...heroArt.querySelectorAll('.hero__image')];
-  if (!release.cover) {
-    previous.forEach((image) => image.remove());
-    return null;
-  }
-  const image = document.createElement('img');
-  image.className = 'hero__image';
-  image.src = release.cover;
-  image.alt = '';
-  image.addEventListener('error', () => image.remove(), { once: true });
-  heroArt.prepend(image);
-  setTimeout(() => previous.forEach((old) => old.remove()), 1200);
-  return image;
+  slides.forEach((slide, index) => {
+    const image = document.createElement('img');
+    image.className = 'hero__image';
+    image.alt = '';
+    image.decoding = 'async';
+    if (index > 0) image.fetchPriority = 'low';
+    image.src = slide.release.cover;
+    slide.image = image;
+    slide.ready = image.decode().catch(() => image.remove());
+    heroArt.prepend(image);
+  });
+}
+
+// Waits for the art, but never longer than ART_WAIT: on a slow connection the text goes ahead.
+function whenReady(slide) {
+  return Promise.race([slide.ready, new Promise((resolve) => setTimeout(resolve, ART_WAIT))]);
 }
 
 function renderDots() {
@@ -174,11 +180,19 @@ function renderDots() {
   heroControls.hidden = slides.length < 2;
 }
 
-function showSlide(index) {
+let switchId = 0;
+
+async function showSlide(index) {
   if (index === current) return;
+  const id = ++switchId;
+  await whenReady(slides[index]);
+  // A newer choice (a quick second dot click) wins.
+  if (id !== switchId) return;
+
   const first = current === -1;
+  const previous = slides[current];
   current = index;
-  const { release, label } = slides[index];
+  const { release, label, image } = slides[index];
   featured = release;
 
   heroEyebrow.textContent = `${label} · ${getTypeLabel(release)}`;
@@ -190,20 +204,21 @@ function showSlide(index) {
   renderHeroSave();
   startCountdown(release);
 
-  const image = showArt(release);
+  previous?.image.classList.remove('is-active');
+  image.classList.add('is-active');
   trailer?.setEnabled(index === 0);
   [...heroDots.children].forEach((dot, dotIndex) => {
     dot.setAttribute('aria-current', String(dotIndex === index));
   });
 
   if (first) playHeroIntro(hero);
-  else if (image) swapBillboard(image, heroSlide);
+  else swapBillboard(image, heroSlide);
 }
 
 // Auto-advance waits while someone is reading or watching: pointer or focus inside, a trailer playing,
 // the tab hidden, or the pause button pressed (which reduced motion starts on).
 function advance() {
-  const busy = holding || hero.classList.contains('hero--playing') || hero.classList.contains('hero--loading');
+  const busy = holding || trailer?.isActive();
   if (!paused && !busy && !document.hidden && slides.length > 1) showSlide((current + 1) % slides.length);
 }
 
@@ -277,6 +292,7 @@ function loadBillboard(sources) {
       return;
     }
 
+    createArt();
     renderDots();
     showSlide(0);
     renderPause();

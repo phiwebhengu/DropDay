@@ -92,7 +92,9 @@
   --color-segment-selected: var(--ink-800);
   /* Glass: frosted buttons and chips laid over artwork */
   --color-glass: rgb(40 40 44 / 0.62);
+  --color-glass-hover: rgb(60 60 66 / 0.72);
   --color-glass-border: rgb(255 255 255 / 0.14);
+  --color-glass-text: var(--grey-50);
   /* The main call to action on artwork, like Apple TV's Play: a white pill in dark, black in light */
   --color-action-strong: var(--grey-50);
   --color-action-on-strong: var(--ink-950);
@@ -192,6 +194,11 @@
   --color-border-strong: var(--mist-500);
   --color-action-strong: var(--graphite-900);
   --color-action-on-strong: var(--mist-0);
+  /* Light glass: frosted white with dark text, like iOS controls on a light screen */
+  --color-glass: rgb(255 255 255 / 0.72);
+  --color-glass-hover: rgb(255 255 255 / 0.95);
+  --color-glass-border: rgb(0 0 0 / 0.08);
+  --color-glass-text: var(--graphite-900);
   --color-action-tint: rgb(242 172 62 / 0.18);
   --color-accent-highlight: var(--amber-600);
   --color-focus-ring: var(--amber-700);

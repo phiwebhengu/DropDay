@@ -56,7 +56,7 @@ export function playHeroIntro(hero) {
         return;
       }
       const media = hero.querySelector(".hero__media");
-      const reveal = media.querySelector("img") ?? media;
+      const reveal = media.querySelector("img.is-active") ?? media.querySelector("img") ?? media;
       gsap
         .timeline({ defaults: { ease: "power3.out" } })
         .fromTo(
@@ -129,12 +129,12 @@ export function swapBillboard(image, content) {
   if (!hasMotion) return;
   const parts = [...content.children].filter((part) => !part.hidden);
   if (prefersReducedMotion()) {
-    fadeIn([image, ...parts], { duration: 0.3 });
+    fadeIn([image, ...parts], { duration: 0.3, clearProps: "opacity" });
     return;
   }
   gsap
     .timeline({ defaults: { ease: "power3.out" } })
-    .fromTo(image, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 1.1, ease: "power2.out" })
+    .fromTo(image, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 1.1, ease: "power2.out", clearProps: "opacity,transform" })
     .from(parts, { y: 16, opacity: 0, duration: 0.6, stagger: 0.06, clearProps: "transform,opacity" }, 0.15);
 }
 
@@ -202,7 +202,7 @@ export function squashButton(button) {
 export function animateToastIn(toast) {
   if (!hasMotion || prefersReducedMotion()) return false;
   gsap.from(toast, {
-    y: 32,
+    y: -32,
     scale: 0.94,
     opacity: 0,
     duration: 0.5,
