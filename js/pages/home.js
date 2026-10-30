@@ -15,6 +15,7 @@ import { getMonthRange, toMonthKey } from '../utils/dates.js';
 import { getTypeLabel } from '../utils/media.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
+import '../ui/site-header.js';
 
 const SKELETON_DELAY = 150;
 const SKELETON_COUNT = 6;
