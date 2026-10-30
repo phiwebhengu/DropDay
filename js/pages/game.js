@@ -189,7 +189,12 @@ function renderGame() {
   renderImage(backdrop, game.cover, '');
   cover.innerHTML = posterFallback(game.title);
   renderImage(cover, game.poster ?? game.cover, `Cover art for ${game.title}`);
-  cover.classList.toggle('game__cover--wide', !game.poster);
+  // Every game page keeps the same layout: without an official cover, the key art becomes the poster.
+  if (!game.poster && game.cover) {
+    const coverTitle = createElement('span', 'game__cover-title', game.title);
+    coverTitle.setAttribute('aria-hidden', 'true');
+    cover.append(coverTitle);
+  }
 
   eyebrow.textContent = ['Game', ...game.genres.slice(0, MAX_GENRES)].join(' · ');
   title.textContent = game.title;

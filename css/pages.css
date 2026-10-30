@@ -243,18 +243,25 @@
 .game__cover {
   position: relative;
   container-type: inline-size;
-  width: min(44vw, 210px);
-  /* IGDB covers are 3:4, so the frame matches and the whole cover shows. */
-  aspect-ratio: 3 / 4;
+  width: min(44vw, 200px);
+  /* The same 2:3 poster as the cards, so a game looks the same everywhere. */
+  aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--radius-md);
   background: var(--ink-850);
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), var(--shadow-float);
 }
 
-/* No official cover: the backdrop already shows the key art, so the poster spot steps aside. */
-.game__cover--wide {
-  display: none;
+/* No official cover: the key art fills the poster with the title on a fade, like the cards. */
+.game__cover-title {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 30cqi 7cqi 7cqi;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.55) 55%, transparent);
+  color: #fff;
+  font: var(--font-weight-heavy) clamp(1.25rem, 12cqi, 2rem) / 0.95 var(--font-display);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .game__cover img {
@@ -322,10 +329,6 @@
   .detail-hero__layout {
     grid-template-columns: 240px minmax(0, 1fr);
     gap: var(--space-12);
-  }
-
-  .detail-hero__layout:has(.game__cover--wide) {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .game__cover {
@@ -581,20 +584,42 @@
   padding-top: var(--space-8);
 }
 
-/* Billboard: edge to edge under a clear header, the art filling it and the text over a shade, like the
-   top of Apple TV. Several featured releases take turns (M2). */
+/* Billboard: a large rounded screen set into the page, like Netflix's home, the art filling it and the
+   text over a shade. Several featured releases take turns (M2). Behind it, the page glows with the
+   current release's colour, which shifts as the slides change. */
+
+.home {
+  position: relative;
+  isolation: isolate;
+}
+
+.home::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--space-8)) 0 auto;
+  z-index: -1;
+  height: min(90svh, 900px);
+  background: radial-gradient(70% 60% at 30% 35%, color-mix(in srgb, var(--hero-tint, transparent) 32%, transparent), transparent 70%);
+  transition: background 1.2s var(--ease-out);
+  pointer-events: none;
+}
 
 .billboard {
   position: relative;
   isolation: isolate;
   display: grid;
   align-items: end;
-  min-height: clamp(520px, 78svh, 820px);
-  /* Pulled up under the sticky header, which starts out clear over the art. */
-  margin-top: calc(-1 * (var(--header-height) + env(safe-area-inset-top)));
-  padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+  width: calc(100% - 2 * var(--container-gutter));
+  max-width: calc(var(--container-max) + 2 * var(--space-12));
+  min-height: clamp(480px, 74svh, 780px);
+  margin-inline: auto;
   overflow: hidden;
-  background: var(--color-bg-sunken);
+  border-radius: var(--radius-hero);
+  background: var(--ink-900);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.06),
+    0 40px 100px -40px color-mix(in srgb, var(--hero-tint, #000) 60%, transparent);
+  transition: box-shadow 1.2s var(--ease-out);
 }
 
 .hero__media {
@@ -616,8 +641,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to top, var(--color-bg-page) 0%, color-mix(in srgb, var(--color-bg-page) 70%, transparent) 22%, transparent 55%),
-    linear-gradient(to right, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.35) 38%, transparent 65%);
+    linear-gradient(to top, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.35) 30%, transparent 60%),
+    linear-gradient(to right, rgb(0 0 0 / 0.7) 0%, rgb(0 0 0 / 0.3) 40%, transparent 68%);
   pointer-events: none;
 }
 
@@ -667,6 +692,18 @@
 
 .hero--watching .hero__title {
   scale: 0.7;
+}
+
+/* A film or show's own logo stands in for the typed title. */
+.hero__logo {
+  display: block;
+  width: auto;
+  max-width: min(100%, 30rem);
+  height: auto;
+  max-height: clamp(5rem, 13vw, 10rem);
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
 }
 
 /* All slides' art is stacked; the active one fades in over the others. */
@@ -747,7 +784,8 @@
   display: grid;
   gap: var(--space-6);
   width: 100%;
-  padding-bottom: var(--space-8);
+  max-width: none;
+  padding: var(--space-6) var(--space-4);
 }
 
 .hero__content {
@@ -831,23 +869,24 @@
   color: rgb(255 255 255 / 0.7);
 }
 
-/* Dots and the pause button, bottom right like Apple TV */
+/* Bottom right, on the same line as the buttons: which slide is showing, then pause and sound, each with
+   room of its own (nothing sits on top of anything). */
 .billboard__controls {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .billboard__dots {
   display: flex;
-  gap: 2px;
+  margin-right: var(--space-2);
 }
 
-/* Small dots, but each sits in a 24px target. */
+/* Thin bars, but each sits in a 24px-tall target. */
 .billboard__dot {
   display: grid;
   place-items: center;
-  width: 24px;
+  width: 28px;
   height: 24px;
   padding: 0;
   border: 0;
@@ -856,55 +895,57 @@
 
 .billboard__dot::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 20px;
+  height: 3px;
   border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 0.45);
+  background: rgb(255 255 255 / 0.35);
   transition:
     width var(--duration-base) var(--ease-out),
     background-color var(--duration-base) var(--ease-out);
 }
 
+.billboard__dot[aria-current="true"] {
+  width: 44px;
+}
+
 .billboard__dot[aria-current="true"]::before {
-  width: 22px;
+  width: 36px;
   background: #fff;
 }
 
 .billboard__dot:hover::before {
-  background: rgb(255 255 255 / 0.8);
+  background: rgb(255 255 255 / 0.75);
 }
 
-.billboard__pause {
+/* Round outline buttons, like Netflix's mute button. */
+.billboard__button {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--color-glass-border);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1.5px solid rgb(255 255 255 / 0.6);
   border-radius: 50%;
-  background: var(--color-glass);
+  background: rgb(0 0 0 / 0.25);
   color: #fff;
-  backdrop-filter: blur(16px);
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.billboard__button:hover {
+  border-color: #fff;
+  background: rgb(255 255 255 / 0.15);
+}
+
+.billboard__button:active {
+  transform: scale(0.94);
 }
 
 .billboard__pause[aria-pressed="true"] .billboard__pause-icon,
 .billboard__pause[aria-pressed="false"] .billboard__play-icon {
   display: none;
-}
-
-.hero__sound {
-  position: absolute;
-  right: var(--container-gutter);
-  bottom: var(--space-8);
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  width: var(--touch-target);
-  height: var(--touch-target);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 50%;
-  background: var(--color-glass);
-  color: #fff;
-  backdrop-filter: blur(16px);
 }
 
 .hero--message {
@@ -919,24 +960,11 @@
   .billboard__body {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
-    padding-bottom: var(--space-12);
-  }
-
-  .hero__sound {
-    bottom: calc(var(--space-12) + 48px);
+    padding: var(--space-8) var(--space-12) var(--space-12);
   }
 }
 
-/* Light theme: the billboard stays dark like Apple TV's, ending on a clean edge above the light page. */
-:root[data-theme="light"] .hero__media::after {
-  background:
-    linear-gradient(to top, rgb(0 0 0 / 0.75) 0%, transparent 55%),
-    linear-gradient(to right, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.35) 38%, transparent 65%);
-}
-
-:root[data-theme="light"] .billboard__body {
-  padding-bottom: var(--space-16);
-}
+/* Light theme: the billboard stays a dark screen, set into the light page. */
 
 /* Shelves: a heading, then a row of posters that swipes on touch and pages with arrows on desktop.
    The row runs to the screen edge (no box), the first poster lines up with the page text. */

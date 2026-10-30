@@ -121,6 +121,8 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  /* The home billboard, a screen set into the page */
+  --radius-hero: 20px;
   --radius-pill: 999px;
 
   /* Typography: bold, tightly tracked Figtree for headings and everything you read, like Apple TV.

@@ -106,22 +106,16 @@ function renderTitle(release) {
   return `<button class="release-card__link" type="button">${title}</button>`;
 }
 
-// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the wide
-// RAWG key art sits in the middle of the poster on a blurred copy of itself, titled below like a box cover.
+// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the RAWG key
+// art fills the poster with the title across the bottom.
 function isBoxArt(release) {
   return release.type === 'game' && !release.poster && Boolean(release.image);
-}
-
-// Game covers are 3:4, a little wider than the poster, so they're shown whole on a blurred copy of
-// themselves instead of losing their edges (and often part of the logo) to a crop.
-function isGameCover(release) {
-  return release.type === 'game' && Boolean(release.poster);
 }
 
 function renderPoster(release) {
   const boxArt = isBoxArt(release);
   const src = release.poster ?? release.image;
-  const modifier = boxArt ? ' release-card__image--wide' : isGameCover(release) ? ' release-card__image--whole' : '';
+  const modifier = boxArt ? ' release-card__image--wide' : '';
   const image = src
     ? `<img class="release-card__image${modifier}" src="${escapeHtml(src)}" alt="" ${boxArt ? 'width="640" height="360"' : 'width="342" height="513"'} loading="lazy" decoding="async">`
     : '';
@@ -139,9 +133,6 @@ export function createReleaseCard(release, { entry = null } = {}) {
   // Lets GSAP Flip recognise the same release across a re-render (M3).
   card.dataset.flipId = `${release.type}:${release.id}`;
   if (release.tint) card.style.setProperty('--poster-tint', release.tint);
-  // A game's own art, blurred, fills the poster around its wide key art.
-  if (isBoxArt(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.image)}")`);
-  if (isGameCover(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.poster)}")`);
 
   const platforms = getPlatforms(release);
 
