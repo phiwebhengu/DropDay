@@ -1,12 +1,28 @@
 /*
-  Drop Day design tokens. Redesigned in the design pass (#42) from the Figma variables:
-  a warm "projection room" charcoal so posters and key art carry the colour, one accent
-  (marquee amber, which is also the colour of a star rating), and a condensed signage
-  face for titles and numbers, like a release board.
+  Drop Day design tokens. v2 (user testing, #76): an Apple TV-style near-black canvas so posters and
+  key art carry all the colour, one accent (marquee amber, also the star colour), bold tight Figtree for
+  headings, and the condensed release-board face kept for the brand's number moments (date stubs,
+  countdowns, Top 10 ranks).
 */
 
 :root {
   /* Primitives */
+  --ink-1000: #050506;
+  --ink-950: #0b0b0c;
+  --ink-900: #161618;
+  --ink-850: #202023;
+  --ink-800: #2c2c30;
+  --ink-700: #3a3a3e;
+  --ink-600: #48484d;
+  --grey-500: #a1a1a6;
+  --grey-50: #f5f5f7;
+  --mist-0: #ffffff;
+  --mist-100: #f5f5f7;
+  --mist-200: #e8e8ed;
+  --mist-300: #d2d2d7;
+  --mist-500: #a1a1a6;
+  --graphite-600: #5e5e63;
+  --graphite-900: #1d1d1f;
   --charcoal-950: #0e0d0b;
   --charcoal-900: #141311;
   --charcoal-850: #1b1a17;
@@ -24,6 +40,7 @@
   --clay-400: #e08b5e;
   --sky-400: #72a6e0;
   --rose-400: #dc84b0;
+  --violet-400: #a99ae6;
   --paper-100: #f3efe8;
   --paper-0: #fbf9f5;
   --paper-200: #e8e3da;
@@ -41,14 +58,14 @@
 :root,
 .theme-dark {
   color-scheme: dark;
-  --color-bg-page: var(--charcoal-900);
-  --color-bg-surface: var(--charcoal-850);
-  --color-bg-raised: var(--charcoal-800);
-  --color-bg-sunken: var(--charcoal-950);
-  --color-text-primary: var(--paper-50);
-  --color-text-secondary: var(--stone-400);
-  --color-border-default: var(--charcoal-700);
-  --color-border-strong: var(--charcoal-600);
+  --color-bg-page: var(--ink-950);
+  --color-bg-surface: var(--ink-900);
+  --color-bg-raised: var(--ink-850);
+  --color-bg-sunken: var(--ink-1000);
+  --color-text-primary: var(--grey-50);
+  --color-text-secondary: var(--grey-500);
+  --color-border-default: var(--ink-800);
+  --color-border-strong: var(--ink-600);
   --color-action-primary: var(--amber-400);
   --color-action-primary-hover: var(--amber-300);
   --color-action-on-primary: var(--charcoal-950);
@@ -66,13 +83,25 @@
   --color-category-movies: var(--clay-400);
   --color-category-tv: var(--sky-400);
   --color-category-anime: var(--rose-400);
-  --color-header-bg: rgb(20 19 17 / 0.86);
-  --color-scrim: rgb(14 13 11 / 0.72);
-  --color-skeleton-shine: var(--charcoal-700);
+  --color-category-manga: var(--violet-400);
+  --color-header-bg: rgb(11 11 12 / 0.72);
+  --color-scrim: rgb(5 5 6 / 0.72);
+  --color-skeleton-shine: var(--ink-800);
+  /* Segmented controls: a sunken track with the chosen option raised out of it, like iOS. */
+  --color-segment-track: var(--ink-900);
+  --color-segment-selected: var(--ink-800);
+  /* Glass: frosted buttons and chips laid over artwork */
+  --color-glass: rgb(40 40 44 / 0.62);
+  --color-glass-hover: rgb(60 60 66 / 0.72);
+  --color-glass-border: rgb(255 255 255 / 0.14);
+  --color-glass-text: var(--grey-50);
+  /* The main call to action on artwork, like Apple TV's Play: a white pill in dark, black in light */
+  --color-action-strong: var(--grey-50);
+  --color-action-on-strong: var(--ink-950);
   /* Sits on top of content with text over it (the spoiler cover), unlike the dialog backdrop scrim. */
-  --color-overlay: rgb(14 13 11 / 0.72);
-  --shadow-card: 0 18px 40px -12px rgb(6 5 3 / 0.6);
-  --shadow-float: 0 24px 60px -16px rgb(6 5 3 / 0.75);
+  --color-overlay: rgb(5 5 6 / 0.72);
+  --shadow-card: 0 18px 40px -12px rgb(0 0 0 / 0.65);
+  --shadow-float: 0 24px 60px -16px rgb(0 0 0 / 0.8);
 }
 
 /* Everything else is shared by both themes. */
@@ -94,17 +123,23 @@
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* Typography: Big Shoulders Display for titles and numbers, Figtree for everything you read */
+  /* Typography: bold, tightly tracked Figtree for headings and everything you read, like Apple TV.
+     Big Shoulders Display (--font-display) is the brand's release-board face, kept for numbers:
+     date stubs, the countdown, Top 10 ranks and the logo. */
   --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --font-family: "Figtree", system-ui, sans-serif;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
+  --font-weight-bold: 700;
   --font-weight-heavy: 800;
 
-  --text-display-xl: var(--font-weight-heavy) clamp(3rem, 1.9rem + 4.4vw, 5.25rem) / 0.92 var(--font-display);
-  --text-h1: var(--font-weight-heavy) clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem) / 0.95 var(--font-display);
-  --text-h2: 700 clamp(1.75rem, 1.45rem + 1.2vw, 2.25rem) / 1 var(--font-display);
+  --text-display-xl: var(--font-weight-heavy) clamp(2.5rem, 1.5rem + 4vw, 4.5rem) / 1 var(--font-family);
+  --text-h1: var(--font-weight-heavy) clamp(2rem, 1.6rem + 1.8vw, 3rem) / 1.05 var(--font-family);
+  --text-h2: var(--font-weight-bold) clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem) / 1.2 var(--font-family);
+  /* Large type reads too loose at its natural spacing, so headings tighten as they grow. */
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.02em;
   --text-h3: var(--font-weight-semibold) 1.1875rem / 1.3 var(--font-family);
   --text-body-l: var(--font-weight-regular) 1.125rem / 1.6 var(--font-family);
   --text-body-m: var(--font-weight-regular) 1rem / 1.55 var(--font-family);
@@ -147,14 +182,23 @@
    so text and focus use a deeper amber; filled buttons keep the bright one with dark text. */
 :root[data-theme="light"] {
   color-scheme: light;
-  --color-bg-page: var(--paper-100);
-  --color-bg-surface: var(--paper-0);
-  --color-bg-raised: var(--paper-200);
-  --color-bg-sunken: var(--paper-300);
-  --color-text-primary: var(--ink-900);
-  --color-text-secondary: var(--ink-600);
-  --color-border-default: var(--paper-300);
-  --color-border-strong: var(--paper-500);
+  --color-bg-page: var(--mist-100);
+  --color-bg-surface: var(--mist-0);
+  --color-bg-raised: var(--mist-200);
+  --color-bg-sunken: var(--mist-300);
+  --color-segment-track: var(--mist-200);
+  --color-segment-selected: var(--mist-0);
+  --color-text-primary: var(--graphite-900);
+  --color-text-secondary: var(--graphite-600);
+  --color-border-default: var(--mist-300);
+  --color-border-strong: var(--mist-500);
+  --color-action-strong: var(--graphite-900);
+  --color-action-on-strong: var(--mist-0);
+  /* Light glass: frosted white with dark text, like iOS controls on a light screen */
+  --color-glass: rgb(255 255 255 / 0.72);
+  --color-glass-hover: rgb(255 255 255 / 0.95);
+  --color-glass-border: rgb(0 0 0 / 0.08);
+  --color-glass-text: var(--graphite-900);
   --color-action-tint: rgb(242 172 62 / 0.18);
   --color-accent-highlight: var(--amber-600);
   --color-focus-ring: var(--amber-700);
@@ -168,11 +212,12 @@
   --color-category-movies: #b4552a;
   --color-category-tv: #2f68ad;
   --color-category-anime: #a83f74;
-  --color-header-bg: rgb(243 239 232 / 0.86);
-  --color-scrim: rgb(27 26 23 / 0.45);
-  --color-skeleton-shine: var(--paper-100);
-  --color-overlay: rgb(251 249 245 / 0.8);
-  --shadow-card: 0 18px 40px -16px rgb(74 56 28 / 0.22);
-  --shadow-float: 0 24px 60px -18px rgb(74 56 28 / 0.3);
+  --color-category-manga: #6b51b8;
+  --color-header-bg: rgb(245 245 247 / 0.78);
+  --color-scrim: rgb(29 29 31 / 0.45);
+  --color-skeleton-shine: var(--mist-100);
+  --color-overlay: rgb(255 255 255 / 0.82);
+  --shadow-card: 0 18px 40px -16px rgb(0 0 0 / 0.22);
+  --shadow-float: 0 24px 60px -18px rgb(0 0 0 / 0.3);
   --grain-opacity: 0.035;
 }

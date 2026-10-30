@@ -9,7 +9,6 @@
 }
 
 html {
-  color-scheme: dark;
   background: var(--color-bg-page);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -73,6 +72,15 @@ a {
   text-underline-offset: 3px;
 }
 
+/* Headings tighten as they grow (low specificity, so a component can still set its own). */
+:where(h1) {
+  letter-spacing: var(--tracking-display);
+}
+
+:where(h2, h3) {
+  letter-spacing: var(--tracking-heading);
+}
+
 ul[role="list"],
 ol[role="list"] {
   list-style: none;
@@ -106,7 +114,9 @@ h3 {
   width: 100%;
   max-width: calc(var(--container-max) + var(--container-gutter) * 2);
   margin-inline: auto;
-  padding-inline: var(--container-gutter);
+  /* The safe areas keep content clear of the notch on landscape iPhones. */
+  padding-left: max(var(--container-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--container-gutter), env(safe-area-inset-right));
 }
 
 .visually-hidden {

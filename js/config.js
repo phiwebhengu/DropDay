@@ -8,6 +8,9 @@ export const YOUTUBE_API_KEY = "AIzaSyAP52Y6Y74yq5nKbdzN8gygAiDuJVb3rNQ";
 export const RAWG_BASE_URL = "https://api.rawg.io/api";
 export const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 export const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+export const ANILIST_URL = "https://graphql.anilist.co";
+// Drop Day's own Cloudflare Worker for official game covers (proxy/igdb-worker.js). Empty = box-art fallback.
+export const IGDB_PROXY_URL = "https://dropday-igdb.bhengu080104.workers.dev";
 export const YOUTUBE_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
 export const TMDB_REGION = "ZA";
@@ -19,7 +22,10 @@ export const LIST_CACHE_TTL = 24 * 60 * 60 * 1000;
 export const TRAILER_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 export const STORAGE_KEYS = {
-  library: "dropday.library.v1",
+  igdbCovers: "dropday.igdb.covers.v2",
+  library: "dropday.library.v2",
+  // The first version's data, kept untouched as a backup after it's carried over.
+  legacyLibrary: "dropday.library.v1",
   cachePrefix: "dropday.cache.",
 };
 

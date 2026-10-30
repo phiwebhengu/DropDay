@@ -4,9 +4,29 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid var(--color-border-default);
+  padding-top: env(safe-area-inset-top);
   background: var(--color-header-bg);
-  backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* No hard divider: a soft edge only where content scrolls under the glass (Apple's scroll edge). */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-default) 20%, var(--color-border-default) 80%, transparent);
+}
+
+/* On pages that open with full-bleed art, the header starts clear over it (in the dark theme's colours,
+   set by immersive-header.js) and frosts in the page's own theme once the page scrolls. */
+.site-header--over-art:not(.is-scrolled) {
+  background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
+  backdrop-filter: none;
+}
+
+.site-header--over-art:not(.is-scrolled)::after {
+  display: none;
 }
 
 .site-header__inner {
@@ -66,6 +86,12 @@
   background: var(--color-bg-raised);
 }
 
+/* Dark shows the sun (switch to light), light shows the moon (switch to dark). */
+:root[data-theme="light"] .theme-toggle__icon--sun,
+:root:not([data-theme="light"]) .theme-toggle__icon--moon {
+  display: none;
+}
+
 /* Main navigation (desktop) */
 
 .site-nav {
@@ -74,36 +100,39 @@
 
 .site-nav__list {
   display: flex;
-  gap: var(--space-6);
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  backdrop-filter: blur(20px) saturate(180%);
 }
 
 .site-nav__link {
   position: relative;
   display: inline-flex;
   align-items: center;
-  min-height: var(--touch-target);
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
   color: var(--color-text-secondary);
   font: var(--text-label-m);
   text-decoration: none;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
-.site-nav__link:hover,
-.site-nav__link[aria-current="page"] {
+.site-nav__link:hover {
   color: var(--color-text-primary);
 }
 
-.site-nav__link[aria-current="page"]::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 6px;
-  width: 20px;
-  height: 3px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-highlight);
-  transform: translateX(-50%);
+/* The current page is the raised pill; its shape marks it, not just colour. */
+.site-nav__link[aria-current="page"] {
+  background: var(--color-action-strong);
+  color: var(--color-action-on-strong);
 }
+
 
 @media (min-width: 1024px) {
   .site-nav {
@@ -169,13 +198,24 @@
 
 /* Bottom navigation (mobile) */
 
+/* Frosted like the header, so on iPhones (where Safari's own bar floats over the page) content showing
+   through looks intended rather than like a gap. The safe-area padding keeps the links above the home bar. */
 .bottom-nav {
   position: sticky;
   bottom: 0;
   z-index: 50;
-  border-top: 1px solid var(--color-border-default);
-  background: var(--color-bg-page);
   padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-header-bg);
+  backdrop-filter: blur(12px) saturate(1.2);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-header,
+  .bottom-nav {
+    background: var(--color-bg-page);
+    backdrop-filter: none;
+  }
 }
 
 .bottom-nav__list {
@@ -233,7 +273,8 @@
   width: auto;
 }
 
-/* Buttons */
+/* Buttons: pills, like Apple TV. Strong (white on dark, black on light) is the one main action;
+   primary (amber) is the brand action; glass sits on artwork; outline is the quiet option. */
 
 .button {
   display: inline-flex;
@@ -243,12 +284,26 @@
   min-height: var(--touch-target);
   padding: 0 var(--space-6);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font: var(--text-label-m);
+  border-radius: var(--radius-pill);
+  font: var(--font-weight-semibold) 0.9375rem / 1.2 var(--font-family);
   text-decoration: none;
   transition:
     background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button--strong {
+  background: var(--color-action-strong);
+  color: var(--color-action-on-strong);
+}
+
+.button--strong:hover {
+  background: color-mix(in srgb, var(--color-action-strong) 86%, transparent);
 }
 
 .button--primary {
@@ -260,14 +315,39 @@
   background: var(--color-action-primary-hover);
 }
 
+.button--glass {
+  border-color: var(--color-glass-border);
+  background: var(--color-glass);
+  color: var(--color-glass-text);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.button--glass:hover {
+  background: var(--color-glass-hover);
+}
+
 .button--outline {
   border-color: var(--color-border-strong);
   background: transparent;
 }
 
 .button--outline:hover {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-tint);
+  border-color: var(--color-text-secondary);
+  background: var(--color-bg-raised);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .button--glass,
+  .site-nav__list {
+    background: var(--color-bg-raised);
+    backdrop-filter: none;
+  }
 }
 
 .button:disabled {
@@ -275,22 +355,17 @@
   cursor: not-allowed;
 }
 
+/* Toasts drop in at the top centre, just under the header, where they're hard to miss on any screen
+   (PRD feedback: at the bottom they were easy to overlook on desktop). */
 .toast-region {
   position: fixed;
   inset-inline: var(--space-4);
-  bottom: calc(var(--bottom-nav-height) + var(--space-4));
+  top: calc(var(--header-height) + env(safe-area-inset-top) + var(--space-3));
   z-index: 60;
   display: grid;
   justify-items: center;
   gap: var(--space-2);
   pointer-events: none;
-}
-
-@media (min-width: 1024px) {
-  .toast-region {
-    inset-inline: auto var(--space-8);
-    bottom: var(--space-8);
-  }
 }
 
 .toast {
@@ -299,12 +374,13 @@
   align-items: center;
   gap: var(--space-3);
   max-width: min(100%, 560px);
-  min-height: 50px;
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
-  border: 1px solid var(--toast-accent);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  box-shadow: var(--shadow-card);
+  min-height: 52px;
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(24px) saturate(180%);
   pointer-events: auto;
   animation: toast-in var(--duration-base) var(--ease-out);
 }
@@ -319,8 +395,14 @@
 
 .toast__icon {
   flex: none;
-  color: var(--toast-accent);
-  font: var(--text-label-m);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--toast-accent);
+  color: var(--color-bg-page);
+  font: var(--font-weight-bold) 0.875rem / 1 var(--font-family);
 }
 
 .toast__message {
@@ -351,14 +433,14 @@
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(-8px) scale(0.98);
   }
 }
 
 @keyframes toast-out {
   to {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(-6px);
   }
 }
 
@@ -373,22 +455,15 @@
   font: var(--text-caption);
 }
 
-/* Release card */
+/* Release card: a 2:3 poster with the title and date below, like a shelf in Apple TV or Letterboxd */
 
 .release-card {
   --card-accent: var(--color-category-games);
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
   height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
-  transition:
-    transform var(--duration-base) var(--ease-out),
-    border-color var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease;
 }
 
 .release-card--movie {
@@ -403,9 +478,22 @@
   --card-accent: var(--color-category-anime);
 }
 
-.release-card__media {
-  aspect-ratio: 13 / 15;
-  background: color-mix(in srgb, var(--card-accent) 16%, var(--color-bg-raised));
+.release-card--manga {
+  --card-accent: var(--color-category-manga);
+}
+
+.release-card__poster {
+  /* A game's key art doesn't fill the poster, so the band around it takes the art's own colour. */
+  --poster-fill: color-mix(in srgb, var(--poster-tint, var(--card-accent)) 22%, var(--color-bg-raised));
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--poster-fill);
+  /* A hairline inside the edge keeps dark posters from melting into the page. */
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.2);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
 }
 
 .release-card__image {
@@ -420,34 +508,134 @@
   opacity: 1;
 }
 
-.release-card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-
-.release-card__category {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-  font: var(--text-caption);
-}
-
-.release-card__category::before {
+/* Games: the wide key art across the middle on a blurred copy of itself, the title below like a box cover */
+.release-card__poster::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  position: absolute;
+  inset: -12%;
+  background: var(--poster-art, none) center / cover;
+  filter: blur(18px) saturate(1.3) brightness(0.55);
+}
+
+.release-card__image--whole {
+  position: relative;
+  object-fit: contain;
+}
+
+.release-card__image--wide {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  translate: 0 -50%;
+}
+
+.release-card__box-title {
+  position: absolute;
+  inset: auto 0 0;
+  display: -webkit-box;
+  height: calc(50% - 28cqi);
+  padding: 0 7cqi 7cqi;
+  overflow: hidden;
+  align-content: end;
+  /* Always on darkened art, so it stays light in both themes. */
+  color: #fff;
+  font: var(--font-weight-heavy) clamp(1rem, 11cqi, 1.75rem) / 0.95 var(--font-display);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* The ticket stub: the drop date in release-board type, or the rating once it's out. */
+.release-card__stub {
+  position: absolute;
+  top: 6cqi;
+  left: 6cqi;
+  display: grid;
+  justify-items: center;
+  min-width: 13cqi;
+  padding: 1.5cqi 3cqi 2cqi;
+  border-radius: var(--radius-xs);
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+  font: var(--font-weight-heavy) clamp(1.125rem, 12cqi, 1.75rem) / 0.9 var(--font-display);
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.5);
+}
+
+.release-card__stub-month {
+  font-size: 0.5em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.release-card__stub--today,
+.release-card__stub--rating {
+  font-size: clamp(0.875rem, 8cqi, 1.125rem);
+  line-height: 1;
+}
+
+.release-card__stub--today {
+  text-transform: uppercase;
+}
+
+.release-card__stub--rating {
+  background: rgb(14 13 11 / 0.72);
+  /* Always on dark glass, so it keeps the dark theme's star colour in both themes. */
+  color: var(--amber-400);
+  backdrop-filter: blur(8px);
+}
+
+/* Save sits on the poster's top corner, opposite the stub, like Apple TV's "+". It's the card's child,
+   not the poster's: the poster is its own layer (container queries), which would trap it under the
+   card's stretched title link. */
+.release-card__save {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid rgb(255 255 255 / 0.18);
   border-radius: 50%;
-  background: var(--card-accent);
+  background: rgb(14 13 11 / 0.62);
+  color: #fff;
+  backdrop-filter: blur(12px) saturate(160%);
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.release-card__save[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+}
+
+.release-card__save:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* GSAP runs the press (M4). This is only the fallback when it isn't loaded; html.has-motion turns it off. */
+html:not(.has-motion) .release-card__save:active {
+  transform: scale(0.94);
+}
+
+.release-card__body {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .release-card__title {
   display: -webkit-box;
   overflow: hidden;
-  font: var(--text-h3);
+  font: var(--font-weight-semibold) 1rem / 1.3 var(--font-family);
   /* base.css balances headings, which spreads short titles over too many lines before the clamp. */
   text-wrap: wrap;
   -webkit-box-orient: vertical;
@@ -470,7 +658,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  border-radius: inherit;
+  border-radius: var(--radius-md);
 }
 
 .release-card__link:focus-visible {
@@ -479,64 +667,56 @@
 
 .release-card__link:focus-visible::after {
   outline: var(--focus-ring);
-  outline-offset: -3px;
+  outline-offset: 3px;
 }
 
-.release-card__date {
+.release-card__date,
+.release-card__meta {
   color: var(--color-text-secondary);
-  font: var(--text-body-s);
+  font: var(--text-caption);
 }
 
-.release-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.release-card__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.release-card__save {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  margin-top: auto;
-  padding-inline: var(--space-3);
-  white-space: nowrap;
-  transition:
-    background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    color var(--duration-fast) ease;
-}
-
-/* GSAP runs the press (M4). This is only the fallback when it isn't loaded; html.has-motion turns it off. */
-html:not(.has-motion) .release-card__save:active {
-  transform: scale(0.97);
-}
-
-.release-card--saved {
-  border-color: color-mix(in srgb, var(--color-accent-highlight) 50%, var(--color-border-default));
-}
-
-.release-card--saved .release-card__save {
-  border-color: var(--color-accent-highlight);
-  background: var(--color-action-tint);
-  color: var(--color-accent-highlight);
+.release-card__category::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--card-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .release-card:not(.release-card--loading):hover {
-    transform: translateY(-4px);
-    border-color: var(--color-border-strong);
-    box-shadow: var(--shadow-card);
+  .release-card:not(.release-card--loading):hover .release-card__poster {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1), var(--shadow-card);
   }
 
-  .release-card--saved:hover {
-    border-color: var(--color-accent-highlight);
+  .release-card__save:hover {
+    background: rgb(14 13 11 / 0.82);
+  }
+
+  .release-card__save[aria-pressed="true"]:hover {
+    background: var(--color-action-primary-hover);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .release-card:hover,
+  .release-card:hover .release-card__poster,
   .release-card__save:active {
     transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .release-card__save,
+  .release-card__stub--rating {
+    background: var(--ink-1000);
+    backdrop-filter: none;
   }
 }
 
@@ -555,8 +735,8 @@ html:not(.has-motion) .release-card__save:active {
   animation: skeleton-shimmer 1.4s linear infinite;
 }
 
-.release-card__media.skeleton {
-  border-radius: 0;
+.release-card__poster.skeleton {
+  border-radius: var(--radius-md);
 }
 
 .skeleton--line {
@@ -573,11 +753,6 @@ html:not(.has-motion) .release-card__save:active {
   height: 24px;
 }
 
-.skeleton--button {
-  height: var(--touch-target);
-  margin-top: auto;
-}
-
 @keyframes skeleton-shimmer {
   to {
     background-position: -150% 0;
@@ -590,28 +765,66 @@ html:not(.has-motion) .release-card__save:active {
   }
 }
 
-/* Category tabs */
+/* Segmented controls (category tabs and the When range): a sunken track with the chosen option
+   raised out of it, like iOS. The raised, outlined shape marks the choice without relying on colour. */
 
-.category-tabs {
+.category-tabs,
+.quick-range__options {
   display: flex;
-  flex-wrap: wrap;
+  gap: 2px;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--color-segment-track);
+  scrollbar-width: none;
+}
+
+.category-tab,
+.quick-range__option {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
   gap: var(--space-2);
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 3px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.category-tab[aria-selected="true"],
+.quick-range__option[aria-pressed="true"] {
+  border-color: var(--color-border-strong);
+  background: var(--color-segment-selected);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.category-tab:active,
+.quick-range__option:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .category-tab[aria-selected="false"]:hover,
+  .quick-range__option[aria-pressed="false"]:hover {
+    color: var(--color-text-primary);
+  }
 }
 
 .category-tab {
   --tab-accent: var(--color-category-games);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--touch-target);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-surface);
-  font: var(--text-label-m);
-  transition: background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) var(--ease-out);
 }
 
 .category-tab--movies {
@@ -626,33 +839,15 @@ html:not(.has-motion) .release-card__save:active {
   --tab-accent: var(--color-category-anime);
 }
 
+.category-tab--manga {
+  --tab-accent: var(--color-category-manga);
+}
+
 .category-tab__dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--tab-accent);
-}
-
-.category-tab[aria-selected="true"] {
-  border-color: var(--tab-accent);
-  box-shadow: inset 0 0 0 1px var(--tab-accent);
-  background: var(--color-bg-raised);
-}
-
-/* The tick is the non-colour cue for the selected tab. */
-.category-tab[aria-selected="true"]::before {
-  content: "✓";
-  content: "✓" / "";
-}
-
-.category-tab:active {
-  transform: scale(0.97);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .category-tab[aria-selected="false"]:hover {
-    border-color: var(--tab-accent);
-  }
 }
 
 /* Quick range */
@@ -661,46 +856,27 @@ html:not(.has-motion) .release-card__save:active {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .quick-range__label {
-  margin-inline-end: var(--space-1);
   color: var(--color-text-secondary);
   font: var(--text-caption);
 }
 
-.quick-range__option {
-  min-height: var(--touch-target);
-  padding: var(--space-3) var(--space-6);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  font: var(--text-label-m);
-  transition: background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) var(--ease-out);
-}
-
-.quick-range__option[aria-pressed="true"] {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
-}
-
-.quick-range__option:active {
-  transform: scale(0.97);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .quick-range__option[aria-pressed="false"]:hover {
-    background: var(--color-action-tint);
-  }
-}
-
 @media (max-width: 479px) {
+  .category-tab,
   .quick-range__option {
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-3);
+  }
+
+  /* Five tabs don't fit a phone, so the track scrolls; the fading edge shows there's more. */
+  .category-tabs {
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+
+  .category-tabs.is-scrolled-end {
+    mask-image: none;
   }
 
   .quick-range__label,
@@ -841,6 +1017,10 @@ html:not(.has-motion) .release-card__save:active {
 
 .quick-view[data-type="anime"] {
   --quick-view-accent: var(--color-category-anime);
+}
+
+.quick-view[data-type="manga"] {
+  --quick-view-accent: var(--color-category-manga);
 }
 
 .quick-view[open] {
@@ -1008,6 +1188,7 @@ html:has(.quick-view[open]) {
 .quick-view__overview {
   color: var(--color-text-secondary);
   max-width: 60ch;
+  white-space: pre-line;
 }
 
 .quick-view__providers {
@@ -1028,6 +1209,25 @@ html:has(.quick-view[open]) {
 
 .quick-view__provider-logo {
   border-radius: 50%;
+}
+
+.quick-view__provider:has(.quick-view__provider-link) {
+  padding: 0;
+}
+
+.quick-view__provider-link {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: inherit;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.quick-view__provider-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
 
 .quick-view__credit {
@@ -1087,14 +1287,17 @@ html:has(.quick-view[open]) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: var(--touch-target);
+  min-height: 40px;
   max-width: 100%;
   padding: 0 var(--space-4) 0 var(--space-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  color: var(--color-glass-text);
   font: var(--text-label-m);
   text-decoration: none;
-  transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(20px) saturate(180%);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .back-link span {
@@ -1104,8 +1307,7 @@ html:has(.quick-view[open]) {
 }
 
 .back-link:hover {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-tint);
+  background: var(--color-glass-hover);
 }
 
 /* Text button: low-emphasis actions like Share and Read more */
@@ -1143,44 +1345,50 @@ html:has(.quick-view[open]) {
   color: transparent;
 }
 
-/* Status buttons (Played / Playing / Backlog / Radar) */
+/* Status buttons (Want to / In progress / Done / Dropped): glass pills over the detail art; the chosen
+   one turns into the solid white pill, so its shape and fill mark it, not just colour. */
 
 .status-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
 .status-button {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: var(--space-1);
-  min-width: 0;
-  min-height: 68px;
-  padding: var(--space-2) var(--space-1);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4) 0 var(--space-3);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  color: var(--color-glass-text);
   font: var(--text-label-m);
+  backdrop-filter: blur(20px) saturate(180%);
   transition:
     background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
 
+.status-button svg {
+  width: 18px;
+  height: 18px;
+}
+
 .status-button:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
+  background: var(--color-glass-hover);
 }
 
 html:not(.has-motion) .status-button:active:not(:disabled) {
   transform: scale(0.96);
 }
 
-.status-button[aria-checked="true"] {
-  border-color: var(--color-action-primary);
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
+.status-button[aria-checked="true"],
+.status-button[aria-checked="true"]:hover {
+  border-color: #fff;
+  background: #fff;
+  color: var(--ink-950);
 }
 
 .status-button:disabled {
@@ -1188,9 +1396,11 @@ html:not(.has-motion) .status-button:active:not(:disabled) {
   cursor: progress;
 }
 
-@media (min-width: 768px) {
-  .status-buttons {
-    grid-template-columns: repeat(4, 84px);
+@media (prefers-reduced-transparency: reduce) {
+  .status-button,
+  .back-link {
+    background: var(--color-bg-raised);
+    backdrop-filter: none;
   }
 }
 
@@ -1457,27 +1667,29 @@ html:has(.log-modal[open]) {
   }
 }
 
-/* Library tabs: the selected list is a filled pill, the rest read as links (Figma) */
+/* Library tabs: the four lists as big numbers over their names, like a Letterboxd profile's stats.
+   The bar under the chosen one marks it, so it doesn't rely on colour alone. */
 
 .library-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  border-bottom: 1px solid var(--color-border-default);
+  gap: var(--space-2) var(--space-8);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .library-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+  display: grid;
+  justify-items: start;
+  gap: 2px;
   min-height: var(--touch-target);
   margin-bottom: -1px;
-  padding: 0 var(--space-1);
+  padding: 0 0 var(--space-3);
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   background: none;
   color: var(--color-text-secondary);
-  font: var(--text-label-m);
+  text-align: start;
+  white-space: nowrap;
   transition:
     color var(--duration-fast) ease,
     border-color var(--duration-fast) ease;
@@ -1487,35 +1699,42 @@ html:has(.log-modal[open]) {
   color: var(--color-text-primary);
 }
 
-/* The bar under the tab marks the selection, so it doesn't rely on colour alone. */
 .library-tab[aria-selected="true"] {
   border-bottom-color: var(--color-action-primary);
   color: var(--color-text-primary);
 }
 
 .library-tab__count {
+  font: var(--font-weight-heavy) clamp(2rem, 1.7rem + 1.4vw, 2.75rem) / 1 var(--font-display);
   font-variant-numeric: tabular-nums;
-  opacity: 0.85;
 }
 
-/* View toggle (List / Grid) */
+.library-tab__label {
+  font: var(--text-label-m);
+}
+
+.library-tab[aria-selected="false"] .library-tab__count {
+  opacity: 0.7;
+}
+
+/* View toggle (List / Grid): the same segmented control as Discover's tabs */
 
 .view-toggle {
   display: inline-flex;
-  gap: var(--space-1);
-  padding: 2px;
-  border: 1px solid var(--color-border-default);
+  gap: 2px;
+  padding: 3px;
   border-radius: var(--radius-md);
+  background: var(--color-segment-track);
 }
 
 .view-toggle__option {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: var(--touch-target);
+  min-height: 40px;
   padding: 0 var(--space-4);
-  border: 0;
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 3px);
   background: none;
   color: var(--color-text-secondary);
   font: var(--text-label-m);
@@ -1525,8 +1744,16 @@ html:has(.log-modal[open]) {
 }
 
 .view-toggle__option[aria-pressed="true"] {
-  background: var(--color-action-primary);
-  color: var(--color-action-on-primary);
+  border-color: var(--color-border-strong);
+  background: var(--color-segment-selected);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .view-toggle__option[aria-pressed="false"]:hover {
+    color: var(--color-text-primary);
+  }
 }
 
 /* Library row */
@@ -1595,6 +1822,10 @@ html:has(.log-modal[open]) {
   background: color-mix(in srgb, var(--color-category-anime) 16%, var(--color-bg-raised));
 }
 
+.library-row--manga .library-row__cover {
+  background: color-mix(in srgb, var(--color-category-manga) 16%, var(--color-bg-raised));
+}
+
 .library-row__image {
   width: 100%;
   height: 100%;
@@ -1615,6 +1846,8 @@ html:has(.log-modal[open]) {
 
 /* The title link stretches over the whole row; the ⋯ button and actions sit above it. */
 .library-row__link {
+  display: inline-block;
+  min-height: 24px;
   padding: 0;
   border: 0;
   background: none;
@@ -1629,6 +1862,36 @@ html:has(.log-modal[open]) {
   inset: 0;
   z-index: 1;
   border-radius: inherit;
+}
+
+.library-row__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.library-row__category::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--row-accent, var(--color-category-games));
+}
+
+.library-row--movie {
+  --row-accent: var(--color-category-movies);
+}
+
+.library-row--tv {
+  --row-accent: var(--color-category-tv);
+}
+
+.library-row--anime {
+  --row-accent: var(--color-category-anime);
+}
+
+.library-row--manga {
+  --row-accent: var(--color-category-manga);
 }
 
 .library-row__meta {
@@ -1689,6 +1952,7 @@ html:has(.log-modal[open]) {
 }
 
 .library-row__action {
+  gap: var(--space-2);
   min-height: 40px;
   padding-inline: var(--space-4);
   font-size: 0.875rem;
@@ -1743,7 +2007,7 @@ html:has(.log-modal[open]) {
 }
 
 .countdown__value {
-  font: var(--text-h1);
+  font: var(--font-weight-heavy) clamp(2rem, 1.6rem + 1.8vw, 2.75rem) / 1 var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1790,14 +2054,88 @@ html:has(.log-modal[open]) {
   margin-left: 0;
 }
 
+/* Trailer player: the full trailer, uncropped, with its own controls, over a dark scrim */
+
+.trailer-dialog {
+  width: min(100% - 2 * var(--space-4), 1100px);
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--grey-50);
+  animation: modal-in var(--duration-base) var(--ease-out);
+}
+
+.trailer-dialog::backdrop {
+  background: rgb(0 0 0 / 0.85);
+  backdrop-filter: blur(8px);
+}
+
+html:has(.trailer-dialog[open]) {
+  overflow: hidden;
+}
+
+.trailer-dialog__panel {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.trailer-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.trailer-dialog__title {
+  overflow: hidden;
+  font: var(--text-h2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailer-dialog__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 50%;
+  background: rgb(40 40 44 / 0.8);
+  color: inherit;
+}
+
+.trailer-dialog__close:hover {
+  background: rgb(60 60 66 / 0.9);
+}
+
+.trailer-dialog__frame {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: #000;
+  box-shadow: var(--shadow-float);
+}
+
+.trailer-dialog__frame > * {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* With GSAP loaded, the dialogs' entrances and exits are animated in JS (M5); the keyframes above stay as the fallback. */
 .has-motion .log-modal[open],
-.has-motion .quick-view[open] {
+.has-motion .quick-view[open],
+.has-motion .trailer-dialog[open] {
   animation: none;
 }
 
 .log-modal,
-.quick-view {
+.quick-view,
+.trailer-dialog {
   --dialog-x: 0%;
   --dialog-y: 0%;
   --dialog-scale: 1;
@@ -1859,7 +2197,7 @@ html:has(.log-modal[open]) {
 
 /* Poster fallback: the title as a title card when there's no art */
 
-.release-card__media,
+.release-card__poster,
 .library-row__cover,
 .quick-view__poster {
   position: relative;

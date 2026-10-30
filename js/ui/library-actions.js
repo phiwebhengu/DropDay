@@ -1,23 +1,13 @@
 import * as library from '../store/library.js';
+import { getStatusLabel, isReleased } from '../utils/media.js';
 import { setCardStatus } from './card.js';
 import { showToast } from './toast.js';
-
-const LIST_NAMES = {
-  played: 'Played',
-  playing: 'Playing',
-  backlog: 'Backlog',
-  radar: 'Radar',
-};
 
 const ERROR_MESSAGES = {
   corrupt: 'Nothing was saved because your Library data looks damaged. Open My Library to fix it.',
   unavailable: "Couldn't save. Your browser is blocking storage for this site.",
   'save-failed': "Couldn't save. Your browser storage may be full.",
 };
-
-function getDefaultStatus(release) {
-  return release.type === 'game' ? 'backlog' : 'radar';
-}
 
 function showError(error) {
   showToast({ type: 'error', message: ERROR_MESSAGES[error] ?? "Couldn't save. Please try again." });
@@ -28,18 +18,34 @@ function undo(result) {
   if (!undone.ok) showError(undone.error);
 }
 
-export function setReleaseStatus(release, status) {
-  const result = library.setStatus(release, status);
+// Wraps a store call: shows the error if it failed, and says whether there's anything to announce.
+function run(result) {
   if (!result.ok) {
     showError(result.error);
-    return;
+    return false;
   }
-  if (result.unchanged) return;
+  return !result.unchanged;
+}
+
+export function setReleaseStatus(release, status) {
+  const result = library.setStatus(release, status);
+  if (!run(result)) return;
 
   const verb = result.previous ? 'Moved' : 'Added';
   showToast({
-    message: `${verb} “${release.title}” to ${LIST_NAMES[status]}`,
+    message: `${verb} “${release.title}” to ${getStatusLabel(release.type, status)}`,
     viewHref: `library.html?tab=${status}`,
+    onUndo: () => undo(result),
+  });
+}
+
+export function setReminder(release, remind) {
+  const result = library.setRemind(release, remind);
+  if (!run(result)) return;
+
+  showToast({
+    message: remind ? `We’ll remind you when “${release.title}” drops` : `Reminder off for “${release.title}”`,
+    viewHref: remind ? 'library.html?tab=want' : undefined,
     onUndo: () => undo(result),
   });
 }
@@ -47,14 +53,11 @@ export function setReleaseStatus(release, status) {
 // Returns true when saved, so the Log modal knows whether it can close.
 export function saveLogEntry(release, log) {
   const result = library.saveLog(release, log);
-  if (!result.ok) {
-    showError(result.error);
-    return false;
-  }
+  if (!run(result)) return false;
 
   const rating = log.rating ? ` · ${log.rating}★` : '';
   showToast({
-    message: `Logged “${release.title}” as ${LIST_NAMES[log.status]}${rating}`,
+    message: `Logged “${release.title}” as ${getStatusLabel(release.type, log.status)}${rating}`,
     viewHref: `library.html?tab=${log.status}`,
     onUndo: () => undo(result),
   });
@@ -63,34 +66,33 @@ export function saveLogEntry(release, log) {
 
 export function removeRelease(release) {
   const result = library.removeEntry(release);
-  if (!result.ok) {
-    showError(result.error);
-    return;
-  }
-  if (!result.previous) return;
+  if (!run(result) || !result.previous) return;
 
   showToast({
-    message: `Removed “${release.title}” from ${LIST_NAMES[result.previous.status]}`,
+    message: `Removed “${release.title}” from ${getStatusLabel(release.type, result.previous.status)}`,
     onUndo: () => undo(result),
   });
 }
 
-// The one save action behind every + Backlog / + Radar button: saves, or removes when already saved.
-// Played and Playing hold a log and review, so those open the game page instead of being removed by one tap.
+// The one save action behind every card's save button. Not saved yet: released titles go to Want to,
+// upcoming ones also get Remind me. Already saved: removed, unless it holds progress or a log,
+// in which case a game opens its page instead of losing that work to one tap.
 export function toggleSave(release) {
-  const status = library.getStatus(release);
-  if (status === 'played' || status === 'playing') {
+  const entry = library.getEntry(release);
+  if (!entry) {
+    if (isReleased(release)) setReleaseStatus(release, 'want');
+    else setReminder(release, true);
+  } else if (release.type === 'game' && (entry.status === 'doing' || entry.status === 'done')) {
     location.href = `game.html?id=${release.id}`;
-  } else if (status) {
-    removeRelease(release);
   } else {
-    setReleaseStatus(release, getDefaultStatus(release));
+    removeRelease(release);
   }
 }
 
 // Brings every card under root in line with the Library, e.g. after an Undo or a change in another tab.
 export function syncCards(root) {
   root.querySelectorAll('.release-card[data-type]').forEach((card) => {
-    setCardStatus(card, library.getStatus({ type: card.dataset.type, id: card.dataset.id }));
+    const { source, type, id } = card.dataset;
+    setCardStatus(card, library.getEntry({ source, type, id }));
   });
 }
