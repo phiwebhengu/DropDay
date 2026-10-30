@@ -1,6 +1,7 @@
 import { animateToastIn } from '../motion.js';
 
-const HIDE_AFTER = 5000;
+// Long enough to read and reach Undo; hovering or focusing it pauses the timer too.
+const HIDE_AFTER = 6000;
 
 const ICONS = {
   success: '✓',

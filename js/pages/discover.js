@@ -1,3 +1,4 @@
+import * as anilist from '../api/anilist.js';
 import * as rawg from '../api/rawg.js';
 import * as tmdb from '../api/tmdb.js';
 import { RAWG_PLATFORMS } from '../config.js';
@@ -7,7 +8,7 @@ import { createStateMessage } from '../ui/states.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { animateGrid, captureGrid } from '../motion.js';
 import { syncCards, toggleSave } from '../ui/library-actions.js';
-import { getStatus } from '../store/library.js';
+import { getEntry } from '../store/library.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 
@@ -49,9 +50,19 @@ const CATEGORIES = {
     label: 'Anime',
     one: 'anime',
     many: 'anime',
-    load: tmdb.getAnime,
-    search: tmdb.searchAnime,
-    loadGenres: () => tmdb.getGenres('tv'),
+    load: anilist.getAnime,
+    search: anilist.searchAnime,
+    loadGenres: anilist.getGenres,
+  },
+  manga: {
+    label: 'Manga',
+    one: 'manga',
+    many: 'manga',
+    load: anilist.getManga,
+    search: anilist.searchManga,
+    loadGenres: anilist.getGenres,
+    // Manga has no release dates worth browsing, so this tab lists what's trending instead.
+    trending: true,
   },
 };
 
@@ -68,16 +79,20 @@ const RANGES = {
 };
 
 const CURRENT_PLATFORM_IDS = [RAWG_PLATFORMS.pc, RAWG_PLATFORMS.ps5, RAWG_PLATFORMS.xboxSeries, RAWG_PLATFORMS.switch];
-const ANIMATION_GENRE_ID = 16;
 
 const monthFormat = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' });
 
 const tabs = [...document.querySelectorAll('.category-tab')];
+const tabList = document.querySelector('.category-tabs');
 const rangeButtons = [...document.querySelectorAll('.quick-range__option')];
 const monthSelect = document.getElementById('filter-month');
 const platformSelect = document.getElementById('filter-platform');
 const genreSelect = document.getElementById('filter-genre');
 const platformField = document.getElementById('platform-field');
+const monthField = document.getElementById('month-field');
+const moreButton = document.getElementById('more-filters-button');
+const moreLabel = document.getElementById('more-filters-label');
+const moreFilters = document.getElementById('more-filters');
 const panel = document.getElementById('discover-results');
 const grid = document.getElementById('release-grid');
 const summary = document.getElementById('discover-summary');
@@ -98,9 +113,16 @@ let pagesLoaded = 0;
 let nextPage = null;
 let genresFor = null;
 let filterTimer;
+let moreOpen = false;
 
 function isId(value) {
   return /^\d+$/.test(value ?? '');
+}
+
+// RAWG and TMDB genres are numbers; AniList's are names like "Slice of Life" or "Sci-Fi".
+function isValidGenre(cat, value) {
+  if (cat === 'anime' || cat === 'manga') return /^[\w &-]{1,40}$/.test(value ?? '');
+  return isId(value);
 }
 
 function readState() {
@@ -113,7 +135,7 @@ function readState() {
     month,
     range: month ? '' : range,
     platform: cat === 'games' && isId(params.get('platform')) ? params.get('platform') : '',
-    genre: isId(params.get('genre')) ? params.get('genre') : '',
+    genre: isValidGenre(cat, params.get('genre')) ? params.get('genre') : '',
     q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH),
   };
 }
@@ -153,13 +175,41 @@ function renderSummary(state) {
     summary.textContent = resultCount === null ? `Results for “${state.q}”` : `${getSubject(state.cat)} found for “${state.q}”`;
     return;
   }
+  const genre = selectedText(genreSelect);
+  if (CATEGORIES[state.cat].trending) {
+    summary.textContent = `Trending ${CATEGORIES[state.cat].many} right now${genre ? ` · ${genre}` : ''}`;
+    return;
+  }
   const when = state.month ? `in ${selectedText(monthSelect) || state.month}` : RANGES[state.range];
   const platform = selectedText(platformSelect);
-  const genre = selectedText(genreSelect);
   let text = `${getSubject(state.cat)} dropping ${when}`;
   if (platform) text += ` on ${platform}`;
   if (genre) text += ` · ${genre}`;
   summary.textContent = text;
+}
+
+// Progressive disclosure (PRD feedback): Genre stays out front; Month and Platform wait behind
+// "More filters". The button counts the hidden ones in use, and a link that uses them opens it.
+function renderMoreFilters(state) {
+  const extras = [!monthField.hidden && state.month, !platformField.hidden && state.platform].filter(Boolean).length;
+  if (extras) moreOpen = true;
+  moreButton.hidden = monthField.hidden && platformField.hidden;
+  moreButton.setAttribute('aria-expanded', String(moreOpen));
+  moreLabel.textContent = extras ? `More filters · ${extras}` : 'More filters';
+  moreFilters.hidden = !moreOpen || moreButton.hidden;
+}
+
+// On phones the tabs scroll sideways inside their track. Only the track moves, never the page.
+function showSelectedTab(tab) {
+  if (!tab) return;
+  const track = tabList.getBoundingClientRect();
+  const box = tab.getBoundingClientRect();
+  if (box.left < track.left) tabList.scrollLeft -= track.left - box.left;
+  else if (box.right > track.right) tabList.scrollLeft += box.right - track.right;
+}
+
+function updateTabEdge() {
+  tabList.classList.toggle('is-scrolled-end', tabList.scrollLeft + tabList.clientWidth >= tabList.scrollWidth - 2);
 }
 
 function renderControls(state) {
@@ -169,20 +219,24 @@ function renderControls(state) {
     tab.tabIndex = selected ? 0 : -1;
   });
   panel.setAttribute('aria-labelledby', `tab-${state.cat}`);
+  showSelectedTab(tabs.find((tab) => tab.dataset.cat === state.cat));
 
   rangeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.range === state.range));
   });
 
   // Search looks across all dates, so the date and filter controls step aside while it's on.
-  quickRange.hidden = Boolean(state.q);
+  const { trending } = CATEGORIES[state.cat];
+  quickRange.hidden = Boolean(state.q) || trending;
   filters.hidden = Boolean(state.q);
+  monthField.hidden = trending;
   clearSearchButton.hidden = !state.q;
   searchForms.forEach((form) => {
     form.elements.q.value = state.q;
   });
 
   platformField.hidden = state.cat !== 'games';
+  renderMoreFilters(state);
   monthSelect.value = state.month;
   platformSelect.value = state.platform;
   genreSelect.value = state.genre;
@@ -218,13 +272,21 @@ async function fillPlatformOptions() {
   platformSelect.append(...current.map(({ id, name }) => createOption(id, name)), olderGroup);
 }
 
+// The list empties first, so a failed load never leaves another category's genres behind,
+// and genresFor is cleared on failure so the next visit tries again.
 async function fillGenreOptions(cat) {
   if (genresFor === cat) return;
   genresFor = cat;
-  const genres = await CATEGORIES[cat].loadGenres();
+  genreSelect.replaceChildren(createOption('', 'All genres'));
+  let genres;
+  try {
+    genres = await CATEGORIES[cat].loadGenres();
+  } catch (error) {
+    if (genresFor === cat) genresFor = null;
+    throw error;
+  }
   if (genresFor !== cat) return;
-  const usable = cat === 'anime' ? genres.filter((genre) => genre.id !== ANIMATION_GENRE_ID) : genres;
-  genreSelect.replaceChildren(createOption('', 'All genres'), ...usable.map(({ id, name }) => createOption(id, name)));
+  genreSelect.replaceChildren(createOption('', 'All genres'), ...genres.map(({ id, name }) => createOption(id, name)));
 }
 
 function wrapInListItem(element) {
@@ -240,7 +302,7 @@ function fetchPage(state, page) {
 }
 
 function appendCards(results) {
-  const cards = results.map((release) => createReleaseCard(release, { status: getStatus(release) }));
+  const cards = results.map((release) => createReleaseCard(release, { entry: getEntry(release) }));
   grid.append(...cards.map(wrapInListItem));
   return cards;
 }
@@ -334,7 +396,7 @@ async function loadReleases(state) {
           };
       showState(createStateMessage({ type: 'empty', ...message }));
     }
-  } catch {
+  } catch (error) {
     if (id !== requestId) return;
     clearTimeout(skeletonTimer);
     grid.replaceChildren();
@@ -344,7 +406,8 @@ async function loadReleases(state) {
       createStateMessage({
         type: 'error',
         title: 'We could not load releases',
-        text: 'Check your connection, then try again.',
+        // AniList allows a limited number of requests a minute, so a fast browse can hit it.
+        text: error?.status === 429 ? 'Too many requests at once. Wait a minute, then try again.' : 'Check your connection, then try again.',
         actionLabel: 'Retry',
         onAction: () => update({}),
       }),
@@ -397,6 +460,9 @@ function updateAfterPause(changes) {
   filterTimer = setTimeout(() => update(changes), FILTER_DELAY);
 }
 
+tabList.addEventListener('scroll', updateTabEdge, { passive: true });
+updateTabEdge();
+
 tabs.forEach((tab, index) => {
   // Genre and platform ids mean different things per category, so they reset on a tab change.
   tab.addEventListener('click', () => update({ cat: tab.dataset.cat, genre: '', platform: '' }));
@@ -419,6 +485,11 @@ monthSelect.addEventListener('change', () => {
   updateAfterPause(monthSelect.value ? { month: monthSelect.value, range: '' } : { month: '', range: 'month' });
 });
 platformSelect.addEventListener('change', () => updateAfterPause({ platform: platformSelect.value }));
+moreButton.addEventListener('click', () => {
+  moreOpen = !moreOpen;
+  renderMoreFilters(readState());
+});
+
 genreSelect.addEventListener('change', () => updateAfterPause({ genre: genreSelect.value }));
 loadMoreButton.addEventListener('click', () => loadMore());
 grid.addEventListener('release:save', (event) => toggleSave(event.detail.release));
