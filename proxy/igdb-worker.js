@@ -3,6 +3,8 @@
 // Secrets (set in the Cloudflare dashboard, never in this file): TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET.
 //
 // GET /covers?slugs=grand-theft-auto-vi,hades-ii  ->  { "grand-theft-auto-vi": "co9abc", "hades-ii": null }
+// Optional names (pipe-separated) and years (comma-separated), in the same order as slugs: RAWG and IGDB
+// don't always agree on a slug ("god-of-war-2" vs "god-of-war--1"), so a missed slug is tried by name.
 
 const ALLOWED_ORIGINS = [
   "https://phiwebhengu.github.io",
@@ -30,7 +32,7 @@ async function getToken(env) {
   return token;
 }
 
-async function findCovers(slugs, env, retry = true) {
+async function queryGames(body, env, retry = true) {
   const response = await fetch("https://api.igdb.com/v4/games", {
     method: "POST",
     headers: {
@@ -38,15 +40,46 @@ async function findCovers(slugs, env, retry = true) {
       Authorization: `Bearer ${await getToken(env)}`,
       Accept: "application/json",
     },
-    body: `fields slug, cover.image_id; where slug = (${slugs.map((slug) => `"${slug}"`).join(",")}); limit ${MAX_SLUGS};`,
+    body,
   });
   // A revoked token gets one fresh try.
   if (response.status === 401 && retry) {
     token = null;
-    return findCovers(slugs, env, false);
+    return queryGames(body, env, false);
   }
   if (!response.ok) throw new Error(`IGDB failed: ${response.status}`);
   return response.json();
+}
+
+// "God of War (2018)" on RAWG is plain "God of War" on IGDB.
+function cleanName(name) {
+  return name.replace(/[™®]/g, "").replace(/\s*\(\d{4}\)$/, "").replace(/\s+/g, " ").trim();
+}
+
+const quote = (text) => `"${text.replace(/["\\]/g, "")}"`;
+const yearOf = (seconds) => (seconds ? new Date(seconds * 1000).getUTCFullYear() : null);
+
+function findBySlug(slugs, env) {
+  return queryGames(
+    `fields slug, cover.image_id; where slug = (${slugs.map(quote).join(",")}); limit ${MAX_SLUGS};`,
+    env,
+  );
+}
+
+// Several games can share a name (God of War 2005 and 2018), so the one released in RAWG's year wins.
+async function findByName(wanted, env) {
+  const names = wanted.map(({ name }) => `name ~ ${quote(name)}`).join(" | ");
+  const games = await queryGames(
+    `fields name, first_release_date, cover.image_id; where cover != null & (${names}); limit 500;`,
+    env,
+  );
+  return Object.fromEntries(
+    wanted.map(({ slug, name, year }) => {
+      const matches = games.filter((game) => game.name.toLowerCase() === name.toLowerCase());
+      const best = matches.find((game) => yearOf(game.first_release_date) === year) ?? (matches.length === 1 ? matches[0] : null);
+      return [slug, best?.cover.image_id ?? null];
+    }),
+  );
 }
 
 function json(body, status, cors) {
@@ -73,17 +106,26 @@ export default {
     const url = new URL(request.url);
     if (url.pathname !== "/covers") return json({ error: "Not found" }, 404, cors);
 
-    const slugs = [...new Set((url.searchParams.get("slugs") ?? "").split(","))]
-      .filter((slug) => SLUG.test(slug))
+    const names = (url.searchParams.get("names") ?? "").split("|");
+    const years = (url.searchParams.get("years") ?? "").split(",");
+    const requested = (url.searchParams.get("slugs") ?? "").split(",").map((slug, index) => ({
+      slug,
+      name: cleanName(names[index] ?? "").slice(0, 120),
+      year: Number(years[index]) || null,
+    }));
+    const wanted = [...new Map(requested.filter(({ slug }) => SLUG.test(slug)).map((game) => [game.slug, game])).values()]
       .slice(0, MAX_SLUGS);
-    if (!slugs.length) return json({}, 200, cors);
+    if (!wanted.length) return json({}, 200, cors);
 
     try {
-      const games = await findCovers(slugs, env);
-      const covers = Object.fromEntries(slugs.map((slug) => [slug, null]));
+      const covers = Object.fromEntries(wanted.map(({ slug }) => [slug, null]));
+      const games = await findBySlug(wanted.map(({ slug }) => slug), env);
       games.forEach((game) => {
         if (game.cover?.image_id) covers[game.slug] = game.cover.image_id;
       });
+
+      const missed = wanted.filter(({ slug, name }) => !covers[slug] && name);
+      if (missed.length) Object.assign(covers, await findByName(missed, env));
       return json(covers, 200, cors);
     } catch (error) {
       return json({ error: error.message }, 502, cors);
