@@ -118,56 +118,62 @@
     </header>
 
     <main class="site-main site-main--home" id="main">
-      <section class="hero billboard theme-dark" id="hero" aria-roledescription="carousel" aria-labelledby="hero-heading" aria-busy="true">
-        <h1 class="visually-hidden" id="hero-heading">Drop Day: featured releases</h1>
-        <div class="hero__media billboard__media skeleton" id="hero-art" aria-hidden="true"></div>
-        <div class="billboard__body container">
-          <div class="hero__content billboard__content" id="hero-slide" aria-live="polite">
-            <p class="billboard__eyebrow" id="hero-eyebrow">Featured</p>
-            <h2 class="hero__title billboard__title" id="hero-title">
-              <span class="skeleton skeleton--heading hero__skeleton" aria-hidden="true"></span>
-            </h2>
-            <p class="hero__meta billboard__meta" id="hero-meta"></p>
-              <div class="countdown" id="countdown" role="timer" aria-label="Time until release">
-                <div class="countdown__unit">
-                  <span class="countdown__value" data-unit="days">--</span>
-                  <span class="countdown__label">Days</span>
+      <div class="billboard-stage">
+        <div class="billboard-stage__glow" id="hero-glow" aria-hidden="true">
+          <div class="billboard-stage__light"></div>
+          <div class="billboard-stage__light"></div>
+        </div>
+        <section class="hero billboard theme-dark" id="hero" aria-roledescription="carousel" aria-labelledby="hero-heading" aria-busy="true">
+          <h1 class="visually-hidden" id="hero-heading">Drop Day: featured releases</h1>
+          <div class="hero__media billboard__media skeleton" id="hero-art" aria-hidden="true"></div>
+          <div class="billboard__body container">
+            <div class="hero__content billboard__content" id="hero-slide" aria-live="polite">
+              <p class="billboard__eyebrow" id="hero-eyebrow">Featured</p>
+              <h2 class="hero__title billboard__title" id="hero-title">
+                <span class="skeleton skeleton--heading hero__skeleton" aria-hidden="true"></span>
+              </h2>
+              <p class="hero__meta billboard__meta" id="hero-meta"></p>
+                <div class="countdown" id="countdown" role="timer" aria-label="Time until release">
+                  <div class="countdown__unit">
+                    <span class="countdown__value" data-unit="days">--</span>
+                    <span class="countdown__label">Days</span>
+                  </div>
+                  <div class="countdown__unit">
+                    <span class="countdown__value" data-unit="hours">--</span>
+                    <span class="countdown__label">Hrs</span>
+                  </div>
+                  <div class="countdown__unit">
+                    <span class="countdown__value" data-unit="minutes">--</span>
+                    <span class="countdown__label">Min</span>
+                  </div>
+                  <div class="countdown__unit">
+                    <span class="countdown__value" data-unit="seconds">--</span>
+                    <span class="countdown__label">Sec</span>
+                  </div>
                 </div>
-                <div class="countdown__unit">
-                  <span class="countdown__value" data-unit="hours">--</span>
-                  <span class="countdown__label">Hrs</span>
-                </div>
-                <div class="countdown__unit">
-                  <span class="countdown__value" data-unit="minutes">--</span>
-                  <span class="countdown__label">Min</span>
-                </div>
-                <div class="countdown__unit">
-                  <span class="countdown__value" data-unit="seconds">--</span>
-                  <span class="countdown__label">Sec</span>
-                </div>
+              <div class="hero__actions billboard__actions">
+                <button class="button button--strong" id="hero-trailer" type="button" hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" /></svg>
+                  Watch trailer
+                </button>
+                <button class="button button--glass" id="hero-save" type="button" disabled>🔔 Remind me</button>
+                <a class="button button--glass" id="hero-details" href="discover.html">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" stroke-linecap="round" /></svg>
+                  More info
+                </a>
               </div>
-            <div class="hero__actions billboard__actions">
-              <button class="button button--strong" id="hero-trailer" type="button" hidden>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" /></svg>
-                Watch trailer
+            </div>
+            <div class="billboard__controls" id="hero-controls" hidden>
+              <div class="billboard__dots" id="hero-dots" role="group" aria-label="Choose a featured release"></div>
+              <button class="hero__sound billboard__button" id="hero-sound" type="button" aria-pressed="false" aria-label="Trailer sound" hidden></button>
+              <button class="billboard__pause billboard__button" id="hero-pause" type="button" aria-pressed="false" aria-label="Pause the featured releases">
+                <svg class="billboard__pause-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                <svg class="billboard__play-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
               </button>
-              <button class="button button--glass" id="hero-save" type="button" disabled>🔔 Remind me</button>
-              <a class="button button--glass" id="hero-details" href="discover.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" stroke-linecap="round" /></svg>
-                More info
-              </a>
             </div>
           </div>
-          <div class="billboard__controls" id="hero-controls" hidden>
-            <div class="billboard__dots" id="hero-dots" role="group" aria-label="Choose a featured release"></div>
-            <button class="hero__sound billboard__button" id="hero-sound" type="button" aria-pressed="false" aria-label="Trailer sound" hidden></button>
-            <button class="billboard__pause billboard__button" id="hero-pause" type="button" aria-pressed="false" aria-label="Pause the featured releases">
-              <svg class="billboard__pause-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-              <svg class="billboard__play-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
-            </button>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <div class="home container">
         <section class="shelf" id="month-shelf" aria-labelledby="month-title">
