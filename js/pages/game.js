@@ -6,10 +6,12 @@ import { openLogModal } from '../ui/log-modal.js';
 import { posterFallback } from '../ui/poster.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createReview } from '../ui/review.js';
+import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
-import { formatShortDate } from '../utils/dates.js';
+import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
 import { getStatusLabel, isReleased } from '../utils/media.js';
+import '../ui/immersive-header.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 
@@ -17,13 +19,15 @@ const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;
 const STANDARD_EDITION = 'Standard edition';
 
-const SIMILAR_COUNT = 5;
+const SIMILAR_COUNT = 12;
 
 const backLink = document.getElementById('back-link');
 const backLinkText = document.getElementById('back-link-text');
 const stateBox = document.getElementById('game-state');
 const hero = document.getElementById('game-hero');
+const backdrop = document.getElementById('game-backdrop');
 const cover = document.getElementById('game-cover');
+const facts = document.getElementById('game-facts');
 const eyebrow = document.getElementById('game-eyebrow');
 const title = document.getElementById('game-title');
 const meta = document.getElementById('game-meta');
@@ -40,7 +44,7 @@ const about = document.getElementById('game-about');
 const description = document.getElementById('game-description');
 const readMore = document.getElementById('read-more');
 const screenshots = document.getElementById('game-screenshots');
-const screenshotList = document.getElementById('screenshot-list');
+const screenshotList = document.getElementById('screenshots-list');
 const similar = document.getElementById('game-similar');
 const similarList = document.getElementById('similar-list');
 const similarSeeAll = document.getElementById('similar-see-all');
@@ -150,20 +154,42 @@ function renderDescription(text) {
   readMore.hidden = description.scrollHeight <= description.clientHeight + 1;
 }
 
+function renderImage(container, src, alt) {
+  container.classList.remove('skeleton');
+  if (!src) return;
+  const image = document.createElement('img');
+  image.src = src;
+  image.alt = alt;
+  image.addEventListener('error', () => image.remove(), { once: true });
+  container.append(image);
+}
+
+// Label and value pairs; anything RAWG doesn't know is left out rather than shown as "Unknown".
+function renderFacts() {
+  const rows = [
+    ['Release date', game.tba ? 'To be announced' : formatReleaseDate(game.date)],
+    ['Developer', game.developers.join(', ')],
+    ['Publisher', game.publishers.join(', ')],
+    ['Genres', game.genres.join(', ')],
+  ].filter(([, value]) => value);
+  facts.replaceChildren(
+    ...rows.map(([label, value]) => {
+      const item = createElement('div', 'facts__item', '');
+      item.append(createElement('dt', 'facts__label', label), createElement('dd', 'facts__value', value));
+      return item;
+    }),
+  );
+}
+
 function renderGame() {
   document.title = `${game.title} · Drop Day`;
   hero.setAttribute('aria-busy', 'false');
 
-  cover.classList.remove('skeleton');
+  // The wide key art fills the backdrop; the official cover (when IGDB has one) is the poster beside the title.
+  renderImage(backdrop, game.cover, '');
   cover.innerHTML = posterFallback(game.title);
-  if (game.cover) {
-    const image = document.createElement('img');
-    image.className = 'game__cover-image';
-    image.src = game.cover;
-    image.alt = `Cover art for ${game.title}`;
-    image.addEventListener('error', () => image.remove(), { once: true });
-    cover.append(image);
-  }
+  renderImage(cover, game.poster ?? game.cover, `Cover art for ${game.title}`);
+  cover.classList.toggle('game__cover--wide', !game.poster);
 
   eyebrow.textContent = ['Game', ...game.genres.slice(0, MAX_GENRES)].join(' · ');
   title.textContent = game.title;
@@ -180,6 +206,7 @@ function renderGame() {
   }
 
   renderStatus();
+  renderFacts();
   renderDescription(game.description);
 }
 
@@ -187,7 +214,6 @@ function renderScreenshots(urls) {
   screenshots.hidden = !urls.length;
   screenshotList.replaceChildren(
     ...urls.map((url, index) => {
-      const item = document.createElement('li');
       const image = document.createElement('img');
       image.className = 'screenshots__image';
       image.src = url;
@@ -197,6 +223,7 @@ function renderScreenshots(urls) {
       image.loading = 'lazy';
       image.decoding = 'async';
       // If every screenshot fails, the section goes too, rather than leaving a heading over nothing.
+      const item = createShelfItem(image);
       image.addEventListener(
         'error',
         () => {
@@ -205,22 +232,17 @@ function renderScreenshots(urls) {
         },
         { once: true },
       );
-      item.append(image);
       return item;
     }),
   );
+  updateShelfArrows(screenshots);
 }
 
 function renderSimilar(games) {
   similar.hidden = !games.length;
   similarSeeAll.href = `discover.html?cat=games&range=quarter&genre=${game.genreIds[0]}`;
-  similarList.replaceChildren(
-    ...games.map((release) => {
-      const item = document.createElement('li');
-      item.append(createReleaseCard(release, { entry: getEntry(release) }));
-      return item;
-    }),
-  );
+  similarList.replaceChildren(...games.map((release) => createShelfItem(createReleaseCard(release, { entry: getEntry(release) }))));
+  updateShelfArrows(similar);
 }
 
 // The extras load after the main details so the page is usable sooner; if they fail, their sections just stay hidden.
@@ -345,3 +367,5 @@ window.addEventListener('library:change', () => {
 renderBackLink();
 if (/^\d+$/.test(id ?? '')) loadGame();
 else showNotFound();
+
+document.querySelectorAll('.shelf').forEach(setupShelf);

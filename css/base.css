@@ -72,6 +72,15 @@ a {
   text-underline-offset: 3px;
 }
 
+/* Headings tighten as they grow (low specificity, so a component can still set its own). */
+:where(h1) {
+  letter-spacing: var(--tracking-display);
+}
+
+:where(h2, h3) {
+  letter-spacing: var(--tracking-heading);
+}
+
 ul[role="list"],
 ol[role="list"] {
   list-style: none;

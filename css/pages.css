@@ -23,6 +23,7 @@
 .discover {
   display: grid;
   gap: var(--space-6);
+  padding-top: var(--space-4);
 }
 
 .discover__header {
@@ -52,41 +53,110 @@
   text-underline-offset: 0.2em;
 }
 
+/* Posters read best small and many, like a video shop wall: 2 across on phones, up to 6 on wide screens. */
 .release-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-6) var(--space-3);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 560px) {
   .release-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .release-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-6);
   }
 }
 
 @media (min-width: 1024px) {
   .release-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1280px) {
   .release-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
+}
+
+/* One toolbar: the When control, then compact pill menus. A menu with a choice made lights up,
+   so the active filters read at a glance. */
+.discover__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .discover-filters {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3) var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-@media (min-width: 768px) {
-  .discover-filters {
-    grid-template-columns: repeat(3, minmax(0, 260px));
-  }
+.discover-filters .field__select {
+  width: auto;
+  max-width: 14rem;
+  min-height: 40px;
+  padding: 0 var(--space-8) 0 var(--space-4);
+  border-color: transparent;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-segment-track);
+  background-position: right var(--space-3) center;
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+}
+
+.discover-filters__more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filter-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.filter-more:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+.filter-more svg {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.filter-more[aria-expanded="true"] {
+  border-style: solid;
+  color: var(--color-text-primary);
+}
+
+.filter-more[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.discover-filters .field__select:has(option:checked:not([value=""])) {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-segment-selected);
+  color: var(--color-text-primary);
 }
 
 .discover__more {
@@ -105,32 +175,88 @@
   padding-block: var(--space-8);
 }
 
-/* Game detail */
+/* Detail page: the Apple TV product page. The key art fills a full-bleed backdrop under a clear header;
+   the poster, title and Library actions sit over its shade. Information and shelves follow below. */
 
-.game {
-  display: grid;
-  gap: var(--space-8);
+.site-main--immersive {
+  padding-top: 0;
 }
 
-.game__hero {
+.detail-hero {
+  position: relative;
+  isolation: isolate;
   display: grid;
+  align-items: end;
+  min-height: clamp(560px, 84svh, 880px);
+  margin-top: calc(-1 * (var(--header-height) + env(safe-area-inset-top)));
+  padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+  overflow: hidden;
+  background: var(--color-bg-sunken);
+  color: #fff;
+}
+
+.detail-hero__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ink-900);
+}
+
+.detail-hero__backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: transparent;
+}
+
+/* The shade keeps text readable on any art, and fades the art into the page below. */
+.detail-hero__backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, var(--ink-950) 0%, rgb(11 11 12 / 0.75) 28%, rgb(11 11 12 / 0.2) 60%, rgb(0 0 0 / 0.35) 100%),
+    linear-gradient(to right, rgb(0 0 0 / 0.6), transparent 60%);
+}
+
+:root[data-theme="light"] .detail-hero__backdrop::after {
+  background:
+    linear-gradient(to top, rgb(11 11 12 / 0.92) 8%, rgb(11 11 12 / 0.55) 32%, rgb(0 0 0 / 0.15) 62%, rgb(0 0 0 / 0.35) 100%),
+    linear-gradient(to right, rgb(0 0 0 / 0.6), transparent 60%);
+}
+
+.detail-hero__body {
+  display: grid;
+  align-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: inherit;
+  padding-block: var(--space-4) var(--space-12);
+}
+
+.detail-hero__layout {
+  display: grid;
+  align-items: end;
   gap: var(--space-6);
 }
 
 .game__cover {
   position: relative;
   container-type: inline-size;
-  aspect-ratio: 358 / 220;
+  width: min(44vw, 200px);
+  aspect-ratio: 2 / 3;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
+  border-radius: var(--radius-md);
+  background: var(--ink-850);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), var(--shadow-float);
 }
 
-.game__cover.skeleton {
-  background: var(--color-bg-raised);
+/* No official cover: the backdrop already shows the key art, so the poster spot steps aside. */
+.game__cover--wide {
+  display: none;
 }
 
-.game__cover-image {
+.game__cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -139,29 +265,29 @@
 
 .game__info {
   display: grid;
-  align-content: start;
+  justify-items: start;
+  align-content: end;
   gap: var(--space-4);
+  max-width: 52rem;
+  min-width: 0;
 }
 
 .game__eyebrow {
-  color: var(--color-category-games);
-  font: var(--text-label-m);
+  color: rgb(255 255 255 / 0.85);
+  font: var(--font-weight-semibold) 0.9375rem / 1.3 var(--font-family);
 }
 
 .game__title {
   font: var(--text-display-xl);
+  letter-spacing: var(--tracking-display);
+  text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .game__meta {
-  color: var(--color-text-secondary);
-  font: var(--text-body-l);
-}
-
-.game__platforms {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  color: rgb(255 255 255 / 0.85);
+  font: var(--font-weight-medium) 1.0625rem / 1.5 var(--font-family);
 }
 
 .game__rating {
@@ -176,27 +302,42 @@
 }
 
 .game__rating-source {
-  color: var(--color-text-secondary);
+  color: rgb(255 255 255 / 0.7);
   font: var(--text-body-s);
-}
-
-.game__library-label {
-  margin-top: var(--space-2);
-  color: var(--color-text-secondary);
-  font: var(--text-label-m);
 }
 
 .game__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3) var(--space-6);
+  gap: var(--space-3);
 }
 
-@media (max-width: 767px) {
-  .game__log-button {
-    flex-basis: 100%;
+.game__remove {
+  color: rgb(255 255 255 / 0.85);
+}
+
+@media (min-width: 768px) {
+  .detail-hero__layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: var(--space-12);
   }
+
+  .detail-hero__layout:has(.game__cover--wide) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .game__cover {
+    width: 100%;
+  }
+}
+
+/* Below the hero */
+
+.game {
+  display: grid;
+  gap: var(--space-12);
+  padding-top: var(--space-8);
 }
 
 .game__state {
@@ -205,12 +346,47 @@
 
 .game__section {
   display: grid;
-  justify-items: start;
-  gap: var(--space-3);
+  align-content: start;
+  gap: var(--space-4);
 }
 
 .game__section-title {
   font: var(--text-h2);
+}
+
+.game__overview {
+  display: grid;
+  gap: var(--space-12);
+}
+
+@media (min-width: 1024px) {
+  .game__overview {
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  }
+}
+
+/* Information: label over value, like Apple TV's info panel */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+
+.facts__label {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+}
+
+.facts__value {
+  margin: 2px 0 0;
+  font: var(--text-body-m);
+}
+
+.game__platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .your-log {
@@ -223,7 +399,6 @@
   gap: var(--space-3);
   max-width: 48rem;
   padding: var(--space-6);
-  border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
   background: var(--color-bg-surface);
 }
@@ -251,8 +426,9 @@
   max-width: 75ch;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
   color: var(--color-text-secondary);
+  font: var(--text-body-l);
   white-space: pre-line;
 }
 
@@ -260,58 +436,9 @@
   display: block;
 }
 
-@media (min-width: 1024px) {
-  .game__hero {
-    grid-template-columns: 340px 1fr;
-    gap: var(--space-12);
-    align-items: start;
-  }
-
-  .game__cover {
-    aspect-ratio: 340 / 450;
-  }
-}
-
-.game__section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
-  width: 100%;
-}
-
-.game__see-all {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--touch-target);
-  color: var(--color-accent-highlight);
-  font: var(--text-label-m);
-  text-decoration: none;
-}
-
-.game__see-all:hover {
-  text-decoration: underline;
-}
-
-.game__section--wide {
-  justify-items: stretch;
-}
-
-/* Screenshots: swipe row on phones (scroll-snap), four across on desktop */
-
-.screenshots {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 75%;
-  gap: var(--space-3);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.screenshots > li {
-  scroll-snap-align: start;
+/* Screenshots: a shelf of wide stills */
+.shelf .shelf__track--wide {
+  grid-auto-columns: clamp(260px, 78vw, 420px);
 }
 
 .screenshots__image {
@@ -325,20 +452,8 @@
 }
 
 @media (min-width: 768px) {
-  .screenshots {
-    grid-auto-columns: calc((100% - 3 * var(--space-6)) / 4);
-    gap: var(--space-6);
-  }
-}
-
-/* A single row: show only as many similar games as fit, so the last row is never half empty. */
-.release-grid--row > li:nth-child(n + 5) {
-  display: none;
-}
-
-@media (min-width: 1280px) {
-  .release-grid--row > li:nth-child(5) {
-    display: block;
+  .shelf .shelf__track--wide {
+    grid-auto-columns: calc((min(100vw, var(--container-max)) - 2 * var(--container-gutter) - 2 * var(--space-6)) / 3);
   }
 }
 
@@ -347,6 +462,7 @@
 .library {
   display: grid;
   gap: var(--space-8);
+  padding-top: var(--space-4);
 }
 
 .library__header {
@@ -363,68 +479,17 @@
   font: var(--text-body-l);
 }
 
-.library-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
-.library-stats__item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  width: 100%;
-  padding: var(--space-4) var(--space-6);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) var(--ease-out);
-}
-
-.library-stats__item:hover {
-  border-color: var(--color-border-strong);
-}
-
-.library-stats__item:active {
-  transform: scale(0.97);
-}
-
-.library-stats__item--current {
-  border-color: var(--color-accent-highlight);
-}
-
-.library-stats__label {
-  color: var(--color-text-secondary);
-  font: var(--text-body-s);
-}
-
-.library-stats__count {
-  font: var(--text-h1);
-  font-variant-numeric: tabular-nums;
-}
-
 .library__controls {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: end;
   justify-content: space-between;
   gap: var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .library__panel:focus {
   outline: none;
-}
-
-@media (min-width: 768px) {
-  .library-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-4);
-  }
 }
 
 /* Diary: Played as a Letterboxd-style log, one block per month */
@@ -501,45 +566,57 @@
 
 /* Home */
 
+.site-main {
+  overflow-x: clip;
+}
+
+.site-main--home {
+  padding-top: 0;
+}
+
 .home {
   display: grid;
   gap: var(--space-12);
+  padding-top: var(--space-8);
 }
 
-/* Billboard: the art fills the hero on desktop with the text over a scrim; on phones the art sits on top. */
-.hero {
+/* Billboard: edge to edge under a clear header, the art filling it and the text over a shade, like the
+   top of Apple TV. Several featured releases take turns (M2). */
+
+.billboard {
   position: relative;
   isolation: isolate;
   display: grid;
+  align-items: end;
+  min-height: clamp(520px, 78svh, 820px);
+  /* Pulled up under the sticky header, which starts out clear over the art. */
+  margin-top: calc(-1 * (var(--header-height) + env(safe-area-inset-top)));
+  padding-top: calc(var(--header-height) + env(safe-area-inset-top));
   overflow: hidden;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-sunken);
 }
 
 .hero__media {
-  position: relative;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   container-type: size;
-  aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: var(--color-bg-raised);
+  background: var(--ink-900);
 }
 
 .hero__media.skeleton {
   border-radius: 0;
 }
 
-/* A tinted panel only stands in when there's no art; behind real art it stays plain so the reveal is clean. */
-.hero__media:not(.skeleton):not(:has(img)) {
-  background: color-mix(in srgb, var(--color-category-games) 16%, var(--color-bg-raised));
-}
-
-/* The scrim isn't decoration: it keeps the title readable whatever colour the art is. */
+/* The shade isn't decoration: it keeps the title readable whatever colour the art is. */
 .hero__media::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, var(--color-bg-surface), transparent 45%);
+  background:
+    linear-gradient(to top, var(--color-bg-page) 0%, color-mix(in srgb, var(--color-bg-page) 70%, transparent) 22%, transparent 55%),
+    linear-gradient(to right, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.35) 38%, transparent 65%);
   pointer-events: none;
 }
 
@@ -553,19 +630,79 @@
   color: transparent;
 }
 
+/* While a preview plays, the shade lightens and the text steps back so the video can be seen,
+   like Netflix: details and countdown fold away and the title shrinks towards its corner. */
+.hero__media::after {
+  transition: opacity 800ms var(--ease-out);
+}
+
+.hero--watching .hero__media::after {
+  opacity: 0.65;
+}
+
+.billboard__eyebrow,
+.hero__meta,
+.billboard .countdown {
+  max-height: 8rem;
+  transition:
+    opacity 500ms var(--ease-out),
+    max-height 700ms var(--ease-out),
+    margin 700ms var(--ease-out);
+}
+
+.hero--watching .billboard__eyebrow,
+.hero--watching .hero__meta,
+.hero--watching .billboard .countdown {
+  max-height: 0;
+  margin-block: calc(var(--space-4) * -0.5);
+  overflow: hidden;
+  opacity: 0;
+}
+
+.hero__title {
+  transform-origin: left bottom;
+  transition: scale 700ms var(--ease-out);
+}
+
+.hero--watching .hero__title {
+  scale: 0.7;
+}
+
+/* All slides' art is stacked; the active one fades in over the others. */
+.hero__image {
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+.hero__image.is-active {
+  z-index: 1;
+  opacity: 1;
+}
+
+.hero__video {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__image {
+    transition-duration: 200ms;
+  }
+}
+
 .hero__video {
   opacity: 0;
   transition: opacity 600ms var(--ease-out);
 }
 
-/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit) and
-   ignores the pointer, which keeps hover on the hero and stops clicks landing on YouTube. */
+/* An embed can't use object-fit, so it's sized to always cover the panel (16:9 cropped to fit), plus
+   a fifth more, so YouTube's title bar and corner logo fall outside the frame. It ignores the pointer,
+   which keeps hover on the hero and stops clicks landing on YouTube. */
 .hero__video--embed {
   inset: auto;
   top: 50%;
   left: 50%;
-  width: max(100cqw, 177.78cqh);
-  height: max(100cqh, 56.25cqw);
+  width: calc(max(100cqw, 177.78cqh) * 1.2);
+  height: calc(max(100cqh, 56.25cqw) * 1.2);
   border: 0;
   pointer-events: none;
   translate: -50% -50%;
@@ -605,34 +742,61 @@
   }
 }
 
+.billboard__body {
+  display: grid;
+  gap: var(--space-6);
+  width: 100%;
+  padding-bottom: var(--space-8);
+}
+
 .hero__content {
   display: grid;
   justify-items: start;
-  align-content: end;
   gap: var(--space-4);
+  max-width: 44rem;
   min-width: 0;
-  padding: var(--space-6);
+  color: #fff;
 }
 
-.hero__eyebrow {
-  color: var(--color-accent-highlight);
-  font: var(--text-label-m);
+.billboard__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: rgb(255 255 255 / 0.85);
+  font: var(--font-weight-semibold) 0.9375rem / 1.3 var(--font-family);
+}
+
+.billboard__eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--eyebrow-accent, var(--color-accent-highlight));
 }
 
 .hero__title {
   max-width: 100%;
   font: var(--text-display-xl);
+  letter-spacing: var(--tracking-display);
+  text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
 
-/* Sized like the real title and date line, so nothing shifts when the game arrives. */
+/* Sized like the real title, so nothing shifts when the release arrives. */
 .hero__skeleton {
   width: min(480px, 80%);
-  height: 1.07em;
+  height: 1em;
 }
 
 .hero__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: start;
   text-decoration: none;
 }
 
@@ -640,13 +804,13 @@
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: auto;
-  text-underline-offset: 0.16em;
+  text-underline-offset: 0.12em;
 }
 
 .hero__meta {
-  min-height: 1.75rem;
-  color: var(--color-text-secondary);
-  font: var(--text-body-l);
+  min-height: 1.5rem;
+  color: rgb(255 255 255 / 0.85);
+  font: var(--font-weight-medium) 1rem / 1.5 var(--font-family);
 }
 
 .hero__actions {
@@ -656,179 +820,271 @@
   margin-top: var(--space-2);
 }
 
-.hero .countdown__unit {
-  background: color-mix(in srgb, var(--color-bg-sunken) 75%, transparent);
-  backdrop-filter: blur(8px);
+.billboard .countdown__unit {
+  border-color: var(--color-glass-border);
+  background: var(--color-glass);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+.billboard .countdown__label {
+  color: rgb(255 255 255 / 0.7);
+}
+
+/* Dots and the pause button, bottom right like Apple TV */
+.billboard__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.billboard__dots {
+  display: flex;
+  gap: 2px;
+}
+
+/* Small dots, but each sits in a 24px target. */
+.billboard__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.billboard__dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.45);
+  transition:
+    width var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.billboard__dot[aria-current="true"]::before {
+  width: 22px;
+  background: #fff;
+}
+
+.billboard__dot:hover::before {
+  background: rgb(255 255 255 / 0.8);
+}
+
+.billboard__pause {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-glass-border);
+  border-radius: 50%;
+  background: var(--color-glass);
+  color: #fff;
+  backdrop-filter: blur(16px);
+}
+
+.billboard__pause[aria-pressed="true"] .billboard__pause-icon,
+.billboard__pause[aria-pressed="false"] .billboard__play-icon {
+  display: none;
 }
 
 .hero__sound {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  right: var(--container-gutter);
+  bottom: var(--space-8);
+  z-index: 3;
   display: grid;
   place-items: center;
   width: var(--touch-target);
   height: var(--touch-target);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-glass-border);
   border-radius: 50%;
-  background: var(--color-scrim);
-  backdrop-filter: blur(8px);
-  transition: border-color var(--duration-fast) ease;
+  background: var(--color-glass);
+  color: #fff;
+  backdrop-filter: blur(16px);
 }
 
-.hero__sound:hover {
-  border-color: var(--color-text-primary);
+.hero--message {
+  min-height: clamp(360px, 50svh, 520px);
 }
 
 .hero--message .hero__media {
   display: none;
 }
 
-.hero--message .hero__content {
-  justify-items: stretch;
-}
-
-/* Without a featured game there's no art to fill, so the billboard shrinks to its message. */
-@media (min-width: 1024px) {
-  .hero--message {
-    min-height: 0;
-  }
-
-  .hero--message .hero__content {
-    max-width: none;
-  }
-}
-
 @media (min-width: 768px) {
-  .hero__content {
-    padding: var(--space-8) var(--space-12) var(--space-12);
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero {
-    min-height: clamp(480px, 68vh, 640px);
-  }
-
-  .hero__media {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    aspect-ratio: auto;
-  }
-
-  .hero__media::after {
-    background:
-      linear-gradient(to right, color-mix(in srgb, var(--color-bg-sunken) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg-sunken) 60%, transparent) 40%, transparent 70%),
-      linear-gradient(to top, color-mix(in srgb, var(--color-bg-sunken) 70%, transparent), transparent 40%);
-  }
-
-  .hero__content {
-    max-width: 40rem;
+  .billboard__body {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    padding-bottom: var(--space-12);
   }
 
   .hero__sound {
-    top: var(--space-6);
-    right: var(--space-6);
+    bottom: calc(var(--space-12) + 48px);
   }
 }
 
-.home__section {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-6);
+/* Light theme: the billboard stays dark like Apple TV's, ending on a clean edge above the light page. */
+:root[data-theme="light"] .hero__media::after {
+  background:
+    linear-gradient(to top, rgb(0 0 0 / 0.75) 0%, transparent 55%),
+    linear-gradient(to right, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.35) 38%, transparent 65%);
 }
 
-.home__section-head {
+:root[data-theme="light"] .billboard__body {
+  padding-bottom: var(--space-16);
+}
+
+/* Shelves: a heading, then a row of posters that swipes on touch and pages with arrows on desktop.
+   The row runs to the screen edge (no box), the first poster lines up with the page text. */
+
+.shelf {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.shelf__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
 }
 
-.home__section-title {
+.shelf__title {
   font: var(--text-h2);
 }
 
-.home__see-all {
+.shelf__see-all {
   display: inline-flex;
   align-items: center;
   min-height: var(--touch-target);
-  color: var(--color-accent-highlight);
+  color: var(--color-text-secondary);
   font: var(--text-label-m);
   text-decoration: none;
-  white-space: nowrap;
 }
 
-.home__see-all:hover {
-  text-decoration: underline;
+.shelf__see-all:hover {
+  color: var(--color-text-primary);
 }
 
-.home__empty {
+.shelf__empty {
   color: var(--color-text-secondary);
 }
 
-@media (min-width: 1024px) {
-  .home__up-next {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.shelf__viewport {
+  position: relative;
+  margin-inline: calc(-1 * var(--container-gutter));
 }
 
-/* Horizontal strip: swipe with snap points; M2 pins it on desktop later (#27) */
-
-.release-strip {
+.shelf .shelf__track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: calc((100% - var(--space-3)) / 2.2);
+  grid-auto-columns: clamp(132px, 38vw, 176px);
   gap: var(--space-3);
-  padding-bottom: var(--space-2);
+  padding: var(--space-2) var(--container-gutter) var(--space-3);
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--container-gutter);
   scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
-.release-strip > li {
+.shelf__track::-webkit-scrollbar {
+  display: none;
+}
+
+.shelf__item {
+  position: relative;
   scroll-snap-align: start;
 }
 
-@media (min-width: 640px) {
-  .release-strip {
-    grid-auto-columns: calc((100% - 2 * var(--space-6)) / 3.2);
+/* Top 10: a huge outlined rank number tucked behind each poster */
+.shelf--ranked .shelf__track {
+  grid-auto-columns: clamp(170px, 50vw, 236px);
+}
+
+.shelf--ranked .shelf__item {
+  display: grid;
+  grid-template-columns: 32% 1fr;
+  align-items: start;
+}
+
+.shelf__rank {
+  margin-top: 18%;
+  margin-right: -12%;
+  color: var(--color-bg-page);
+  font: var(--font-weight-heavy) clamp(5.5rem, 22vw, 8.5rem) / 0.8 var(--font-display);
+  text-align: end;
+  -webkit-text-stroke: 2px var(--color-text-secondary);
+  paint-order: stroke fill;
+  user-select: none;
+}
+
+.shelf--ranked .release-card {
+  z-index: 1;
+}
+
+.shelf__arrow {
+  position: absolute;
+  top: calc(50% - 40px);
+  z-index: 3;
+  display: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 50%;
+  background: var(--color-glass);
+  color: #fff;
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--shadow-card);
+  translate: 0 -50%;
+}
+
+.shelf__arrow--prev {
+  left: var(--space-2);
+}
+
+.shelf__arrow--next {
+  right: var(--space-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .shelf__arrow:not([hidden]) {
+    display: grid;
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-out);
+  }
+
+  .shelf__viewport:hover .shelf__arrow,
+  .shelf__arrow:focus-visible {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .home {
+    gap: var(--space-16);
+    padding-top: var(--space-12);
+  }
+
+  .shelf__track {
+    grid-auto-columns: calc((min(100vw, var(--container-max)) - 2 * var(--container-gutter) - 5 * var(--space-6)) / 6);
     gap: var(--space-6);
   }
-}
 
-@media (min-width: 1024px) {
-  .release-strip {
-    grid-auto-columns: calc((100% - 4 * var(--space-6)) / 5);
+  .shelf--ranked .shelf__track {
+    grid-auto-columns: calc((min(100vw, var(--container-max)) - 2 * var(--container-gutter) - 3 * var(--space-6)) / 4.4);
   }
 }
 
-/* Pinned strip (M2, desktop): GSAP moves it, so it drops its own scrollbar and may run past the container */
-
-.site-main {
-  overflow-x: clip;
-}
-
-.release-strip--pinned {
-  overflow: visible;
-  scroll-snap-type: none;
-}
-
-.release-strip__progress {
-  height: 3px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--color-bg-raised);
-}
-
-.release-strip__progress > span {
-  display: block;
-  height: 100%;
-  background: var(--color-accent-highlight);
-  transform: scaleX(0);
-  transform-origin: left center;
+@media (min-width: 768px) and (max-width: 1023px) {
+  .shelf__track {
+    grid-auto-columns: calc((100vw - 2 * var(--container-gutter) - 3 * var(--space-6)) / 4.3);
+  }
 }
 
 /* While the next set of releases loads, the current cards dim instead of vanishing (M3 needs them for Flip). */

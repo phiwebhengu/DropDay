@@ -21,7 +21,6 @@ const EMPTY_TEXT = {
 };
 
 const tabs = [...document.querySelectorAll('.library-tab')];
-const statButtons = [...document.querySelectorAll('[data-stat]')];
 const viewButtons = [...document.querySelectorAll('.view-toggle__option')];
 const panel = document.getElementById('library-panel');
 const activityList = document.getElementById('activity-list');
@@ -47,9 +46,6 @@ function renderCounts() {
   document.querySelectorAll('[data-count]').forEach((element) => {
     countTo(element, counts[element.dataset.count]);
   });
-  document.querySelectorAll('[data-tab-count]').forEach((element) => {
-    element.textContent = counts[element.dataset.tabCount];
-  });
 }
 
 function renderControls(state) {
@@ -58,7 +54,6 @@ function renderControls(state) {
     tab.setAttribute('aria-selected', String(selected));
     tab.tabIndex = selected ? 0 : -1;
   });
-  statButtons.forEach((button) => button.classList.toggle('library-stats__item--current', button.dataset.stat === state.tab));
   panel.setAttribute('aria-labelledby', `tab-${state.tab}`);
   viewButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.view === state.view)));
 }
@@ -249,14 +244,6 @@ tabs.forEach((tab, index) => {
     const next = tabs[(index + step + tabs.length) % tabs.length];
     next.focus();
     next.click();
-  });
-});
-
-// The big counts open their list too, since testers tapped them expecting that.
-statButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    update({ tab: button.dataset.stat });
-    document.getElementById(`tab-${button.dataset.stat}`).focus();
   });
 });
 

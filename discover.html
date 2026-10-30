@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700;800&display=swap"
     />
     <script>
       // Sets the theme before anything paints: the saved choice, otherwise the system setting.
@@ -211,60 +211,71 @@
           </button>
         </div>
 
-        <div
-          class="quick-range"
-          id="quick-range"
-          role="group"
-          aria-labelledby="quick-range-label"
-        >
-          <span class="quick-range__label" id="quick-range-label">When</span>
-          <button
-            class="quick-range__option"
-            type="button"
-            data-range="week"
-            aria-pressed="false"
+        <div class="discover__toolbar">
+          <div
+            class="quick-range"
+            id="quick-range"
+            role="group"
+            aria-labelledby="quick-range-label"
           >
-            This week
-          </button>
-          <button
-            class="quick-range__option"
-            type="button"
-            data-range="month"
-            aria-pressed="false"
-          >
-            This month
-          </button>
-          <button
-            class="quick-range__option"
-            type="button"
-            data-range="quarter"
-            aria-pressed="false"
-          >
-            <span class="quick-range__extra">Next </span>3 months
-          </button>
-        </div>
+            <span class="quick-range__label visually-hidden" id="quick-range-label">When</span>
+            <div class="quick-range__options">
+              <button
+                class="quick-range__option"
+                type="button"
+                data-range="week"
+                aria-pressed="false"
+              >
+                This week
+              </button>
+              <button
+                class="quick-range__option"
+                type="button"
+                data-range="month"
+                aria-pressed="false"
+              >
+                This month
+              </button>
+              <button
+                class="quick-range__option"
+                type="button"
+                data-range="quarter"
+                aria-pressed="false"
+              >
+                <span class="quick-range__extra">Next </span>3 months
+              </button>
+            </div>
+          </div>
 
-        <div class="discover-filters" id="discover-filters">
-          <div class="field" id="month-field">
-            <label class="field__label" for="filter-month">Month</label>
-            <select class="field__select" id="filter-month" name="month" autocomplete="off">
-              <option value="">Pick a month</option>
-            </select>
-          </div>
-          <div class="field" id="platform-field">
-            <label class="field__label" for="filter-platform">Platform</label>
-            <select class="field__select" id="filter-platform" name="platform" autocomplete="off">
-              <option value="">All platforms</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="field__label" for="filter-genre">Genre</label>
-            <select class="field__select" id="filter-genre" name="genre" autocomplete="off">
-              <option value="">All genres</option>
-            </select>
+          <div class="discover-filters" id="discover-filters">
+            <div class="field">
+              <label class="field__label visually-hidden" for="filter-genre">Genre</label>
+              <select class="field__select" id="filter-genre" name="genre" autocomplete="off">
+                <option value="">All genres</option>
+              </select>
+            </div>
+            <button class="filter-more" id="more-filters-button" type="button" aria-expanded="false" aria-controls="more-filters">
+              <span id="more-filters-label">More filters</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <div class="discover-filters__more" id="more-filters" hidden>
+              <div class="field" id="month-field">
+                <label class="field__label visually-hidden" for="filter-month">Month</label>
+                <select class="field__select" id="filter-month" name="month" autocomplete="off">
+                  <option value="">Any month</option>
+                </select>
+              </div>
+              <div class="field" id="platform-field">
+                <label class="field__label visually-hidden" for="filter-platform">Platform</label>
+                <select class="field__select" id="filter-platform" name="platform" autocomplete="off">
+                  <option value="">All platforms</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-
         <section
           class="discover__results"
           id="discover-results"

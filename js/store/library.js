@@ -124,6 +124,7 @@ function createEntry(release, status) {
     subtype: release.subtype ?? null,
     title: release.title,
     image: release.image ?? null,
+    poster: release.poster ?? null,
     date: release.date ?? null,
     tba: Boolean(release.tba),
     season: release.season ?? null,
