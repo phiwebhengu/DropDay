@@ -33,6 +33,7 @@ const PLATFORM_NAMES = {
 
 const hero = document.getElementById('hero');
 const heroArt = document.getElementById('hero-art');
+const heroGlowLights = [...document.querySelectorAll('.billboard-stage__light')];
 const heroSlide = document.getElementById('hero-slide');
 const heroEyebrow = document.getElementById('hero-eyebrow');
 const heroTitle = document.getElementById('hero-title');
@@ -150,6 +151,17 @@ function renderTitle(release, logo) {
 }
 
 const ART_WAIT = 1500;
+
+// The screen lights the page: two layers take turns, so the glow cross-fades to the new slide's art.
+let glowIndex = 0;
+function lightPage(art) {
+  if (!art) return;
+  const [current, next] = glowIndex === 0 ? heroGlowLights : [...heroGlowLights].reverse();
+  next.style.setProperty('--glow-art', `url("${art.replaceAll('"', '%22')}")`);
+  next.classList.add('is-active');
+  current.classList.remove('is-active');
+  glowIndex = 1 - glowIndex;
+}
 const CATEGORY_NAMES = { game: 'games', movie: 'movies' };
 
 // Every slide's art is built (and starts downloading) as soon as the billboard loads, stacked under the
@@ -226,8 +238,7 @@ async function showSlide(index) {
   const category = `var(--color-category-${CATEGORY_NAMES[release.type] ?? release.type})`;
   heroEyebrow.textContent = `${label} · ${getTypeLabel(release)}`;
   heroEyebrow.style.setProperty('--eyebrow-accent', category);
-  // The page takes on a glow of the release's own colour (Drop Day's ambient light).
-  home.style.setProperty('--hero-tint', release.tint ?? category);
+  lightPage(release.cover);
   heroTitle.replaceChildren(renderTitle(release, logo));
   heroTitle.classList.toggle('hero__title--logo', Boolean(logo));
   heroMeta.textContent = getMeta(release);

@@ -585,23 +585,61 @@
 }
 
 /* Billboard: a large rounded screen set into the page, like Netflix's home, the art filling it and the
-   text over a shade. Several featured releases take turns (M2). Behind it, the page glows with the
-   current release's colour, which shifts as the slides change. */
+   text over a shade. Several featured releases take turns (M2).
 
-.home {
+   Behind it, the screen lights the page: a soft, blurred copy of the current art spills out evenly on
+   every side (like a TV's ambient light), so the glow always matches the picture and looks the same on
+   a phone and a desktop. */
+
+.billboard-stage {
   position: relative;
   isolation: isolate;
+  width: calc(100% - 2 * var(--container-gutter));
+  max-width: calc(var(--container-max) + 2 * var(--space-12));
+  margin-inline: auto;
 }
 
-.home::before {
-  content: "";
+.billboard-stage__glow {
   position: absolute;
-  inset: calc(-1 * var(--space-8)) 0 auto;
+  /* A little wider than the screen and reaching further below it, where ambient light pools. */
+  inset: 6% -2% -10%;
   z-index: -1;
-  height: min(90svh, 900px);
-  background: radial-gradient(70% 60% at 30% 35%, color-mix(in srgb, var(--hero-tint, transparent) 32%, transparent), transparent 70%);
-  transition: background 1.2s var(--ease-out);
   pointer-events: none;
+}
+
+.billboard-stage__light {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-hero);
+  background: var(--glow-art, none) center / cover;
+  opacity: 0;
+  filter: blur(var(--glow-blur)) saturate(1.4);
+  transition: opacity 1.2s var(--ease-out);
+}
+
+.billboard-stage__light.is-active {
+  opacity: var(--glow-strength);
+}
+
+.billboard-stage {
+  --glow-blur: 64px;
+  --glow-strength: 0.7;
+}
+
+:root[data-theme="light"] .billboard-stage {
+  --glow-strength: 0.5;
+}
+
+@media (max-width: 767px) {
+  .billboard-stage {
+    --glow-blur: 32px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .billboard-stage__glow {
+    display: none;
+  }
 }
 
 .billboard {
@@ -609,17 +647,11 @@
   isolation: isolate;
   display: grid;
   align-items: end;
-  width: calc(100% - 2 * var(--container-gutter));
-  max-width: calc(var(--container-max) + 2 * var(--space-12));
   min-height: clamp(480px, 74svh, 780px);
-  margin-inline: auto;
   overflow: hidden;
   border-radius: var(--radius-hero);
   background: var(--ink-900);
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.06),
-    0 40px 100px -40px color-mix(in srgb, var(--hero-tint, #000) 60%, transparent);
-  transition: box-shadow 1.2s var(--ease-out);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
 }
 
 .hero__media {
@@ -857,6 +889,27 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+/* Phones: Watch trailer across the full width, the other two side by side under it, like Netflix's
+   app, instead of three buttons stacked down the screen. */
+@media (max-width: 559px) {
+  .hero__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .hero__actions > * {
+    justify-content: center;
+    min-width: 0;
+    padding-inline: var(--space-3);
+    white-space: nowrap;
+  }
+
+  .hero__actions > :first-child:not([hidden]) {
+    grid-column: 1 / -1;
+  }
 }
 
 .billboard .countdown__unit {
