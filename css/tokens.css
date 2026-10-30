@@ -84,7 +84,7 @@
   --color-category-tv: var(--sky-400);
   --color-category-anime: var(--rose-400);
   --color-category-manga: var(--violet-400);
-  --color-header-bg: rgb(11 11 12 / 0.72);
+  --color-header-bg: rgb(22 22 24 / 0.88);
   --color-scrim: rgb(5 5 6 / 0.72);
   --color-skeleton-shine: var(--ink-800);
   /* Segmented controls: a sunken track with the chosen option raised out of it, like iOS. */
@@ -215,7 +215,7 @@
   --color-category-tv: #2f68ad;
   --color-category-anime: #a83f74;
   --color-category-manga: #6b51b8;
-  --color-header-bg: rgb(245 245 247 / 0.78);
+  --color-header-bg: rgb(255 255 255 / 0.86);
   --color-scrim: rgb(29 29 31 / 0.45);
   --color-skeleton-shine: var(--mist-100);
   --color-overlay: rgb(255 255 255 / 0.82);

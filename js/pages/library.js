@@ -10,6 +10,7 @@ import { LIST_NAMES, STATUSES, getStatusLabel } from '../utils/media.js';
 import { countTo } from '../motion.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
+import '../ui/site-header.js';
 
 const VIEWS = ['list', 'grid'];
 

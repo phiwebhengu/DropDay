@@ -11,9 +11,9 @@ import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
 import { getStatusLabel, isReleased } from '../utils/media.js';
-import '../ui/immersive-header.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
+import '../ui/site-header.js';
 
 const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;
