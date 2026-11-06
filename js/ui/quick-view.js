@@ -7,7 +7,7 @@ import { getEntry } from '../store/library.js';
 import { toggleSave } from './library-actions.js';
 import { closeDialog, openDialog } from '../motion.js';
 import { formatShortDate } from '../utils/dates.js';
-import { getTypeLabel } from '../utils/media.js';
+import { getDetailUrl, getTypeLabel } from '../utils/media.js';
 
 let dialog;
 let opener;
@@ -39,7 +39,7 @@ function count(number, word) {
   return `${number} ${word}${number === 1 ? '' : 's'}`;
 }
 
-function getFacts(details) {
+export function getFacts(details) {
   const facts = [];
   if (details.runtime) facts.push(formatRuntime(details.runtime));
   if (details.seasons) facts.push(count(details.seasons, 'season'));
@@ -88,6 +88,7 @@ function createDialog() {
       <div class="quick-view__actions" data-reveal>
         <button class="button button--primary quick-view__save" type="button" aria-pressed="false"></button>
         <button class="button button--outline quick-view__trailer-button" type="button" hidden>Watch trailer</button>
+        <a class="button button--outline quick-view__page" href="discover.html">Open full page</a>
       </div>
       <div class="quick-view__trailer" hidden></div>
       <div class="quick-view__details" aria-live="polite" data-reveal></div>
@@ -162,6 +163,8 @@ function renderIntro(release) {
   }
 
   renderSaveButton();
+  // The full page has everything the drawer leaves out: logging, reviews, episodes and more like it.
+  dialog.querySelector('.quick-view__page').href = getDetailUrl(release);
 
   dialog.querySelector('.quick-view__trailer-button').hidden = true;
   const trailer = dialog.querySelector('.quick-view__trailer');
@@ -186,7 +189,7 @@ function createSection(title) {
 }
 
 // TMDB lists South African streaming services; AniList lists official sites worldwide, as links.
-function createProviders({ source, type, providers }) {
+export function createProviders({ source, type, providers }) {
   const fromAniList = source === 'anilist';
   const verb = type === 'manga' ? 'read' : 'watch';
   const section = createSection(fromAniList ? `Where to ${verb}` : 'Where to watch in South Africa');
@@ -253,7 +256,7 @@ function renderError(release) {
   );
 }
 
-function getDetails({ source, type, id }) {
+export function getDetails({ source, type, id }) {
   if (source === 'anilist') return anilist.getMedia(id);
   return type === 'movie' ? tmdb.getMovie(id) : tmdb.getShow(id, type);
 }

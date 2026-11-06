@@ -38,6 +38,7 @@ const logButton = document.getElementById('log-button');
 const shareButton = document.getElementById('share-button');
 const removeButton = document.getElementById('remove-button');
 const remindButton = document.getElementById('remind-button');
+const remindNote = document.getElementById('remind-note');
 const yourLog = document.getElementById('your-log');
 const yourLogCard = document.getElementById('your-log-card');
 const about = document.getElementById('game-about');
@@ -113,9 +114,10 @@ function renderStatus() {
   logButton.disabled = false;
   logButton.textContent = getEntry(game)?.loggedAt ? 'Edit your log' : 'Log or review';
 
-  // A reminder only makes sense before release day.
+  // A reminder only makes sense before release day, and with no accounts it can only live on this device.
   const remind = Boolean(getEntry(game)?.remind);
   remindButton.hidden = isReleased(game);
+  remindNote.hidden = remindButton.hidden;
   remindButton.setAttribute('aria-pressed', String(remind));
   remindButton.textContent = remind ? '🔔 Reminder on' : '🔔 Remind me';
   renderYourLog();

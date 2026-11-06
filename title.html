@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en-ZA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Details · Drop Day</title>
+    <meta
+      name="description"
+      content="Release date, where to watch or read, episodes and your log for this film, show, anime or manga."
+    />
+    <meta name="theme-color" content="#141311" />
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700;800&display=swap"
+    />
+    <script>
+      // Sets the theme before anything paints: the saved choice, otherwise the system setting.
+      (() => {
+        let theme = null;
+        try {
+          theme = localStorage.getItem("dropday.theme");
+        } catch {}
+        document.documentElement.dataset.theme =
+          theme ?? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      })();
+    </script>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/pages.css" />
+  </head>
+  <body data-page="title">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header site-header--over-art">
+      <div class="site-header__inner container">
+        <a class="site-header__logo" href="index.html">
+          <span class="site-header__logo-dot" aria-hidden="true"></span>
+          Drop Day
+        </a>
+
+        <nav class="site-nav" aria-label="Main">
+          <ul class="site-nav__list" role="list">
+            <li><a class="site-nav__link" href="index.html">Home</a></li>
+            <li><a class="site-nav__link" href="discover.html">Discover</a></li>
+            <li>
+              <a class="site-nav__link" href="library.html">My Library</a>
+            </li>
+          </ul>
+        </nav>
+
+        <form class="search" role="search" action="discover.html">
+          <label class="visually-hidden" for="site-search"
+            >Search games, films and shows</label
+          >
+          <svg
+            class="search__icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            class="search__input"
+            id="site-search"
+            name="q"
+            type="search"
+            placeholder="Search games, films, anime…"
+            autocomplete="off"
+          />
+        </form>
+
+        <a
+          class="site-header__search-link"
+          href="discover.html#search"
+          aria-label="Search"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        </a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <svg class="theme-toggle__icon theme-toggle__icon--sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </svg>
+          <svg class="theme-toggle__icon theme-toggle__icon--moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
+          </svg>
+          <span class="visually-hidden">Light theme</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="site-main site-main--immersive" id="main">
+      <div class="game__state container" id="title-state" hidden></div>
+
+      <article class="detail-hero theme-dark" id="title-hero" aria-busy="true" aria-labelledby="title-title">
+        <div class="detail-hero__backdrop skeleton" id="title-backdrop" aria-hidden="true"></div>
+        <div class="detail-hero__body container">
+          <a class="back-link" id="back-link" href="discover.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            <span id="back-link-text">Back to Discover</span>
+          </a>
+
+          <div class="detail-hero__layout">
+            <div class="game__cover skeleton" id="title-cover"></div>
+            <div class="game__info">
+              <p class="game__eyebrow" id="title-eyebrow">
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </p>
+              <h1 class="game__title" id="title-title">
+                <span class="skeleton skeleton--heading"></span>
+              </h1>
+              <p class="game__meta" id="title-meta"></p>
+              <p class="game__rating" id="title-rating" hidden></p>
+
+              <h2 class="visually-hidden" id="library-label">Add to your Library</h2>
+                <div class="status-buttons" id="status-buttons" role="radiogroup" aria-labelledby="library-label">
+                  <button class="status-button" type="button" role="radio" aria-checked="false" data-status="want" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7 4h10v16l-5-4-5 4z" />
+                    </svg>
+                    <span data-status-label="want">Want to</span>
+                  </button>
+                  <button class="status-button" type="button" role="radio" aria-checked="false" data-status="doing" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M7 4.5v15l12-7.5z" />
+                    </svg>
+                    <span data-status-label="doing">In progress</span>
+                  </button>
+                  <button class="status-button" type="button" role="radio" aria-checked="false" data-status="done" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="m5 12 5 5L20 7" />
+                    </svg>
+                    <span data-status-label="done">Done</span>
+                  </button>
+                  <button class="status-button" type="button" role="radio" aria-checked="false" data-status="dropped" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                      <path d="m6 6 12 12M18 6 6 18" />
+                    </svg>
+                    Dropped
+                  </button>
+                </div>
+
+
+              <div class="game__actions">
+                <button class="button button--primary game__log-button" id="log-button" type="button" disabled>Log or review</button>
+                <button class="button button--glass" id="trailer-button" type="button" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" /></svg>
+                  Watch trailer
+                </button>
+                <button class="button button--glass" id="remind-button" type="button" aria-pressed="false" hidden>🔔 Remind me</button>
+                <button class="button button--glass" id="share-button" type="button">Share</button>
+                <button class="text-button game__remove" id="remove-button" type="button" hidden>Remove from Library</button>
+              </div>
+              <p class="game__note" id="remind-note" hidden>Reminders are saved on this device. Upcoming drops you're reminded about show on Home and in My Library.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="game container">
+        <section class="game__section your-log" id="your-log" aria-labelledby="your-log-title" hidden>
+          <h2 class="game__section-title" id="your-log-title">Your log</h2>
+          <div class="your-log__card" id="your-log-card"></div>
+        </section>
+        <section class="game__section progress" id="title-progress" aria-labelledby="progress-title" hidden>
+          <div class="progress__head">
+            <h2 class="game__section-title" id="progress-title">Episodes</h2>
+            <p class="progress__count" id="progress-count" aria-live="polite"></p>
+          </div>
+          <div class="category-tabs progress__seasons" id="progress-seasons" role="tablist" aria-label="Seasons" hidden></div>
+          <ul class="progress__grid" id="progress-grid" role="list"></ul>
+          <p class="progress__hint">Tap an episode to mark it watched. Your progress is saved on this device.</p>
+        </section>
+        <div class="game__overview">
+          <section class="game__section" id="title-about" aria-labelledby="about-title" hidden>
+            <h2 class="game__section-title" id="about-title">About</h2>
+            <p class="game__description" id="title-description"></p>
+            <button class="text-button" id="read-more" type="button" aria-expanded="false" aria-controls="title-description" hidden>
+              Read more
+            </button>
+          </section>
+          <section class="game__section game__facts" aria-labelledby="facts-title">
+            <h2 class="game__section-title" id="facts-title">Information</h2>
+            <dl class="facts" id="title-facts"></dl>
+            <div class="title__providers" id="title-providers"></div>
+          </section>
+        </div>
+        <section class="shelf game__section" id="title-similar" aria-labelledby="similar-title" hidden>
+          <div class="shelf__head">
+            <h2 class="shelf__title" id="similar-title">More like this</h2>
+          </div>
+          <div class="shelf__viewport">
+            <ul class="shelf__track" id="similar-list" role="list"></ul>
+            <button class="shelf__arrow shelf__arrow--prev" type="button" aria-label="Scroll More like this back" hidden>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="shelf__arrow shelf__arrow--next" type="button" aria-label="Scroll More like this forward" hidden>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner container">
+        <a class="site-footer__tmdb" href="https://www.themoviedb.org">
+          <img src="assets/icons/tmdb-logo.svg" alt="TMDB" />
+        </a>
+        <p>
+          Game data: <a href="https://rawg.io">RAWG</a> · Film and TV data:
+          <a href="https://www.themoviedb.org">TMDB</a> · Anime and manga data:
+          <a href="https://anilist.co">AniList</a>
+        </p>
+        <p>
+          This product uses the TMDB API but is not endorsed or certified by
+          TMDB. Your Library is saved on this device only.
+        </p>
+      </div>
+    </footer>
+
+    <nav class="bottom-nav" aria-label="Main, mobile">
+      <ul class="bottom-nav__list" role="list">
+        <li>
+          <a class="bottom-nav__link" href="index.html">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z" />
+            </svg>
+            Home
+          </a>
+        </li>
+        <li>
+          <a class="bottom-nav__link" href="discover.html">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="m15.5 8.5-2 5-5 2 2-5z" />
+            </svg>
+            Discover
+          </a>
+        </li>
+        <li>
+          <a class="bottom-nav__link" href="library.html">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <path d="M8 9h8M8 13h8M8 17h5" />
+            </svg>
+            Library
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="toast-region" role="status" aria-live="polite"></div>
+
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="js/pages/title.js"></script>
+  </body>
+</html>

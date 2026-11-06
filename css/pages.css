@@ -1235,3 +1235,100 @@
   > li:has(.release-card:not(.release-card--loading)) {
   opacity: 0.45;
 }
+
+/* Title pages (films, shows, anime, manga): the game page's layout, plus a title logo, where to watch
+   and episode progress. */
+
+.title__logo {
+  display: block;
+  width: auto;
+  max-width: min(100%, 26rem);
+  height: auto;
+  max-height: clamp(4.5rem, 10vw, 8rem);
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
+.game__note {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+}
+
+.title__providers {
+  margin-top: var(--space-6);
+}
+
+.progress__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.progress__count {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress__seasons {
+  margin-block: var(--space-4);
+}
+
+.progress__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+
+/* Each episode is a 48px square target with its number in the display face, like the date stubs. */
+.progress__episode {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  color: var(--color-text-secondary);
+  font: var(--font-weight-heavy) 1.125rem / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.progress__episode:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+.progress__episode:active {
+  transform: scale(0.94);
+}
+
+.progress__episode[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-action-primary);
+  color: var(--color-action-on-primary);
+}
+
+.progress__more {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.progress__hint {
+  margin: var(--space-3) 0 0;
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+}

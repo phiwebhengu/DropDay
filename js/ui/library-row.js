@@ -1,10 +1,9 @@
 import { getDateText } from './card.js';
 import { removeRelease, setReleaseStatus, setReminder } from './library-actions.js';
-import { openQuickView } from './quick-view.js';
 import { createStars, formatRating } from './rating.js';
 import { formatShortDate, formatWeekday } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
-import { getStatusesFor, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
+import { getDetailUrl, getStatusesFor, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import { posterFallback } from './poster.js';
 import { createReview } from './review.js';
 import { STATUS_ICONS } from './status-icons.js';
@@ -35,8 +34,7 @@ function getMeta(entry) {
 
 function renderTitle(entry) {
   const title = escapeHtml(entry.title);
-  if (entry.type === 'game') return `<a class="library-row__link" href="game.html?id=${entry.id}">${title}</a>`;
-  return `<button class="library-row__link" type="button">${title}</button>`;
+  return `<a class="library-row__link" href="${getDetailUrl(entry)}">${title}</a>`;
 }
 
 function renderActions(entry, actionsId) {
@@ -44,7 +42,7 @@ function renderActions(entry, actionsId) {
   const canRemind = entry.status === 'want' && !isReleased(entry);
   return `
     <div class="library-row__actions" id="${actionsId}" hidden>
-      ${entry.type === 'game' ? `<a class="button button--outline library-row__action" href="game.html?id=${entry.id}&log=1">${STATUS_ICONS.log}${entry.loggedAt ? 'Edit log' : 'Log or review'}</a>` : ''}
+      <a class="button button--outline library-row__action" href="${getDetailUrl(entry, { log: true })}">${STATUS_ICONS.log}${entry.loggedAt ? 'Edit log' : 'Log or review'}</a>
       ${canRemind ? `<button class="button button--outline library-row__action" type="button" data-remind>${STATUS_ICONS.remind}${entry.remind ? 'Turn reminder off' : 'Remind me'}</button>` : ''}
       ${moves.map((status) => `<button class="button button--outline library-row__action" type="button" data-move="${status}">${STATUS_ICONS[status]}Move to ${getStatusLabel(entry.type, status)}</button>`).join('')}
       <button class="button button--outline library-row__action library-row__action--danger" type="button" data-remove>${STATUS_ICONS.remove}Remove</button>
@@ -117,11 +115,6 @@ export function createLibraryRow(entry, { diary = false } = {}) {
     if ('remind' in button.dataset) setReminder(entry, !entry.remind);
     if ('remove' in button.dataset) removeRelease(entry);
   });
-
-  if (entry.type !== 'game') {
-    const link = row.querySelector('.library-row__link');
-    link.addEventListener('click', () => openQuickView(entry, link));
-  }
 
   item.append(row);
   return item;
