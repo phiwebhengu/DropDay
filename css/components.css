@@ -639,8 +639,12 @@ html:not(.has-motion) .release-card__save:active {
 .release-card__body {
   display: grid;
   gap: var(--space-1);
-  /* Room for the ⋯ button in the corner */
-  padding-right: var(--space-8);
+}
+
+/* Only the last line shares its row with the ⋯ button, so only it makes room; the title and date keep
+   the card's full width (narrow phone shelves were wrapping them onto extra lines). */
+.release-card__meta {
+  padding-right: var(--space-6);
 }
 
 /* ⋯ in the card's bottom corner opens the Quick view drawer; the rest of the card opens the full page.
@@ -1403,6 +1407,21 @@ html:has(.quick-view[open]) {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/* Phones: an even 2 × 2 grid instead of pills wrapping into uneven rows. */
+@media (max-width: 559px) {
+  .status-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .status-buttons .status-button {
+    justify-content: center;
+    padding-inline: var(--space-3);
+    white-space: nowrap;
+  }
 }
 
 .status-button {

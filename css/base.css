@@ -12,6 +12,15 @@ html {
   background: var(--color-bg-page);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Keeps whatever is scrolled or tabbed to clear of the floating header (and, on phones, the floating
+     bottom nav), so a focused button is never hidden behind them. */
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+}
+
+@media (max-width: 1023px) {
+  html {
+    scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--space-8));
+  }
 }
 
 body {
