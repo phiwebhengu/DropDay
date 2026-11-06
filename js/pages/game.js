@@ -4,6 +4,7 @@ import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, setReminder, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
 import { posterFallback } from '../ui/poster.js';
+import { openQuickView } from '../ui/quick-view.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createReview } from '../ui/review.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
@@ -365,6 +366,7 @@ readMore.addEventListener('click', () => {
 });
 
 similarList.addEventListener('release:save', (event) => toggleSave(event.detail.release));
+similarList.addEventListener('release:quickview', (event) => openQuickView(event.detail.release, event.detail.trigger));
 
 window.addEventListener('library:change', () => {
   if (game) renderStatus();

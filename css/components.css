@@ -639,6 +639,48 @@ html:not(.has-motion) .release-card__save:active {
 .release-card__body {
   display: grid;
   gap: var(--space-1);
+  /* Room for the ⋯ button in the corner */
+  padding-right: var(--space-8);
+}
+
+/* ⋯ in the card's bottom corner opens the Quick view drawer; the rest of the card opens the full page.
+   A 44px target around a small, quiet dot icon. */
+.release-card__more {
+  position: absolute;
+  right: calc(-1 * var(--space-2));
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-secondary);
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.release-card__more:hover {
+  background: var(--color-bg-raised);
+  color: var(--color-text-primary);
+}
+
+.release-card__more:active {
+  transform: scale(0.92);
+}
+
+.release-card__more:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -4px;
+}
+
+.release-card--loading .release-card__more {
+  display: none;
 }
 
 .release-card__title {
