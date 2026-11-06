@@ -84,7 +84,7 @@
   --color-category-tv: var(--sky-400);
   --color-category-anime: var(--rose-400);
   --color-category-manga: var(--violet-400);
-  --color-header-bg: rgb(11 11 12 / 0.72);
+  --color-header-bg: rgb(22 22 24 / 0.88);
   --color-scrim: rgb(5 5 6 / 0.72);
   --color-skeleton-shine: var(--ink-800);
   /* Segmented controls: a sunken track with the chosen option raised out of it, like iOS. */
@@ -111,6 +111,7 @@
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
@@ -121,6 +122,8 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  /* The home billboard, a screen set into the page */
+  --radius-hero: 20px;
   --radius-pill: 999px;
 
   /* Typography: bold, tightly tracked Figtree for headings and everything you read, like Apple TV.
@@ -153,7 +156,8 @@
 
   /* Layout */
   --container-max: 1344px;
-  --container-gutter: var(--space-4);
+  /* Phones get 20px (lecturer feedback: mobile felt cramped); wider screens step up below. */
+  --container-gutter: var(--space-5);
   --header-height: 64px;
   --bottom-nav-height: 64px;
   --touch-target: 44px;
@@ -213,7 +217,7 @@
   --color-category-tv: #2f68ad;
   --color-category-anime: #a83f74;
   --color-category-manga: #6b51b8;
-  --color-header-bg: rgb(245 245 247 / 0.78);
+  --color-header-bg: rgb(255 255 255 / 0.86);
   --color-scrim: rgb(29 29 31 / 0.45);
   --color-skeleton-shine: var(--mist-100);
   --color-overlay: rgb(255 255 255 / 0.82);

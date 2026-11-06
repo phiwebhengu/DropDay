@@ -5,28 +5,50 @@
   top: 0;
   z-index: 50;
   padding-top: env(safe-area-inset-top);
-  background: var(--color-header-bg);
-  backdrop-filter: blur(20px) saturate(180%);
 }
 
-/* No hard divider: a soft edge only where content scrolls under the glass (Apple's scroll edge). */
-.site-header::after {
+/* No bar across the screen. At the top of the page the header is clear; once content scrolls under it,
+   a glass capsule fades in around it, floating just inside the page edges (like iOS and visionOS). */
+.site-header__inner {
+  position: relative;
+  isolation: isolate;
+}
+
+.site-header__inner::before {
   content: "";
   position: absolute;
-  inset: 100% 0 auto;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-border-default) 20%, var(--color-border-default) 80%, transparent);
+  inset: var(--space-2) max(var(--space-2), calc(var(--container-gutter) - var(--space-4)));
+  z-index: -1;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-header-bg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 12px 32px -12px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(24px) saturate(180%);
+  opacity: 0;
+  scale: 0.98;
+  transition:
+    opacity 300ms var(--ease-out),
+    scale 300ms var(--ease-out);
+  pointer-events: none;
 }
 
-/* On pages that open with full-bleed art, the header starts clear over it (in the dark theme's colours,
-   set by immersive-header.js) and frosts in the page's own theme once the page scrolls. */
+.site-header.is-scrolled .site-header__inner::before {
+  opacity: 1;
+  scale: 1;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-header__inner::before {
+    background: var(--color-bg-raised);
+    backdrop-filter: none;
+  }
+}
+
+/* Over full-bleed art (a game page), a soft shade keeps the clear header readable. */
 .site-header--over-art:not(.is-scrolled) {
-  background: linear-gradient(rgb(0 0 0 / 0.55), transparent);
-  backdrop-filter: none;
-}
-
-.site-header--over-art:not(.is-scrolled)::after {
-  display: none;
+  background: linear-gradient(rgb(0 0 0 / 0.45), transparent);
 }
 
 .site-header__inner {
@@ -196,32 +218,37 @@
   }
 }
 
-/* Bottom navigation (mobile) */
-
-/* Frosted like the header, so on iPhones (where Safari's own bar floats over the page) content showing
-   through looks intended rather than like a gap. The safe-area padding keeps the links above the home bar. */
+/* Bottom navigation (mobile): a floating glass capsule like the header's, so neither end of the screen
+   has a bar across it. The safe-area padding keeps it above the iPhone home bar. */
 .bottom-nav {
   position: sticky;
   bottom: 0;
   z-index: 50;
-  padding-bottom: env(safe-area-inset-bottom);
-  border-top: 1px solid var(--color-border-default);
-  background: var(--color-header-bg);
-  backdrop-filter: blur(12px) saturate(1.2);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .site-header,
-  .bottom-nav {
-    background: var(--color-bg-page);
-    backdrop-filter: none;
-  }
+  padding: 0 var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
+  pointer-events: none;
 }
 
 .bottom-nav__list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  max-width: 420px;
   height: var(--bottom-nav-height);
+  margin-inline: auto;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-header-bg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 12px 32px -12px rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(24px) saturate(180%);
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .bottom-nav__list {
+    background: var(--color-bg-raised);
+    backdrop-filter: none;
+  }
 }
 
 .bottom-nav__link {
@@ -508,40 +535,22 @@
   opacity: 1;
 }
 
-/* Games: the wide key art across the middle on a blurred copy of itself, the title below like a box cover */
-.release-card__poster::before {
-  content: "";
-  position: absolute;
-  inset: -12%;
-  background: var(--poster-art, none) center / cover;
-  filter: blur(18px) saturate(1.3) brightness(0.55);
-}
-
-.release-card__image--whole {
-  position: relative;
-  object-fit: contain;
-}
-
+/* Games with no official cover: the key art fills the poster and the title sits on a dark fade at the
+   bottom, like a streaming tile. */
 .release-card__image--wide {
-  position: absolute;
-  inset: 50% 0 auto;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  translate: 0 -50%;
+  object-position: 50% 30%;
 }
 
 .release-card__box-title {
   position: absolute;
   inset: auto 0 0;
   display: -webkit-box;
-  height: calc(50% - 28cqi);
-  padding: 0 7cqi 7cqi;
+  padding: 30cqi 7cqi 7cqi;
   overflow: hidden;
-  align-content: end;
   /* Always on darkened art, so it stays light in both themes. */
+  background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.55) 55%, transparent);
   color: #fff;
   font: var(--font-weight-heavy) clamp(1rem, 11cqi, 1.75rem) / 0.95 var(--font-display);
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
   text-transform: uppercase;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
@@ -630,6 +639,52 @@ html:not(.has-motion) .release-card__save:active {
 .release-card__body {
   display: grid;
   gap: var(--space-1);
+}
+
+/* Only the last line shares its row with the ⋯ button, so only it makes room; the title and date keep
+   the card's full width (narrow phone shelves were wrapping them onto extra lines). */
+.release-card__meta {
+  padding-right: var(--space-6);
+}
+
+/* ⋯ in the card's bottom corner opens the Quick view drawer; the rest of the card opens the full page.
+   A 44px target around a small, quiet dot icon. */
+.release-card__more {
+  position: absolute;
+  right: calc(-1 * var(--space-2));
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-secondary);
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.release-card__more:hover {
+  background: var(--color-bg-raised);
+  color: var(--color-text-primary);
+}
+
+.release-card__more:active {
+  transform: scale(0.92);
+}
+
+.release-card__more:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -4px;
+}
+
+.release-card--loading .release-card__more {
+  display: none;
 }
 
 .release-card__title {
@@ -1352,6 +1407,21 @@ html:has(.quick-view[open]) {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/* Phones: an even 2 × 2 grid instead of pills wrapping into uneven rows. */
+@media (max-width: 559px) {
+  .status-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .status-buttons .status-button {
+    justify-content: center;
+    padding-inline: var(--space-3);
+    white-space: nowrap;
+  }
 }
 
 .status-button {

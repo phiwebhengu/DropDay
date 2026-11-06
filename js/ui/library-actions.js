@@ -1,5 +1,5 @@
 import * as library from '../store/library.js';
-import { getStatusLabel, isReleased } from '../utils/media.js';
+import { getDetailUrl, getStatusLabel, isReleased } from '../utils/media.js';
 import { setCardStatus } from './card.js';
 import { showToast } from './toast.js';
 
@@ -76,14 +76,14 @@ export function removeRelease(release) {
 
 // The one save action behind every card's save button. Not saved yet: released titles go to Want to,
 // upcoming ones also get Remind me. Already saved: removed, unless it holds progress or a log,
-// in which case a game opens its page instead of losing that work to one tap.
+// in which case its page opens instead of losing that work to one tap.
 export function toggleSave(release) {
   const entry = library.getEntry(release);
   if (!entry) {
     if (isReleased(release)) setReleaseStatus(release, 'want');
     else setReminder(release, true);
-  } else if (release.type === 'game' && (entry.status === 'doing' || entry.status === 'done')) {
-    location.href = `game.html?id=${release.id}`;
+  } else if (entry.status === 'doing' || entry.status === 'done') {
+    location.href = getDetailUrl(release);
   } else {
     removeRelease(release);
   }

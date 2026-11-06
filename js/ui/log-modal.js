@@ -3,6 +3,7 @@ import { getEntry } from '../store/library.js';
 import { saveLogEntry } from './library-actions.js';
 import { formatRating } from './rating.js';
 import { closeDialog, openDialog } from '../motion.js';
+import { getStatusesFor, getStatusLabel } from '../utils/media.js';
 
 const STANDARD_EDITION = 'Standard edition';
 const REVIEW_LIMIT = 2000;
@@ -10,7 +11,7 @@ const STAR_VALUES = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
 
 let dialog;
 let form;
-let game;
+let release;
 let opener;
 let closing = false;
 
@@ -49,12 +50,12 @@ function createDialog() {
           <label class="status-option">
             <input class="status-option__input" type="radio" name="status" value="done">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7" /></svg>
-            Played
+            <span data-status-label="done">Played</span>
           </label>
-          <label class="status-option">
+          <label class="status-option" data-option="doing">
             <input class="status-option__input" type="radio" name="status" value="doing">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" /></svg>
-            Playing
+            <span data-status-label="doing">Playing</span>
           </label>
           <label class="status-option">
             <input class="status-option__input" type="radio" name="status" value="dropped">
@@ -64,12 +65,12 @@ function createDialog() {
         </div>
       </fieldset>
 
-      <div class="field" data-reveal>
+      <div class="field" data-reveal data-game-only>
         <label class="field__label" for="log-platform">Platform played</label>
         <select class="field__select" id="log-platform" name="platform" autocomplete="off"></select>
       </div>
 
-      <div class="field" data-reveal>
+      <div class="field" data-reveal data-game-only>
         <label class="field__label" for="log-edition">Edition</label>
         <select class="field__select" id="log-edition" name="edition" autocomplete="off"></select>
       </div>
@@ -167,7 +168,7 @@ function createOption(text) {
 
 function fillPlatforms(selected) {
   const select = form.elements.platform;
-  const released = [...game.platforms].sort(byFamiliarity);
+  const released = [...release.platforms].sort(byFamiliarity);
   const others = COMMON_PLATFORMS.filter((name) => !released.includes(name));
 
   if (released.length) {
@@ -202,7 +203,7 @@ function getPlatformFromDiscover() {
     const { search } = JSON.parse(sessionStorage.getItem('dropday.discover.return'));
     const platformId = Number(new URLSearchParams(search).get('platform'));
     if (!platformId) return null;
-    return game.platforms[game.platformIds.indexOf(platformId)] ?? null;
+    return release.platforms[release.platformIds.indexOf(platformId)] ?? null;
   } catch {
     return null;
   }
@@ -212,7 +213,7 @@ async function fillEditions(selected) {
   const select = form.elements.edition;
   fillSelect(select, [STANDARD_EDITION], STANDARD_EDITION);
   try {
-    const editions = await rawg.getEditions(game.id);
+    const editions = await rawg.getEditions(release.id);
     // Keep whatever the user picked while the list was loading.
     const current = select.value !== STANDARD_EDITION ? select.value : selected;
     fillSelect(select, [STANDARD_EDITION, ...editions], current ?? STANDARD_EDITION);
@@ -221,17 +222,34 @@ async function fillEditions(selected) {
   }
 }
 
+// The same form logs every medium: the words follow the medium ("Watched", "Read"), a film has no
+// "in progress", and only games ask for a platform and edition.
+function fitToRelease() {
+  const isGame = release.type === 'game';
+  dialog.querySelectorAll('[data-game-only]').forEach((field) => {
+    field.hidden = !isGame;
+  });
+  dialog.querySelectorAll('[data-status-label]').forEach((label) => {
+    label.textContent = getStatusLabel(release.type, label.dataset.statusLabel);
+  });
+  dialog.querySelector('[data-option="doing"]').hidden = !getStatusesFor(release.type).includes('doing');
+}
+
 function fillForm(status) {
-  const entry = getEntry(game);
+  const entry = getEntry(release);
   form.reset();
-  dialog.querySelector('#log-title').textContent = `Log ${game.title}`;
+  fitToRelease();
+  dialog.querySelector('#log-title').textContent = `Log ${release.title}`;
 
   const presetStatus = status ?? entry?.status;
-  // A log is a review of something you've played, are playing or gave up on; Want to has nothing to review yet.
-  form.elements.status.value = ['done', 'doing', 'dropped'].includes(presetStatus) ? presetStatus : 'done';
+  // A log is a review of something you've finished, are partway through or gave up on; Want to has nothing to review yet.
+  const allowed = ['done', 'doing', 'dropped'].filter((option) => getStatusesFor(release.type).includes(option));
+  form.elements.status.value = allowed.includes(presetStatus) ? presetStatus : 'done';
 
-  fillPlatforms(entry?.platform ?? getPlatformFromDiscover());
-  fillEditions(entry?.edition);
+  if (release.type === 'game') {
+    fillPlatforms(entry?.platform ?? getPlatformFromDiscover());
+    fillEditions(entry?.edition);
+  }
 
   if (entry?.rating) form.elements.rating.value = String(entry.rating);
   form.elements.review.value = entry?.review ?? '';
@@ -280,10 +298,11 @@ function setUpForm() {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     if (!form.elements.status.value) return;
-    const saved = saveLogEntry(game, {
+    const isGame = release.type === 'game';
+    const saved = saveLogEntry(release, {
       status: form.elements.status.value,
-      platform: form.elements.platform.value || null,
-      edition: form.elements.edition.value || null,
+      platform: isGame ? form.elements.platform.value || null : null,
+      edition: isGame ? form.elements.edition.value || null : null,
       rating: getRating(),
       review: form.elements.review.value.trim(),
       spoilers: form.elements.spoilers.checked,
@@ -293,13 +312,13 @@ function setUpForm() {
   });
 }
 
-// release is the full game from the detail page (it needs platformIds); status presets the list to log into.
-export function openLogModal(release, { trigger, status } = {}) {
+// item is the full release from its detail page (a game needs platformIds); status presets the list to log into.
+export function openLogModal(item, { trigger, status } = {}) {
   if (!dialog) {
     dialog = createDialog();
     setUpForm();
   }
-  game = release;
+  release = item;
   opener = trigger;
   fillForm(status);
   dialog.showModal();
