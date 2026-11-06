@@ -46,3 +46,9 @@ export function isReleased({ date, tba }) {
   const [year, month, day] = date.split('-').map(Number);
   return new Date(year, month - 1, day) <= new Date();
 }
+
+// Every release has its own page: games on game.html (RAWG), everything else on title.html.
+export function getDetailUrl({ source, type, id }, { log = false } = {}) {
+  const url = type === 'game' ? `game.html?id=${id}` : `title.html?source=${source}&type=${type}&id=${id}`;
+  return log ? `${url}&log=1` : url;
+}

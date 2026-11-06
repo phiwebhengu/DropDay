@@ -23,10 +23,13 @@ function isAdult(game) {
   return !game.esrb_rating && tags.some((tag) => MATURE_TAGS.has(tag));
 }
 
+// RAWG lists free demos and playtests as games. They aren't release drops and never have official covers.
+const NOT_A_RELEASE = /\b(demo|playtest)\)?$/i;
+
 // Browsing lists only show games at least one RAWG user is tracking, the way Letterboxd surfaces films people
 // actually log. It clears out untracked shovelware and adult uploads; searching by name still finds anything.
 function isListed(game, { tracked }) {
-  if (isAdult(game)) return false;
+  if (isAdult(game) || NOT_A_RELEASE.test(game.name?.trim() ?? "")) return false;
   return !tracked || game.added !== 0;
 }
 import { cachedFetch } from "./cache.js";

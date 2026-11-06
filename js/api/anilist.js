@@ -44,6 +44,9 @@ const DETAIL_QUERY = `
       trailer { id site }
       studios(isMain: true) { nodes { name } }
       externalLinks { site url type }
+      recommendations(sort: RATING_DESC, perPage: 12) {
+        nodes { mediaRecommendation { ${MEDIA_FIELDS} isAdult } }
+      }
     }
   }
 `;

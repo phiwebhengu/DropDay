@@ -1,6 +1,6 @@
 import { formatReleaseDate, toIsoDate } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
-import { getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
+import { getDetailUrl, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import { posterFallback } from './poster.js';
 
 const MAX_PLATFORMS = 3;
@@ -97,31 +97,24 @@ function renderStub({ date, tba, rating }) {
   return `<span class="release-card__stub release-card__stub--rating" aria-hidden="true">★ ${rating.toFixed(1)}</span>`;
 }
 
-// Games open their own page; movies, TV, anime and manga open the Quick view drawer (PRD sitemap rules).
+// The card opens the release's full page. The ⋯ button in its corner opens the Quick view drawer instead,
+// for a quick look without leaving the list.
 function renderTitle(release) {
-  const title = escapeHtml(release.title);
-  if (release.type === 'game') {
-    return `<a class="release-card__link" href="game.html?id=${release.id}">${title}</a>`;
-  }
-  return `<button class="release-card__link" type="button">${title}</button>`;
+  return `<a class="release-card__link" href="${getDetailUrl(release)}">${escapeHtml(release.title)}</a>`;
 }
 
-// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the wide
-// RAWG key art sits in the middle of the poster on a blurred copy of itself, titled below like a box cover.
+const MORE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg>';
+
+// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the RAWG key
+// art fills the poster with the title across the bottom.
 function isBoxArt(release) {
   return release.type === 'game' && !release.poster && Boolean(release.image);
-}
-
-// Game covers are 3:4, a little wider than the poster, so they're shown whole on a blurred copy of
-// themselves instead of losing their edges (and often part of the logo) to a crop.
-function isGameCover(release) {
-  return release.type === 'game' && Boolean(release.poster);
 }
 
 function renderPoster(release) {
   const boxArt = isBoxArt(release);
   const src = release.poster ?? release.image;
-  const modifier = boxArt ? ' release-card__image--wide' : isGameCover(release) ? ' release-card__image--whole' : '';
+  const modifier = boxArt ? ' release-card__image--wide' : '';
   const image = src
     ? `<img class="release-card__image${modifier}" src="${escapeHtml(src)}" alt="" ${boxArt ? 'width="640" height="360"' : 'width="342" height="513"'} loading="lazy" decoding="async">`
     : '';
@@ -139,9 +132,6 @@ export function createReleaseCard(release, { entry = null } = {}) {
   // Lets GSAP Flip recognise the same release across a re-render (M3).
   card.dataset.flipId = `${release.type}:${release.id}`;
   if (release.tint) card.style.setProperty('--poster-tint', release.tint);
-  // A game's own art, blurred, fills the poster around its wide key art.
-  if (isBoxArt(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.image)}")`);
-  if (isGameCover(release)) card.style.setProperty('--poster-art', `url("${encodeURI(release.poster)}")`);
 
   const platforms = getPlatforms(release);
 
@@ -151,6 +141,10 @@ export function createReleaseCard(release, { entry = null } = {}) {
     </div>
     <button class="release-card__save" type="button" aria-pressed="${Boolean(entry)}">
       ${renderSaveButton(release, entry)}
+    </button>
+    <button class="release-card__more" type="button">
+      ${MORE_ICON}
+      <span class="visually-hidden">Quick view: ${escapeHtml(release.title)}</span>
     </button>
     <div class="release-card__body">
       <h3 class="release-card__title">${renderTitle(release)}</h3>
@@ -174,11 +168,10 @@ export function createReleaseCard(release, { entry = null } = {}) {
     card.dispatchEvent(new CustomEvent('release:save', { bubbles: true, detail: { release } }));
   });
 
-  if (release.type !== 'game') {
-    card.querySelector('.release-card__link').addEventListener('click', () => {
-      card.dispatchEvent(new CustomEvent('release:quickview', { bubbles: true, detail: { release } }));
-    });
-  }
+  const more = card.querySelector('.release-card__more');
+  more.addEventListener('click', () => {
+    card.dispatchEvent(new CustomEvent('release:quickview', { bubbles: true, detail: { release, trigger: more } }));
+  });
 
   // Kept so the save button can be relabelled later without looking the release up again.
   card.release = release;

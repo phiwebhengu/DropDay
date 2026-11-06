@@ -4,6 +4,7 @@ import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, setReminder, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
 import { posterFallback } from '../ui/poster.js';
+import { openQuickView } from '../ui/quick-view.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createReview } from '../ui/review.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
@@ -11,9 +12,9 @@ import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
 import { getStatusLabel, isReleased } from '../utils/media.js';
-import '../ui/immersive-header.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
+import '../ui/site-header.js';
 
 const RETURN_KEY = 'dropday.discover.return';
 const MAX_GENRES = 2;
@@ -38,6 +39,7 @@ const logButton = document.getElementById('log-button');
 const shareButton = document.getElementById('share-button');
 const removeButton = document.getElementById('remove-button');
 const remindButton = document.getElementById('remind-button');
+const remindNote = document.getElementById('remind-note');
 const yourLog = document.getElementById('your-log');
 const yourLogCard = document.getElementById('your-log-card');
 const about = document.getElementById('game-about');
@@ -113,9 +115,10 @@ function renderStatus() {
   logButton.disabled = false;
   logButton.textContent = getEntry(game)?.loggedAt ? 'Edit your log' : 'Log or review';
 
-  // A reminder only makes sense before release day.
+  // A reminder only makes sense before release day, and with no accounts it can only live on this device.
   const remind = Boolean(getEntry(game)?.remind);
   remindButton.hidden = isReleased(game);
+  remindNote.hidden = remindButton.hidden;
   remindButton.setAttribute('aria-pressed', String(remind));
   remindButton.textContent = remind ? '🔔 Reminder on' : '🔔 Remind me';
   renderYourLog();
@@ -189,7 +192,12 @@ function renderGame() {
   renderImage(backdrop, game.cover, '');
   cover.innerHTML = posterFallback(game.title);
   renderImage(cover, game.poster ?? game.cover, `Cover art for ${game.title}`);
-  cover.classList.toggle('game__cover--wide', !game.poster);
+  // Every game page keeps the same layout: without an official cover, the key art becomes the poster.
+  if (!game.poster && game.cover) {
+    const coverTitle = createElement('span', 'game__cover-title', game.title);
+    coverTitle.setAttribute('aria-hidden', 'true');
+    cover.append(coverTitle);
+  }
 
   eyebrow.textContent = ['Game', ...game.genres.slice(0, MAX_GENRES)].join(' · ');
   title.textContent = game.title;
@@ -358,6 +366,7 @@ readMore.addEventListener('click', () => {
 });
 
 similarList.addEventListener('release:save', (event) => toggleSave(event.detail.release));
+similarList.addEventListener('release:quickview', (event) => openQuickView(event.detail.release, event.detail.trigger));
 
 window.addEventListener('library:change', () => {
   if (game) renderStatus();

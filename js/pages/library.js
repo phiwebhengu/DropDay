@@ -10,6 +10,7 @@ import { LIST_NAMES, STATUSES, getStatusLabel } from '../utils/media.js';
 import { countTo } from '../motion.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
+import '../ui/site-header.js';
 
 const VIEWS = ['list', 'grid'];
 
@@ -252,7 +253,7 @@ exportButton.addEventListener('click', exportLibrary);
 
 panel.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 panel.addEventListener('release:quickview', (event) => {
-  openQuickView(event.detail.release, event.target.querySelector('.release-card__link'));
+  openQuickView(event.detail.release, event.detail.trigger);
 });
 
 // A move or remove changes what this tab holds, so it redraws; focus goes to the panel instead of being lost.

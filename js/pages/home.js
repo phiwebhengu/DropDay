@@ -7,15 +7,15 @@ import { createReleaseCard, createCardSkeleton, getDateText, getSaveText } from 
 import { syncCards, toggleSave } from '../ui/library-actions.js';
 import { openQuickView } from '../ui/quick-view.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
-import '../ui/immersive-header.js';
 import { canPreview, createBillboardPreview } from '../ui/hero-trailer.js';
 import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { createStateMessage } from '../ui/states.js';
 import { playHeroIntro, swapBillboard, tickDigit } from '../motion.js';
 import { getMonthRange, toMonthKey } from '../utils/dates.js';
-import { getTypeLabel } from '../utils/media.js';
+import { getDetailUrl, getTypeLabel } from '../utils/media.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
+import '../ui/site-header.js';
 
 const SKELETON_DELAY = 150;
 const SKELETON_COUNT = 6;
@@ -34,6 +34,7 @@ const PLATFORM_NAMES = {
 
 const hero = document.getElementById('hero');
 const heroArt = document.getElementById('hero-art');
+const heroGlowLights = [...document.querySelectorAll('.billboard-stage__light')];
 const heroSlide = document.getElementById('hero-slide');
 const heroEyebrow = document.getElementById('hero-eyebrow');
 const heroTitle = document.getElementById('hero-title');
@@ -123,23 +124,38 @@ function getMeta(release) {
   return details.filter(Boolean).join('  ·  ');
 }
 
-function renderTitle(release) {
-  if (release.type === 'game') {
-    const link = document.createElement('a');
-    link.className = 'hero__link';
-    link.href = `game.html?id=${release.id}`;
-    link.textContent = release.title;
-    return link;
-  }
-  const button = document.createElement('button');
-  button.className = 'hero__link billboard__title-button';
-  button.type = 'button';
-  button.textContent = release.title;
-  button.addEventListener('click', () => openQuickView(release, button));
-  return button;
+// A film or show's own logo when TMDB has one, otherwise the title in display type.
+function renderTitleContent(release, logo) {
+  if (!logo) return release.title;
+  const image = document.createElement('img');
+  image.className = 'hero__logo';
+  image.src = logo;
+  image.alt = release.title;
+  return image;
+}
+
+// The title, like More info, opens the release's full page.
+function renderTitle(release, logo) {
+  const link = document.createElement('a');
+  link.className = 'hero__link';
+  link.href = getDetailUrl(release);
+  link.append(renderTitleContent(release, logo));
+  return link;
 }
 
 const ART_WAIT = 1500;
+
+// The screen lights the page: two layers take turns, so the glow cross-fades to the new slide's art.
+let glowIndex = 0;
+function lightPage(art) {
+  if (!art) return;
+  const [current, next] = glowIndex === 0 ? heroGlowLights : [...heroGlowLights].reverse();
+  next.style.setProperty('--glow-art', `url("${art.replaceAll('"', '%22')}")`);
+  next.classList.add('is-active');
+  current.classList.remove('is-active');
+  glowIndex = 1 - glowIndex;
+}
+const CATEGORY_NAMES = { game: 'games', movie: 'movies' };
 
 // Every slide's art is built (and starts downloading) as soon as the billboard loads, stacked under the
 // trailer. A slide only switches once its picture is ready, so the title and art always change together.
@@ -153,9 +169,26 @@ function createArt() {
     if (index > 0) image.fetchPriority = 'low';
     image.src = slide.release.cover;
     slide.image = image;
-    slide.ready = image.decode().catch(() => image.remove());
+    slide.ready = Promise.all([image.decode().catch(() => image.remove()), loadLogo(slide)]);
     heroArt.prepend(image);
   });
+}
+
+// Films and shows: the logo is fetched and decoded with the art, so the title never swaps from text to
+// logo in front of anyone. If it isn't ready in time, the slide keeps its text title.
+async function loadLogo(slide) {
+  const { release } = slide;
+  if (release.source !== 'tmdb' || !['movie', 'tv'].includes(release.type)) return;
+  try {
+    const details = release.type === 'movie' ? await tmdb.getMovie(release.id) : await tmdb.getShow(release.id, 'tv');
+    if (!details.logo) return;
+    const image = new Image();
+    image.src = details.logo;
+    await image.decode();
+    slide.logo = details.logo;
+  } catch {
+    // No logo: the text title is used.
+  }
 }
 
 // Waits for the art, but never longer than ART_WAIT: on a slow connection the text goes ahead.
@@ -174,7 +207,10 @@ function renderDots() {
       return dot;
     }),
   );
-  heroControls.hidden = slides.length < 2;
+  // The sound button lives in the same group, so only the slide controls hide for a single release.
+  heroControls.hidden = false;
+  heroDots.hidden = slides.length < 2;
+  heroPause.hidden = slides.length < 2;
 }
 
 let switchId = 0;
@@ -189,15 +225,17 @@ async function showSlide(index) {
   const first = current === -1;
   const previous = slides[current];
   current = index;
-  const { release, label, image } = slides[index];
+  const { release, label, image, logo } = slides[index];
   featured = release;
 
+  const category = `var(--color-category-${CATEGORY_NAMES[release.type] ?? release.type})`;
   heroEyebrow.textContent = `${label} · ${getTypeLabel(release)}`;
-  heroEyebrow.style.setProperty('--eyebrow-accent', `var(--color-category-${release.type === 'game' ? 'games' : release.type === 'movie' ? 'movies' : release.type})`);
-  heroTitle.replaceChildren(renderTitle(release));
+  heroEyebrow.style.setProperty('--eyebrow-accent', category);
+  lightPage(release.cover);
+  heroTitle.replaceChildren(renderTitle(release, logo));
+  heroTitle.classList.toggle('hero__title--logo', Boolean(logo));
   heroMeta.textContent = getMeta(release);
-  heroDetails.hidden = release.type !== 'game';
-  heroDetails.href = `game.html?id=${release.id}`;
+  heroDetails.href = getDetailUrl(release);
   renderHeroSave();
   startCountdown(release);
 
@@ -462,7 +500,7 @@ heroSave.addEventListener('click', () => toggleSave(featured));
 
 home.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 home.addEventListener('release:quickview', (event) => {
-  openQuickView(event.detail.release, event.target.querySelector('.release-card__link'));
+  openQuickView(event.detail.release, event.detail.trigger);
 });
 
 window.addEventListener('library:change', () => {

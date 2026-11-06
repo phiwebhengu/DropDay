@@ -219,12 +219,28 @@ function toQuickView(data, type) {
       logo: getTmdbImage(provider.logo_path, "w92"),
     })),
     trailerKey: trailer?.key ?? null,
+    logo: pickLogo(data.images?.logos),
+    // Season 0 is TMDB's "Specials", which most people don't track episode by episode.
+    seasonList: (data.seasons ?? [])
+      .filter((season) => season.season_number > 0 && season.episode_count > 0)
+      .map((season) => ({ number: season.season_number, episodes: season.episode_count })),
+    recommendations: (data.recommendations?.results ?? [])
+      .filter((item) => !item.adult && item.poster_path)
+      .map((item) => normaliseTmdbItem(item, type)),
   };
+}
+
+// The title treatment (the film's own logo), like the top of Netflix and Apple TV. English first,
+// then one with no language. Anything else would show a title in a script the page isn't in.
+function pickLogo(logos = []) {
+  const logo = logos.find((item) => item.iso_639_1 === "en") ?? logos.find((item) => item.iso_639_1 === null);
+  return logo ? getTmdbImage(logo.file_path, "w500") : null;
 }
 
 export async function getMovie(id) {
   const url = buildUrl(`/movie/${id}`, {
-    append_to_response: "watch/providers,videos",
+    append_to_response: "watch/providers,videos,images,recommendations",
+    include_image_language: "en,null",
   });
   const { data } = await cachedFetch(url, { headers });
   return toQuickView(data, "movie");
@@ -232,7 +248,8 @@ export async function getMovie(id) {
 
 export async function getShow(id, type = "tv") {
   const url = buildUrl(`/tv/${id}`, {
-    append_to_response: "watch/providers,videos",
+    append_to_response: "watch/providers,videos,images,recommendations",
+    include_image_language: "en,null",
   });
   const { data } = await cachedFetch(url, { headers });
   return toQuickView(data, type);
