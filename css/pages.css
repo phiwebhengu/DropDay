@@ -57,7 +57,7 @@
 .release-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6) var(--space-3);
+  gap: var(--space-8) var(--space-4);
 }
 
 @media (min-width: 560px) {
@@ -1106,8 +1106,9 @@
 .shelf .shelf__track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: clamp(132px, 38vw, 176px);
-  gap: var(--space-3);
+  /* About 2.4 posters on a phone, so titles have room and the next one peeks in. */
+  grid-auto-columns: clamp(148px, 40vw, 176px);
+  gap: var(--space-4);
   padding: var(--space-2) var(--container-gutter) var(--space-3);
   overflow-x: auto;
   overscroll-behavior-x: contain;
