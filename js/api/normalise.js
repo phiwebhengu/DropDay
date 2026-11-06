@@ -162,5 +162,9 @@ export function normaliseAniListDetail(media) {
     providers: (media.externalLinks ?? [])
       .filter((link) => link.type === "STREAMING")
       .map((link) => ({ name: link.site, logo: null, url: link.url })),
+    recommendations: (media.recommendations?.nodes ?? [])
+      .map((node) => node.mediaRecommendation)
+      .filter((item) => item && !item.isAdult)
+      .map(normaliseAniListMedia),
   };
 }
