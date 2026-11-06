@@ -496,7 +496,7 @@ loadMoreButton.addEventListener('click', () => loadMore());
 grid.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 window.addEventListener('library:change', () => syncCards(grid));
 grid.addEventListener('release:quickview', (event) => {
-  openQuickView(event.detail.release, event.target.querySelector('.release-card__link'));
+  openQuickView(event.detail.release, event.detail.trigger);
 });
 // Desktop uses the header field and phones use the one on the page; only one is visible at a time.
 function focusVisibleSearch() {

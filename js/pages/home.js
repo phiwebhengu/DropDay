@@ -12,7 +12,7 @@ import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { createStateMessage } from '../ui/states.js';
 import { playHeroIntro, swapBillboard, tickDigit } from '../motion.js';
 import { getMonthRange, toMonthKey } from '../utils/dates.js';
-import { getTypeLabel } from '../utils/media.js';
+import { getDetailUrl, getTypeLabel } from '../utils/media.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 import '../ui/site-header.js';
@@ -134,21 +134,13 @@ function renderTitleContent(release, logo) {
   return image;
 }
 
+// The title, like More info, opens the release's full page.
 function renderTitle(release, logo) {
-  const content = renderTitleContent(release, logo);
-  if (release.type === 'game') {
-    const link = document.createElement('a');
-    link.className = 'hero__link';
-    link.href = `game.html?id=${release.id}`;
-    link.append(content);
-    return link;
-  }
-  const button = document.createElement('button');
-  button.className = 'hero__link billboard__title-button';
-  button.type = 'button';
-  button.append(content);
-  button.addEventListener('click', () => openQuickView(release, button));
-  return button;
+  const link = document.createElement('a');
+  link.className = 'hero__link';
+  link.href = getDetailUrl(release);
+  link.append(renderTitleContent(release, logo));
+  return link;
 }
 
 const ART_WAIT = 1500;
@@ -243,7 +235,7 @@ async function showSlide(index) {
   heroTitle.replaceChildren(renderTitle(release, logo));
   heroTitle.classList.toggle('hero__title--logo', Boolean(logo));
   heroMeta.textContent = getMeta(release);
-  heroDetails.href = release.type === 'game' ? `game.html?id=${release.id}` : `discover.html?cat=${CATEGORY_NAMES[release.type] ?? release.type}`;
+  heroDetails.href = getDetailUrl(release);
   renderHeroSave();
   startCountdown(release);
 
@@ -506,16 +498,9 @@ document.addEventListener('visibilitychange', () => {
 
 heroSave.addEventListener('click', () => toggleSave(featured));
 
-// Games have their own page; films, shows and anime open the Quick view, like their cards.
-heroDetails.addEventListener('click', (event) => {
-  if (featured?.type === 'game') return;
-  event.preventDefault();
-  openQuickView(featured, heroDetails);
-});
-
 home.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 home.addEventListener('release:quickview', (event) => {
-  openQuickView(event.detail.release, event.target.querySelector('.release-card__link'));
+  openQuickView(event.detail.release, event.detail.trigger);
 });
 
 window.addEventListener('library:change', () => {

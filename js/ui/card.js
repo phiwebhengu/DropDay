@@ -1,6 +1,6 @@
 import { formatReleaseDate, toIsoDate } from '../utils/dates.js';
 import { escapeHtml } from '../utils/html.js';
-import { getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
+import { getDetailUrl, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import { posterFallback } from './poster.js';
 
 const MAX_PLATFORMS = 3;
@@ -97,14 +97,13 @@ function renderStub({ date, tba, rating }) {
   return `<span class="release-card__stub release-card__stub--rating" aria-hidden="true">★ ${rating.toFixed(1)}</span>`;
 }
 
-// Games open their own page; movies, TV, anime and manga open the Quick view drawer (PRD sitemap rules).
+// The card opens the release's full page. The ⋯ button in its corner opens the Quick view drawer instead,
+// for a quick look without leaving the list.
 function renderTitle(release) {
-  const title = escapeHtml(release.title);
-  if (release.type === 'game') {
-    return `<a class="release-card__link" href="game.html?id=${release.id}">${title}</a>`;
-  }
-  return `<button class="release-card__link" type="button">${title}</button>`;
+  return `<a class="release-card__link" href="${getDetailUrl(release)}">${escapeHtml(release.title)}</a>`;
 }
+
+const MORE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg>';
 
 // Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the RAWG key
 // art fills the poster with the title across the bottom.
@@ -143,6 +142,10 @@ export function createReleaseCard(release, { entry = null } = {}) {
     <button class="release-card__save" type="button" aria-pressed="${Boolean(entry)}">
       ${renderSaveButton(release, entry)}
     </button>
+    <button class="release-card__more" type="button">
+      ${MORE_ICON}
+      <span class="visually-hidden">Quick view: ${escapeHtml(release.title)}</span>
+    </button>
     <div class="release-card__body">
       <h3 class="release-card__title">${renderTitle(release)}</h3>
       <p class="release-card__date">${getDateText(release)}</p>
@@ -165,11 +168,10 @@ export function createReleaseCard(release, { entry = null } = {}) {
     card.dispatchEvent(new CustomEvent('release:save', { bubbles: true, detail: { release } }));
   });
 
-  if (release.type !== 'game') {
-    card.querySelector('.release-card__link').addEventListener('click', () => {
-      card.dispatchEvent(new CustomEvent('release:quickview', { bubbles: true, detail: { release } }));
-    });
-  }
+  const more = card.querySelector('.release-card__more');
+  more.addEventListener('click', () => {
+    card.dispatchEvent(new CustomEvent('release:quickview', { bubbles: true, detail: { release, trigger: more } }));
+  });
 
   // Kept so the save button can be relabelled later without looking the release up again.
   card.release = release;

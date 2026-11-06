@@ -3,7 +3,7 @@ import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, setReminder, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
 import { posterFallback } from '../ui/poster.js';
-import { createProviders, getDetails, getFacts } from '../ui/quick-view.js';
+import { createProviders, getDetails, getFacts, openQuickView } from '../ui/quick-view.js';
 import { createStars, formatRating } from '../ui/rating.js';
 import { createReview } from '../ui/review.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
@@ -11,7 +11,7 @@ import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
 import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
-import { getDetailUrl, getStatusesFor, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
+import { getStatusesFor, getStatusLabel, getTypeLabel, isReleased } from '../utils/media.js';
 import '../ui/save-feedback.js';
 import '../ui/theme.js';
 import '../ui/site-header.js';
@@ -20,6 +20,7 @@ import '../ui/site-header.js';
 // with where to watch or read, episode progress and more like it.
 
 const MAX_GENRES = 2;
+const MAX_SIMILAR = 12;
 const SOURCES = { tmdb: ['movie', 'tv'], anilist: ['anime', 'manga'] };
 const RATING_SOURCES = { tmdb: 'TMDB', anilist: 'AniList' };
 // Long-running anime (One Piece is past 1,100 episodes) would be a wall of tiles, so they come in pages.
@@ -307,7 +308,7 @@ function renderTitle() {
   renderStatus();
   renderFacts();
   renderDescription(release.overview);
-  renderSimilar(release.recommendations ?? []);
+  renderSimilar((release.recommendations ?? []).slice(0, MAX_SIMILAR));
 }
 
 function renderSimilar(items) {
@@ -436,10 +437,7 @@ readMore.addEventListener('click', () => {
 });
 
 similarList.addEventListener('release:save', (event) => toggleSave(event.detail.release));
-// From one title page, a similar title opens its own page rather than a drawer.
-similarList.addEventListener('release:quickview', (event) => {
-  location.href = getDetailUrl(event.detail.release);
-});
+similarList.addEventListener('release:quickview', (event) => openQuickView(event.detail.release, event.detail.trigger));
 
 window.addEventListener('library:change', () => {
   if (release) renderStatus();
