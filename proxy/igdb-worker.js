@@ -1,18 +1,75 @@
-// Cloudflare Worker that looks up official game covers on IGDB for Drop Day.
+// Cloudflare Worker that serves Drop Day's game data from IGDB (owned by Twitch).
 // IGDB needs a secret key and blocks requests from browsers, so the site asks this Worker instead.
-// Secrets (set in the Cloudflare dashboard, never in this file): TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET.
+// Secrets (set with `npx wrangler secret put`, never in this file): TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET.
 //
-// GET /covers?slugs=grand-theft-auto-vi,hades-ii  ->  { "grand-theft-auto-vi": "co9abc", "hades-ii": null }
-// Optional names (pipe-separated) and years (comma-separated), in the same order as slugs: RAWG and IGDB
-// don't always agree on a slug ("god-of-war-2" vs "god-of-war--1"), so a missed slug is tried by name.
+// The Worker only answers these three questions, with the queries written here, so nobody can use it
+// as an open door to IGDB:
+//   GET /games?from=2026-11-01&to=2026-11-30&sort=date|hype&genre=12&platform=167&page=1
+//   GET /search?q=hades&page=1
+//   GET /game?id=1942
 
 const ALLOWED_ORIGINS = [
   "https://phiwebhengu.github.io",
   "http://127.0.0.1:5500",
   "http://localhost:5500",
 ];
-const SLUG = /^[a-z0-9-]{1,120}$/;
-const MAX_SLUGS = 50;
+const PAGE_SIZE = 20;
+const MAX_PAGE = 25;
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ID = /^\d{1,9}$/;
+// IGDB is asked at most once an hour for a list and once every six hours for a game; everyone after
+// that gets the Worker's saved copy, which keeps well inside IGDB's 4-requests-a-second limit.
+const LIST_CACHE_SECONDS = 60 * 60;
+const GAME_CACHE_SECONDS = 6 * 60 * 60;
+
+// The same fields for every card. game_type/category and date_format/category are both asked for:
+// IGDB renamed them in 2025 and keeps the old names working for now.
+const CARD_FIELDS = [
+  "name",
+  "slug",
+  "first_release_date",
+  "release_dates.date",
+  "release_dates.date_format",
+  "release_dates.category",
+  "cover.image_id",
+  "artworks.image_id",
+  "screenshots.image_id",
+  "platforms.id",
+  "platforms.name",
+  "genres.id",
+  "genres.name",
+  "themes",
+  "total_rating",
+  "hypes",
+  "game_type",
+  "category",
+  "version_parent",
+];
+
+const DETAIL_FIELDS = [
+  ...CARD_FIELDS,
+  "summary",
+  "storyline",
+  "videos.video_id",
+  "videos.name",
+  "involved_companies.company.name",
+  "involved_companies.developer",
+  "involved_companies.publisher",
+  "expansions.name",
+  "dlcs.name",
+  ...CARD_FIELDS.map((field) => `similar_games.${field}`),
+];
+
+// Erotic is theme 42. IGDB tags explicit games with it, which TMDB and AniList do with an adult flag.
+// It's checked here rather than in the query, because a query filter on themes also drops every game
+// that has no themes yet (most upcoming ones).
+const EROTIC_THEME = 42;
+const ADULT_TITLE = /\b(hentai|nsfw|porn|porno|xxx|erotic|eroge|futanari)\b/i;
+// Main games, standalone expansions, remakes, remasters, expanded games and ports. Not DLC, bundles,
+// mods, episodes, seasons, packs or updates, which aren't release drops of their own.
+const RELEASE_TYPES = new Set([0, 4, 8, 9, 10, 11]);
+// A release date only counts if IGDB knows the day ("2026" alone is stored as 31 December).
+const EXACT_DATE = 0;
 
 let token = null;
 let tokenExpiresAt = 0;
@@ -47,50 +104,100 @@ async function queryGames(body, env, retry = true) {
     token = null;
     return queryGames(body, env, false);
   }
-  if (!response.ok) throw new Error(`IGDB failed: ${response.status}`);
+  if (!response.ok) throw new Error(`IGDB failed: ${response.status} ${await response.text()}`);
   return response.json();
 }
 
-// "God of War (2018)" on RAWG is plain "God of War" on IGDB.
-function cleanName(name) {
-  return name.replace(/[™®]/g, "").replace(/\s*\(\d{4}\)$/, "").replace(/\s+/g, " ").trim();
+function isAdult(game) {
+  return (game.themes ?? []).includes(EROTIC_THEME) || ADULT_TITLE.test(game.name ?? "");
 }
 
+function isRelease(game) {
+  return RELEASE_TYPES.has(game.game_type ?? game.category ?? 0) && !game.version_parent;
+}
+
+// True when one of the game's release dates is its first release date, to the day.
+function hasExactDate(game) {
+  if (!game.first_release_date) return false;
+  return (game.release_dates ?? []).some(
+    (release) => release.date === game.first_release_date && (release.date_format ?? release.category) === EXACT_DATE,
+  );
+}
+
+function isListable(game) {
+  return !isAdult(game) && isRelease(game);
+}
+
+const toSeconds = (isoDate) => Math.floor(Date.parse(`${isoDate}T00:00:00Z`) / 1000);
 const quote = (text) => `"${text.replace(/["\\]/g, "")}"`;
-const yearOf = (seconds) => (seconds ? new Date(seconds * 1000).getUTCFullYear() : null);
 
-function findBySlug(slugs, env) {
-  return queryGames(
-    `fields slug, cover.image_id; where slug = (${slugs.map(quote).join(",")}); limit ${MAX_SLUGS};`,
-    env,
-  );
-}
+async function listGames(params, env) {
+  const from = params.get("from");
+  const to = params.get("to");
+  if (!DATE.test(from) || !DATE.test(to)) throw new RangeError("from and to must be YYYY-MM-DD");
+  const page = Math.min(Number(params.get("page")) || 1, MAX_PAGE);
+  const hype = params.get("sort") === "hype";
 
-// Several games can share a name (God of War 2005 and 2018), so the one released in RAWG's year wins.
-async function findByName(wanted, env) {
-  const names = wanted.map(({ name }) => `name ~ ${quote(name)}`).join(" | ");
+  const where = [
+    `first_release_date >= ${toSeconds(from)}`,
+    // "to" is the last day in range, so the range ends at the start of the next day.
+    `first_release_date < ${toSeconds(to) + 86400}`,
+    "cover != null",
+  ];
+  if (hype) where.push("hypes != null");
+  if (ID.test(params.get("genre") ?? "")) where.push(`genres = (${params.get("genre")})`);
+  if (ID.test(params.get("platform") ?? "")) where.push(`platforms = (${params.get("platform")})`);
+
   const games = await queryGames(
-    `fields name, first_release_date, cover.image_id; where cover != null & (${names}); limit 500;`,
+    `fields ${CARD_FIELDS.join(",")};
+     where ${where.join(" & ")};
+     sort ${hype ? "hypes desc" : "first_release_date asc"};
+     limit ${PAGE_SIZE}; offset ${(page - 1) * PAGE_SIZE};`,
     env,
   );
-  return Object.fromEntries(
-    wanted.map(({ slug, name, year }) => {
-      const matches = games.filter((game) => game.name.toLowerCase() === name.toLowerCase());
-      const best = matches.find((game) => yearOf(game.first_release_date) === year) ?? (matches.length === 1 ? matches[0] : null);
-      return [slug, best?.cover.image_id ?? null];
-    }),
-  );
+  return {
+    results: games.filter((game) => isListable(game) && hasExactDate(game)),
+    hasMore: games.length === PAGE_SIZE && page < MAX_PAGE,
+  };
 }
 
-function json(body, status, cors) {
+async function searchGames(params, env) {
+  const text = (params.get("q") ?? "").trim().slice(0, 80);
+  if (!text) return { results: [], hasMore: false };
+  const page = Math.min(Number(params.get("page")) || 1, MAX_PAGE);
+  const games = await queryGames(
+    `search ${quote(text)};
+     fields ${CARD_FIELDS.join(",")};
+     limit ${PAGE_SIZE}; offset ${(page - 1) * PAGE_SIZE};`,
+    env,
+  );
+  return { results: games.filter(isListable), hasMore: games.length === PAGE_SIZE && page < MAX_PAGE };
+}
+
+// A direct link to an adult game gets nothing back, so the page shows it as not found.
+async function getGame(params, env) {
+  const id = params.get("id");
+  if (!ID.test(id ?? "")) throw new RangeError("id must be a number");
+  const [game] = await queryGames(`fields ${DETAIL_FIELDS.join(",")}; where id = ${id};`, env);
+  if (!game || isAdult(game)) return { game: null };
+  return { game: { ...game, similar_games: (game.similar_games ?? []).filter(isListable) } };
+}
+
+const ROUTES = {
+  "/games": { answer: listGames, maxAge: LIST_CACHE_SECONDS },
+  "/search": { answer: searchGames, maxAge: LIST_CACHE_SECONDS },
+  "/game": { answer: getGame, maxAge: GAME_CACHE_SECONDS },
+};
+
+function json(body, status, headers) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=86400", ...cors },
+    headers: { "Content-Type": "application/json", ...headers },
   });
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     const origin = request.headers.get("Origin");
     const allowed = ALLOWED_ORIGINS.includes(origin);
     const cors = {
@@ -100,35 +207,26 @@ export default {
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
-    // Only Drop Day may use it, and only to look up covers, so it can't be used as an open proxy.
     if (!allowed || request.method !== "GET") return json({ error: "Not allowed" }, 403, cors);
 
     const url = new URL(request.url);
-    if (url.pathname !== "/covers") return json({ error: "Not found" }, 404, cors);
+    const route = ROUTES[url.pathname];
+    if (!route) return json({ error: "Not found" }, 404, cors);
 
-    const names = (url.searchParams.get("names") ?? "").split("|");
-    const years = (url.searchParams.get("years") ?? "").split(",");
-    const requested = (url.searchParams.get("slugs") ?? "").split(",").map((slug, index) => ({
-      slug,
-      name: cleanName(names[index] ?? "").slice(0, 120),
-      year: Number(years[index]) || null,
-    }));
-    const wanted = [...new Map(requested.filter(({ slug }) => SLUG.test(slug)).map((game) => [game.slug, game])).values()]
-      .slice(0, MAX_SLUGS);
-    if (!wanted.length) return json({}, 200, cors);
+    // Saved answers are shared by everyone, whichever allowed address asked.
+    const cache = caches.default;
+    const cacheKey = new Request(url.toString());
+    const saved = await cache.match(cacheKey);
+    if (saved) return json(await saved.json(), 200, cors);
 
     try {
-      const covers = Object.fromEntries(wanted.map(({ slug }) => [slug, null]));
-      const games = await findBySlug(wanted.map(({ slug }) => slug), env);
-      games.forEach((game) => {
-        if (game.cover?.image_id) covers[game.slug] = game.cover.image_id;
-      });
-
-      const missed = wanted.filter(({ slug, name }) => !covers[slug] && name);
-      if (missed.length) Object.assign(covers, await findByName(missed, env));
-      return json(covers, 200, cors);
+      const body = await route.answer(url.searchParams, env);
+      const fresh = json(body, 200, { "Cache-Control": `public, max-age=${route.maxAge}` });
+      context.waitUntil(cache.put(cacheKey, fresh.clone()));
+      return json(body, 200, { ...cors, "Cache-Control": `public, max-age=${route.maxAge}` });
     } catch (error) {
-      return json({ error: error.message }, 502, cors);
+      const status = error instanceof RangeError ? 400 : 502;
+      return json({ error: error.message }, status, cors);
     }
   },
 };

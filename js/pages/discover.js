@@ -1,7 +1,6 @@
 import * as anilist from '../api/anilist.js';
-import * as rawg from '../api/rawg.js';
+import * as games from '../api/games.js';
 import * as tmdb from '../api/tmdb.js';
-import { RAWG_PLATFORMS } from '../config.js';
 import { formatTime, getMonthRange, getQuickRange, toMonthKey } from '../utils/dates.js';
 import { createReleaseCard, createCardSkeleton } from '../ui/card.js';
 import { createStateMessage } from '../ui/states.js';
@@ -16,7 +15,6 @@ import '../ui/site-header.js';
 const SKELETON_COUNT = 10;
 const SKELETON_DELAY = 150;
 const MONTHS_AHEAD = 12;
-const OLDER_PLATFORM_COUNT = 8;
 const FILTER_DELAY = 300;
 const SCROLL_KEY_PREFIX = 'dropday.discover.scroll.';
 const RETURN_KEY = 'dropday.discover.return';
@@ -27,9 +25,9 @@ const CATEGORIES = {
     label: 'Games',
     one: 'game',
     many: 'games',
-    load: rawg.getGames,
-    search: ({ query, page }) => rawg.getGames({ search: query, page }),
-    loadGenres: rawg.getGenres,
+    load: games.getGames,
+    search: ({ query, page }) => games.getGames({ search: query, page }),
+    loadGenres: games.getGenres,
   },
   movies: {
     label: 'Movies',
@@ -79,8 +77,6 @@ const RANGES = {
   quarter: 'in the next 3 months',
 };
 
-const CURRENT_PLATFORM_IDS = [RAWG_PLATFORMS.pc, RAWG_PLATFORMS.ps5, RAWG_PLATFORMS.xboxSeries, RAWG_PLATFORMS.switch];
-
 const monthFormat = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' });
 
 const tabs = [...document.querySelectorAll('.category-tab')];
@@ -120,7 +116,7 @@ function isId(value) {
   return /^\d+$/.test(value ?? '');
 }
 
-// RAWG and TMDB genres are numbers; AniList's are names like "Slice of Life" or "Sci-Fi".
+// IGDB and TMDB genres are numbers; AniList's are names like "Slice of Life" or "Sci-Fi".
 function isValidGenre(cat, value) {
   if (cat === 'anime' || cat === 'manga') return /^[\w &-]{1,40}$/.test(value ?? '');
   return isId(value);
@@ -258,15 +254,9 @@ function fillMonthOptions() {
   }
 }
 
-// Current-gen platforms first; everything else sits in its own group, most-used first.
-async function fillPlatformOptions() {
-  const platforms = await rawg.getPlatforms();
-  const current = CURRENT_PLATFORM_IDS.map((id) => platforms.find((platform) => platform.id === id)).filter(Boolean);
-  const older = platforms
-    .filter((platform) => !CURRENT_PLATFORM_IDS.includes(platform.id))
-    .sort((a, b) => b.gamesCount - a.gamesCount)
-    .slice(0, OLDER_PLATFORM_COUNT);
-
+// Current-gen platforms first; everything else sits in its own group.
+function fillPlatformOptions() {
+  const { current, older } = games.getPlatforms();
   const olderGroup = document.createElement('optgroup');
   olderGroup.label = 'Older and other platforms';
   olderGroup.append(...older.map(({ id, name }) => createOption(id, name)));
@@ -529,13 +519,7 @@ document.querySelector('.site-header__search-link').addEventListener('click', (e
 if (location.hash === '#search') requestAnimationFrame(() => pageSearchInput.focus());
 
 fillMonthOptions();
-fillPlatformOptions()
-  .then(() => {
-    const state = readState();
-    platformSelect.value = state.platform;
-    renderSummary(state);
-  })
-  .catch(() => {});
+fillPlatformOptions();
 
 // Back from a game page should land where the user left off (PRD design goal 2). Filters already live in the URL;
 // this keeps the scroll position and how many pages were loaded, per URL, for this tab only.
