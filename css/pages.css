@@ -774,6 +774,11 @@
   filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
 }
 
+.hero__logo--dark {
+  /* Dark lettering made for light posters, turned white for the dark art behind it. */
+  filter: brightness(0) invert(1) drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
 /* All slides' art is stacked; the active one fades in over the others. */
 .hero__image {
   opacity: 0;
@@ -1249,6 +1254,11 @@
   object-fit: contain;
   object-position: left bottom;
   filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
+.title__logo--dark {
+  /* Dark lettering made for light posters, turned white for the dark art behind it. */
+  filter: brightness(0) invert(1) drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
 }
 
 .game__note {
