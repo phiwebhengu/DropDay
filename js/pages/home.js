@@ -1,5 +1,5 @@
 import * as anilist from '../api/anilist.js';
-import * as rawg from '../api/rawg.js';
+import * as games from '../api/games.js';
 import * as tmdb from '../api/tmdb.js';
 import * as youtube from '../api/youtube.js';
 import { getEntry, listByStatus } from '../store/library.js';
@@ -254,13 +254,13 @@ async function showSlide(index) {
 
 const trailers = new Map();
 
-// Games: YouTube finds the official trailer (RAWG only has clips for games on Steam). Films and shows
-// come from TMDB, anime from AniList. Each is looked up once per visit.
+// Games: IGDB's own trailer, or a YouTube search when IGDB has none. Films and shows come from TMDB,
+// anime from AniList. Each is looked up once per visit.
 function findTrailer(release) {
   const key = `${release.source}:${release.type}:${release.id}`;
   if (!trailers.has(key)) {
     const lookup = {
-      game: async () => (await youtube.findTrailer(release.title).catch(() => null)) ?? rawg.getTrailer(release.id),
+      game: async () => (await games.getTrailer(release.id).catch(() => null)) ?? youtube.findTrailer(release.title),
       movie: async () => (await tmdb.getMovie(release.id)).trailerKey,
       tv: async () => (await tmdb.getShow(release.id, 'tv')).trailerKey,
       anime: async () => (await anilist.getMedia(release.id))?.trailerKey,
@@ -436,7 +436,7 @@ async function loadMonth() {
   const range = getMonthRange(toMonthKey(new Date()));
   // One category failing shouldn't empty the whole shelf.
   const results = await Promise.allSettled([
-    rawg.getGames({ ...range, ordering: '-added' }),
+    games.getGames({ ...range, ordering: 'hype' }),
     tmdb.getMovies(range),
     tmdb.getShows(range),
     anilist.getAnime(range),
@@ -524,13 +524,13 @@ function shared(first, fresh) {
 }
 
 const sources = {
-  anticipated: rawg.getAnticipated(),
+  anticipated: games.getAnticipated(),
   cinema: tmdb.getNowPlaying(),
   airing: anilist.getAiringAnime(),
 };
 loadBillboard(sources);
 loadShelf('month', loadMonth, { emptyTitle: 'Nothing dropping this month', emptyText: 'Look further ahead on Discover.' });
-loadShelf('top', shared(sources.anticipated, () => rawg.getAnticipated()), {
+loadShelf('top', shared(sources.anticipated, () => games.getAnticipated()), {
   ranked: true,
   emptyTitle: 'No big launches coming up',
   emptyText: 'Check back soon.',

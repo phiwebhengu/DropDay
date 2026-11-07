@@ -1,5 +1,5 @@
 import * as anilist from '../api/anilist.js';
-import * as rawg from '../api/rawg.js';
+import * as games from '../api/games.js';
 import * as tmdb from '../api/tmdb.js';
 import { getDateText, getSaveText } from './card.js';
 import { posterFallback } from './poster.js';
@@ -265,10 +265,13 @@ function renderError(release) {
   );
 }
 
-export async function getDetails({ source, type, id }) {
+export async function getDetails(release) {
+  const { source, type, id } = release;
   if (source === 'anilist') return anilist.getMedia(id);
-  if (source === 'rawg') {
-    const { game } = await rawg.getGame(id);
+  if (source === 'igdb' || source === 'rawg') {
+    // A game saved while the site used RAWG is found again on IGDB by its name.
+    const gameId = source === 'rawg' ? (await games.findGame(release))?.id : id;
+    const { game } = gameId ? await games.getGame(gameId) : { game: null };
     return game && { ...game, overview: game.description, providers: [] };
   }
   return type === 'movie' ? tmdb.getMovie(id) : tmdb.getShow(id, type);
