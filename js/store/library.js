@@ -31,7 +31,7 @@ function isValid(data, statuses) {
   );
 }
 
-// Two sources can share an id (RAWG, TMDB and AniList all count from 1), so the key holds all three parts.
+// Two sources can share an id (IGDB, TMDB and AniList all count from 1), so the key holds all three parts.
 export function getKey({ source, type, id }) {
   return `${source}:${type}:${id}`;
 }
@@ -208,6 +208,31 @@ export function setUnit(release, unitKey, changes) {
   const entry = { ...base, status, units, updatedAt: unit.at };
   const result = save(withChange(entry, previous ? null : 'added'));
   return result.ok ? { ...result, entry, previous } : result;
+}
+
+// Moves a saved entry over to the same release from another source (a game saved from RAWG, found again
+// on IGDB), keeping its status, log and progress. Nothing happens if there's nothing to move or the new
+// release is already saved.
+export function relinkEntry(from, to) {
+  const previous = getEntry(from);
+  if (!previous || getEntry(to)) return { ok: true, entry: getEntry(to) };
+  const current = load();
+  const entry = {
+    ...previous,
+    key: getKey(to),
+    source: to.source,
+    id: to.id,
+    title: to.title,
+    image: to.image ?? previous.image,
+    poster: to.poster ?? previous.poster,
+    date: to.date ?? previous.date,
+    tba: Boolean(to.tba),
+    platforms: to.platforms?.length ? to.platforms : previous.platforms,
+  };
+  const items = current.items.map((item) => (item.key === previous.key ? entry : item));
+  const activity = current.activity.map((item) => (item.key === previous.key ? { ...item, key: entry.key } : item));
+  const result = save({ items, activity });
+  return result.ok ? { ...result, entry } : result;
 }
 
 export function removeEntry(release) {

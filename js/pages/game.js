@@ -1,5 +1,5 @@
-import * as rawg from '../api/rawg.js';
-import { getEntry } from '../store/library.js';
+import * as games from '../api/games.js';
+import { getEntry, relinkEntry } from '../store/library.js';
 import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, setReminder, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
@@ -10,6 +10,7 @@ import { createReview } from '../ui/review.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
+import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
 import { getStatusLabel, isReleased } from '../utils/media.js';
 import '../ui/save-feedback.js';
@@ -36,6 +37,7 @@ const platforms = document.getElementById('game-platforms');
 const rating = document.getElementById('game-rating');
 const statusButtons = [...document.querySelectorAll('.status-button')];
 const logButton = document.getElementById('log-button');
+const trailerButton = document.getElementById('trailer-button');
 const shareButton = document.getElementById('share-button');
 const removeButton = document.getElementById('remove-button');
 const remindButton = document.getElementById('remind-button');
@@ -51,7 +53,8 @@ const similar = document.getElementById('game-similar');
 const similarList = document.getElementById('similar-list');
 const similarSeeAll = document.getElementById('similar-see-all');
 
-const id = new URLSearchParams(location.search).get('id');
+const params = new URLSearchParams(location.search);
+let id = params.get('id');
 let game = null;
 
 function readReturnLink() {
@@ -167,7 +170,7 @@ function renderImage(container, src, alt) {
   container.append(image);
 }
 
-// Label and value pairs; anything RAWG doesn't know is left out rather than shown as "Unknown".
+// Label and value pairs; anything IGDB doesn't know is left out rather than shown as "Unknown".
 function renderFacts() {
   const rows = [
     ['Release date', game.tba ? 'To be announced' : formatReleaseDate(game.date)],
@@ -209,9 +212,11 @@ function renderGame() {
     rating.replaceChildren(
       createStars(game.rating),
       createElement('span', 'game__rating-value', formatRating(game.rating)),
-      createElement('span', 'game__rating-source', 'Community rating on RAWG'),
+      createElement('span', 'game__rating-source', 'Critic and player rating on IGDB'),
     );
   }
+
+  trailerButton.hidden = !game.trailerKey;
 
   renderStatus();
   renderFacts();
@@ -248,15 +253,15 @@ function renderScreenshots(urls) {
 
 function renderSimilar(games) {
   similar.hidden = !games.length;
-  similarSeeAll.href = `discover.html?cat=games&range=quarter&genre=${game.genreIds[0]}`;
+  similarSeeAll.href = `discover.html?cat=games&range=quarter${game.genreIds.length ? `&genre=${game.genreIds[0]}` : ''}`;
   similarList.replaceChildren(...games.map((release) => createShelfItem(createReleaseCard(release, { entry: getEntry(release) }))));
   updateShelfArrows(similar);
 }
 
-// The extras load after the main details so the page is usable sooner; if they fail, their sections just stay hidden.
-function loadExtras() {
-  rawg.getScreenshots(id).then(renderScreenshots).catch(() => {});
-  rawg.getSimilarGames(id, game.genreIds, SIMILAR_COUNT).then(renderSimilar).catch(() => {});
+// Screenshots and similar games arrive with the game itself, in the same request.
+function renderExtras() {
+  renderScreenshots(game.screenshots);
+  renderSimilar(game.similar.slice(0, SIMILAR_COUNT));
 }
 
 function showState(message) {
@@ -276,7 +281,7 @@ function showNotFound() {
       headingLevel: 1,
       type: 'empty',
       title: 'Game not found',
-      text: 'This link may be broken, or the game was removed from RAWG.',
+      text: 'This link may be broken, or the game was removed from IGDB.',
       actionLabel: 'Back to Discover',
       onAction: () => {
         location.href = 'discover.html';
@@ -285,19 +290,31 @@ function showNotFound() {
   );
 }
 
+// Games saved while the site used RAWG link here with their old details (?rawg=). They're found again
+// on IGDB by name, and the Library entry moves over so its log and status carry on.
+async function findLegacyGame() {
+  const legacy = { source: 'rawg', type: 'game', id: params.get('rawg'), title: params.get('title') ?? '', date: params.get('date') };
+  const found = legacy.title ? await games.findGame(legacy) : null;
+  if (!found) return null;
+  relinkEntry(legacy, found);
+  history.replaceState(null, '', `game.html?id=${found.id}`);
+  return String(found.id);
+}
+
 async function loadGame() {
   stateBox.hidden = true;
   hero.hidden = false;
   try {
-    ({ game } = await rawg.getGame(id));
+    if (!id) id = await findLegacyGame();
+    if (id) ({ game } = await games.getGame(id));
     if (!game) {
       showNotFound();
       return;
     }
     renderGame();
-    loadExtras();
+    renderExtras();
     // "Edit log" in My Library links here with ?log=1 so the modal opens straight away.
-    if (new URLSearchParams(location.search).get('log') === '1') openLogModal(game, { trigger: logButton });
+    if (params.get('log') === '1') openLogModal(game, { trigger: logButton });
   } catch (error) {
     if (error.status === 404) {
       showNotFound();
@@ -357,6 +374,9 @@ removeButton.addEventListener('click', () => {
 
 shareButton.addEventListener('click', share);
 logButton.addEventListener('click', () => openLogModal(game, { trigger: logButton }));
+trailerButton.addEventListener('click', () => {
+  openTrailerDialog({ title: game.title, trailer: { youtubeId: game.trailerKey } }, trailerButton);
+});
 
 readMore.addEventListener('click', () => {
   const expanded = readMore.getAttribute('aria-expanded') !== 'true';
@@ -374,7 +394,7 @@ window.addEventListener('library:change', () => {
 });
 
 renderBackLink();
-if (/^\d+$/.test(id ?? '')) loadGame();
+if (/^\d+$/.test(id ?? '') || /^\d+$/.test(params.get('rawg') ?? '')) loadGame();
 else showNotFound();
 
 document.querySelectorAll('.shelf').forEach(setupShelf);

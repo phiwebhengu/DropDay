@@ -105,7 +105,7 @@ function renderTitle(release) {
 
 const MORE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg>';
 
-// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the RAWG key
+// Every card is a 2:3 poster. Games use their official IGDB cover when there is one; otherwise the key
 // art fills the poster with the title across the bottom.
 function isBoxArt(release) {
   return release.type === 'game' && !release.poster && Boolean(release.image);

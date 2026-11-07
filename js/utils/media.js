@@ -47,8 +47,11 @@ export function isReleased({ date, tba }) {
   return new Date(year, month - 1, day) <= new Date();
 }
 
-// Every release has its own page: games on game.html (RAWG), everything else on title.html.
-export function getDetailUrl({ source, type, id }, { log = false } = {}) {
-  const url = type === 'game' ? `game.html?id=${id}` : `title.html?source=${source}&type=${type}&id=${id}`;
+// Every release has its own page: games on game.html (IGDB), everything else on title.html.
+// Games saved while the site used RAWG carry their title and date, so their page can find them on IGDB.
+export function getDetailUrl({ source, type, id, title, date }, { log = false } = {}) {
+  let url = `title.html?source=${source}&type=${type}&id=${id}`;
+  if (source === 'igdb') url = `game.html?id=${id}`;
+  if (source === 'rawg') url = `game.html?rawg=${id}&title=${encodeURIComponent(title)}&date=${date ?? ''}`;
   return log ? `${url}&log=1` : url;
 }

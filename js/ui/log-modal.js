@@ -1,4 +1,4 @@
-import * as rawg from '../api/rawg.js';
+import * as games from '../api/games.js';
 import { getEntry } from '../store/library.js';
 import { saveLogEntry } from './library-actions.js';
 import { formatRating } from './rating.js';
@@ -139,7 +139,7 @@ function renderSaveButton() {
   form.querySelector('[type="submit"]').disabled = !form.elements.status.value;
 }
 
-// RAWG's platform list for a game is often incomplete, so common platforms are always offered too.
+// A game's platform list can be incomplete, so common platforms are always offered too.
 // It's also in no useful order (one tester got Linux preselected), so the familiar ones come first.
 const COMMON_PLATFORMS = [
   'PC',
@@ -213,7 +213,7 @@ async function fillEditions(selected) {
   const select = form.elements.edition;
   fillSelect(select, [STANDARD_EDITION], STANDARD_EDITION);
   try {
-    const editions = await rawg.getEditions(release.id);
+    const editions = release.editions ?? (await games.getEditions(release.id));
     // Keep whatever the user picked while the list was loading.
     const current = select.value !== STANDARD_EDITION ? select.value : selected;
     fillSelect(select, [STANDARD_EDITION, ...editions], current ?? STANDARD_EDITION);
