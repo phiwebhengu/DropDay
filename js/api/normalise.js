@@ -30,57 +30,86 @@ const TMDB_GENRES = {
   10770: "TV Movie",
 };
 
-export function resizeRawgImage(url) {
-  if (!url) return null;
-  return url
-    .replace("/media/games/", "/media/crop/600/400/games/")
-    .replace("/media/screenshots/", "/media/crop/600/400/screenshots/");
-}
-
 export function getTmdbImage(path, size = "w342") {
   return path ? `${TMDB_IMAGE_BASE_URL}/${size}${path}` : null;
 }
 
-// Game detail and the Home hero show the art large, so it gets a bigger, uncropped copy than the cards.
-function resizeRawgCover(url) {
-  return url ? url.replace("/media/games/", "/media/resize/1280/-/games/") : null;
-}
-
-// The art's own colour, used to frame it (a game's wide key art sits inside a poster-shaped card).
-// RAWG sends "0f0f0f", AniList "#e4a15d"; anything else is ignored.
+// The art's own colour, used to frame it. AniList sends "#e4a15d"; anything else is ignored.
 function toTint(color) {
   const hex = color?.replace("#", "");
   return /^[0-9a-f]{6}$/i.test(hex ?? "") ? `#${hex}` : null;
 }
 
-export function normaliseRawgGame(game) {
-  const date = game.released ?? null;
+const IGDB_IMAGE_BASE = "https://images.igdb.com/igdb/image/upload";
+
+export function getIgdbImage(imageId, size) {
+  return imageId ? `${IGDB_IMAGE_BASE}/t_${size}/${imageId}.jpg` : null;
+}
+
+// IGDB's names, shortened to what players call them (and what the Log modal and card stubs expect).
+const IGDB_PLATFORM_NAMES = {
+  "PC (Microsoft Windows)": "PC",
+  "Xbox Series X|S": "Xbox Series S/X",
+  Mac: "macOS",
+  "PlayStation VR2": "PS VR2",
+};
+
+const IGDB_GENRE_NAMES = {
+  "Role-playing (RPG)": "RPG",
+  "Real Time Strategy (RTS)": "Strategy",
+  "Turn-based strategy (TBS)": "Strategy",
+  "Hack and slash/Beat 'em up": "Hack and slash",
+  "Point-and-click": "Point and click",
+  "Card & Board Game": "Card and board",
+};
+
+// The release date only counts when IGDB knows the day; "2026" alone is stored as 31 December.
+function getExactDate(game) {
+  const exact = (game.release_dates ?? []).some(
+    (release) => release.date === game.first_release_date && (release.date_format ?? release.category) === 0,
+  );
+  return exact ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10) : null;
+}
+
+export function normaliseIgdbGame(game) {
+  const date = getExactDate(game);
+  // Wide art for the backdrop: a piece of key art when IGDB has one, otherwise a screenshot.
+  const wideArt = game.artworks?.[0]?.image_id ?? game.screenshots?.[0]?.image_id;
+  const genres = [...new Set((game.genres ?? []).map(({ name }) => IGDB_GENRE_NAMES[name] ?? name))];
   return {
-    source: "rawg",
+    source: "igdb",
     id: game.id,
     slug: game.slug ?? null,
     type: "game",
     title: game.name || "Untitled",
     date,
-    tba: Boolean(game.tba) || !date,
-    image: resizeRawgImage(game.background_image),
-    cover: resizeRawgCover(game.background_image),
+    tba: !date,
+    poster: getIgdbImage(game.cover?.image_id, "cover_big_2x"),
+    image: getIgdbImage(wideArt, "screenshot_big"),
+    cover: getIgdbImage(wideArt, "1080p"),
     season: null,
-    platforms: (game.platforms ?? []).map(({ platform }) => platform.name),
-    genres: (game.genres ?? []).map((genre) => genre.name),
-    rating: game.rating > 0 ? game.rating : null,
-    tint: toTint(game.dominant_color),
+    platforms: (game.platforms ?? []).map(({ name }) => IGDB_PLATFORM_NAMES[name] ?? name),
+    platformIds: (game.platforms ?? []).map(({ id }) => id),
+    genres,
+    genreIds: (game.genres ?? []).map(({ id }) => id),
+    // IGDB rates out of 100.
+    rating: game.total_rating > 0 ? Math.round(game.total_rating / 2) / 10 : null,
+    hypes: game.hypes ?? 0,
   };
 }
 
-export function normaliseRawgGameDetail(game) {
+export function normaliseIgdbGameDetail(game) {
+  const companies = game.involved_companies ?? [];
+  const trailer = (game.videos ?? []).find((video) => /trailer/i.test(video.name ?? "")) ?? game.videos?.[0];
   return {
-    ...normaliseRawgGame(game),
-    description: game.description_raw ?? "",
-    developers: (game.developers ?? []).map((developer) => developer.name),
-    publishers: (game.publishers ?? []).map((publisher) => publisher.name),
-    platformIds: (game.platforms ?? []).map(({ platform }) => platform.id),
-    genreIds: (game.genres ?? []).map((genre) => genre.id),
+    ...normaliseIgdbGame(game),
+    description: [game.summary, game.storyline].filter(Boolean).join("\n\n"),
+    developers: companies.filter((company) => company.developer).map(({ company }) => company.name),
+    publishers: companies.filter((company) => company.publisher).map(({ company }) => company.name),
+    screenshots: (game.screenshots ?? []).map(({ image_id }) => getIgdbImage(image_id, "screenshot_big")),
+    trailerKey: trailer?.video_id ?? null,
+    editions: [...(game.expansions ?? []), ...(game.dlcs ?? [])].map(({ name }) => name),
+    similar: (game.similar_games ?? []).map(normaliseIgdbGame),
   };
 }
 
