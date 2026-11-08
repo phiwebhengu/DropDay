@@ -14,3 +14,6 @@ desktop.ini
 
 # Editor extension output
 state/
+
+# Cloudflare Wrangler local cache
+.wrangler/
