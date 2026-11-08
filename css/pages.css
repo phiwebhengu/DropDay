@@ -311,6 +311,7 @@
   text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
   text-wrap: balance;
   overflow-wrap: anywhere;
+  transition: opacity var(--duration-base) var(--ease-out);
 }
 
 .game__meta {
@@ -772,6 +773,11 @@
   object-fit: contain;
   object-position: left bottom;
   filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
+.hero__logo--dark {
+  /* Dark lettering made for light posters, turned white for the dark art behind it. */
+  filter: brightness(0) invert(1) drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
 }
 
 /* All slides' art is stacked; the active one fades in over the others. */
@@ -1249,6 +1255,16 @@
   object-fit: contain;
   object-position: left bottom;
   filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
+.title__logo--dark {
+  /* Dark lettering made for light posters, turned white for the dark art behind it. */
+  filter: brightness(0) invert(1) drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
+/* Hidden for a moment while the logo loads, then faded in (logo or typed title). */
+.game__title.is-waiting {
+  opacity: 0;
 }
 
 .game__note {
