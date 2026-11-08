@@ -10,6 +10,7 @@ import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
 import { canPreview, createBillboardPreview } from '../ui/hero-trailer.js';
 import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { createStateMessage } from '../ui/states.js';
+import { createLogo, prepareLogo } from '../ui/title-logo.js';
 import { playHeroIntro, swapBillboard, tickDigit } from '../motion.js';
 import { getMonthRange, toMonthKey } from '../utils/dates.js';
 import { getDetailUrl, getTypeLabel } from '../utils/media.js';
@@ -126,12 +127,7 @@ function getMeta(release) {
 
 // A film or show's own logo when TMDB has one, otherwise the title in display type.
 function renderTitleContent(release, logo) {
-  if (!logo) return release.title;
-  const image = document.createElement('img');
-  image.className = 'hero__logo';
-  image.src = logo;
-  image.alt = release.title;
-  return image;
+  return logo ? createLogo(logo, { className: 'hero__logo', alt: release.title }) : release.title;
 }
 
 // The title, like More info, opens the release's full page.
@@ -181,11 +177,7 @@ async function loadLogo(slide) {
   if (release.source !== 'tmdb' || !['movie', 'tv'].includes(release.type)) return;
   try {
     const details = release.type === 'movie' ? await tmdb.getMovie(release.id) : await tmdb.getShow(release.id, 'tv');
-    if (!details.logo) return;
-    const image = new Image();
-    image.src = details.logo;
-    await image.decode();
-    slide.logo = details.logo;
+    slide.logo = await prepareLogo(details.logo);
   } catch {
     // No logo: the text title is used.
   }
