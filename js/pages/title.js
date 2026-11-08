@@ -8,6 +8,7 @@ import { createStars, formatRating } from '../ui/rating.js';
 import { createReview } from '../ui/review.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
 import { createStateMessage } from '../ui/states.js';
+import { createLogo, prepareLogo } from '../ui/title-logo.js';
 import { showToast } from '../ui/toast.js';
 import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
@@ -262,20 +263,19 @@ function renderFacts() {
   providers.replaceChildren(createProviders(release));
 }
 
-// A film or show's own logo when TMDB has one; the typed title otherwise (and always for screen readers).
-function renderHeading() {
-  if (!release.logo) {
-    heading.textContent = release.title;
-    return;
-  }
-  const logo = document.createElement('img');
-  logo.className = 'title__logo';
-  logo.src = release.logo;
-  logo.alt = release.title;
-  logo.addEventListener('error', () => {
-    heading.textContent = release.title;
-  });
-  heading.replaceChildren(logo);
+// A film or show's own logo when TMDB has one and it can be shown clearly; the typed title otherwise
+// (and always for screen readers, through the logo's alt text).
+// The heading waits a moment for the logo, so it doesn't flash the typed title and then swap.
+const LOGO_WAIT = 1200;
+
+async function renderHeading() {
+  heading.classList.add('is-waiting');
+  const logo = await Promise.race([
+    prepareLogo(release.logo),
+    new Promise((resolve) => setTimeout(resolve, LOGO_WAIT, null)),
+  ]);
+  heading.replaceChildren(logo ? createLogo(logo, { className: 'title__logo', alt: release.title }) : release.title);
+  heading.classList.remove('is-waiting');
 }
 
 function renderTitle() {

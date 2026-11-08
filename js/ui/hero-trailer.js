@@ -11,6 +11,9 @@ const YOUTUBE_BUFFERING = 3;
 const END_MARGIN = 1.5;
 // The art shows first; the preview starts after this beat.
 const START_DELAY = 1500;
+// Previews skip the first seconds, where trailers put age-rating cards and studio logos (GTA VI opens
+// on an ESRB card), and start where the footage does, like Netflix's. "Watch trailer" plays it all.
+const SKIP_INTRO = 5;
 // A full trailer runs two or three minutes; the billboard moves on after this much.
 const PREVIEW_LENGTH = 40000;
 // A few seconds into a preview, the text steps back so the video can be seen (tester 6).
@@ -38,6 +41,7 @@ function createYouTubePlayer(
   const frame = document.createElement("iframe");
   const params = new URLSearchParams({
     autoplay: 1,
+    start: SKIP_INTRO,
     mute: startMuted ? 1 : 0,
     controls: 0,
     playsinline: 1,
@@ -132,7 +136,7 @@ function createYouTubePlayer(
 function createVideoPlayer({ src }, { muted, onPlaying, onStall, onNearEnd, onError }) {
   const video = document.createElement("video");
   video.className = "hero__video";
-  video.src = src;
+  video.src = `${src}#t=${SKIP_INTRO}`;
   video.muted = muted;
   video.playsInline = true;
   video.preload = "none";
