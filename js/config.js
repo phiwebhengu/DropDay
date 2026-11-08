@@ -1,7 +1,6 @@
 export const TMDB_READ_ACCESS_TOKEN =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NTAwZGRhZTAzOTYwZGMyYjI5OTk0NmZjNjExYTNjOCIsIm5iZiI6MTc5MjQzNzc4Mi4zMjksInN1YiI6IjZhZDY2ZTE2YzE3YTdkZDMxOWMwMTZjZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.FLcgx9_86G0zdQjNb46GXud30rt-BdmAtEjtxP5DzLs";
 
-// Restrict this key to your site's address in Google Cloud. Only used when IGDB has no trailer for a game.
 export const YOUTUBE_API_KEY = "AIzaSyAP52Y6Y74yq5nKbdzN8gygAiDuJVb3rNQ";
 
 export const TMDB_BASE_URL = "https://api.themoviedb.org/3";
