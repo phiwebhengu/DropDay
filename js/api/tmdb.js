@@ -232,9 +232,11 @@ function toQuickView(data, type) {
 
 // The title treatment (the film's own logo), like the top of Netflix and Apple TV. English first,
 // then one with no language. Anything else would show a title in a script the page isn't in.
+// Many logos are uploaded as SVG files with no set size, which some browsers draw at zero width (that's
+// why Wildwood's title vanished). TMDB makes a PNG copy of every SVG, so the PNG is always asked for.
 function pickLogo(logos = []) {
   const logo = logos.find((item) => item.iso_639_1 === "en") ?? logos.find((item) => item.iso_639_1 === null);
-  return logo ? getTmdbImage(logo.file_path, "w500") : null;
+  return logo ? getTmdbImage(logo.file_path.replace(/\.svg$/i, ".png"), "w500") : null;
 }
 
 export async function getMovie(id) {

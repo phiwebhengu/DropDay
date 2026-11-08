@@ -311,6 +311,7 @@
   text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
   text-wrap: balance;
   overflow-wrap: anywhere;
+  transition: opacity var(--duration-base) var(--ease-out);
 }
 
 .game__meta {
@@ -1259,6 +1260,11 @@
 .title__logo--dark {
   /* Dark lettering made for light posters, turned white for the dark art behind it. */
   filter: brightness(0) invert(1) drop-shadow(0 2px 18px rgb(0 0 0 / 0.45));
+}
+
+/* Hidden for a moment while the logo loads, then faded in (logo or typed title). */
+.game__title.is-waiting {
+  opacity: 0;
 }
 
 .game__note {

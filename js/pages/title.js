@@ -265,10 +265,17 @@ function renderFacts() {
 
 // A film or show's own logo when TMDB has one and it can be shown clearly; the typed title otherwise
 // (and always for screen readers, through the logo's alt text).
+// The heading waits a moment for the logo, so it doesn't flash the typed title and then swap.
+const LOGO_WAIT = 1200;
+
 async function renderHeading() {
-  heading.textContent = release.title;
-  const logo = await prepareLogo(release.logo);
-  if (logo) heading.replaceChildren(createLogo(logo, { className: 'title__logo', alt: release.title }));
+  heading.classList.add('is-waiting');
+  const logo = await Promise.race([
+    prepareLogo(release.logo),
+    new Promise((resolve) => setTimeout(resolve, LOGO_WAIT, null)),
+  ]);
+  heading.replaceChildren(logo ? createLogo(logo, { className: 'title__logo', alt: release.title }) : release.title);
+  heading.classList.remove('is-waiting');
 }
 
 function renderTitle() {
