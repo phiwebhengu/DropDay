@@ -119,7 +119,15 @@
       <div class="library container">
         <header class="library__header">
           <h1 class="library__title">My Library</h1>
-          <p class="library__intro">Saved on this device. No account needed.</p>
+          <div class="library__meta">
+            <p class="library__intro">Saved on this device. No account needed.</p>
+            <button class="text-button library__backup" id="export-button" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" />
+              </svg>
+              Download a backup
+            </button>
+          </div>
         </header>
         <div class="library__controls">
           <div class="library-tabs" role="tablist" aria-label="Library lists">
@@ -164,11 +172,12 @@
           <section class="library__panel" id="library-panel" role="tabpanel" aria-labelledby="tab-want" tabindex="-1"></section>
 
           <aside class="activity" aria-labelledby="activity-title">
-            <h2 class="activity__title" id="activity-title">Activity</h2>
+            <h2 class="activity__title" id="activity-title">Recent activity</h2>
             <ol class="activity__list" id="activity-list"></ol>
             <p class="activity__empty" id="activity-empty" hidden>Nothing yet. Save or log something and it shows up here.</p>
-            <button class="button button--outline" id="export-button" type="button">Export library (JSON)</button>
-            <p class="activity__note">Your Library lives in this browser only. Export now and then to keep a copy.</p>
+            <button class="text-button activity__more" id="activity-more" type="button" aria-expanded="false" aria-controls="activity-list" hidden>
+              Show more
+            </button>
           </aside>
         </div>
       </div>

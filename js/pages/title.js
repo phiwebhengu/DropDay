@@ -1,4 +1,4 @@
-import { getEntry, setUnit } from '../store/library.js';
+import { getEntry, setUnits, undo } from '../store/library.js';
 import { createReleaseCard, getDateText } from '../ui/card.js';
 import { removeRelease, setReleaseStatus, setReminder, syncCards, toggleSave } from '../ui/library-actions.js';
 import { openLogModal } from '../ui/log-modal.js';
@@ -24,8 +24,8 @@ const MAX_GENRES = 2;
 const MAX_SIMILAR = 12;
 const SOURCES = { tmdb: ['movie', 'tv'], anilist: ['anime', 'manga'] };
 const RATING_SOURCES = { tmdb: 'TMDB', anilist: 'AniList' };
-// Long-running anime (One Piece is past 1,100 episodes) would be a wall of tiles, so they come in pages.
-const EPISODES_PER_PAGE = 100;
+// Long-running anime (One Piece is past 1,100 episodes) would be a wall of tiles, so they come in ranges.
+const EPISODES_PER_RANGE = 100;
 
 const backLink = document.getElementById('back-link');
 const backLinkText = document.getElementById('back-link-text');
@@ -50,7 +50,16 @@ const yourLog = document.getElementById('your-log');
 const yourLogCard = document.getElementById('your-log-card');
 const progress = document.getElementById('title-progress');
 const progressCount = document.getElementById('progress-count');
+const progressFill = document.getElementById('progress-fill');
+const nextButton = document.getElementById('progress-next');
+const doneNote = document.getElementById('progress-done');
+const upToForm = document.getElementById('progress-upto');
+const upToLabel = document.getElementById('progress-upto-label');
+const upToInput = document.getElementById('progress-upto-input');
 const progressSeasons = document.getElementById('progress-seasons');
+const progressRanges = document.getElementById('progress-ranges');
+const viewCount = document.getElementById('progress-view-count');
+const bulkButton = document.getElementById('progress-bulk');
 const progressGrid = document.getElementById('progress-grid');
 const about = document.getElementById('title-about');
 const description = document.getElementById('title-description');
@@ -62,7 +71,10 @@ const params = new URLSearchParams(location.search);
 const request = { source: params.get('source'), type: params.get('type'), id: params.get('id') };
 let release = null;
 let season = 1;
-let episodePage = 0;
+let rangeStart = 1;
+// The last episode tapped, so Shift-clicking another marks every episode in between.
+let anchor = null;
+const countFormat = new Intl.NumberFormat('en-ZA');
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -134,8 +146,10 @@ function renderYourLog() {
   yourLogCard.replaceChildren(...parts);
 }
 
-/* Episode progress: one tile per episode, saved as units on the Library entry ("s2e5" for a show,
-   "e12" for anime). Ticking the first one off puts the title in Watching. */
+/* Episode progress, saved as units on the Library entry ("s2e5" for a show, "e12" for anime).
+   Ticking one off puts the title in In progress. Besides tapping single episodes, there are quick ways
+   to mark a lot at once, like Simkl: the next episode, everything up to an episode, a whole season or
+   range, and Shift-click runs. Every bulk change can be undone from its toast. */
 
 function getSeasons() {
   if (release.type === 'tv') return release.seasonList ?? [];
@@ -145,13 +159,37 @@ function getSeasons() {
   return episodes > 0 ? [{ number: 1, episodes }] : [];
 }
 
-function getUnitKey(episode) {
-  return release.type === 'tv' ? `s${season}e${episode}` : `e${episode}`;
+function getUnitKey(seasonNumber, episode) {
+  return release.type === 'tv' ? `s${seasonNumber}e${episode}` : `e${episode}`;
 }
 
-function countWatched(prefix) {
-  const units = getEntry(release)?.units ?? {};
-  return Object.entries(units).filter(([key, unit]) => unit.watched && key.startsWith(prefix)).length;
+// Every episode in watching order.
+function listEpisodes(seasons) {
+  return seasons.flatMap(({ number, episodes }) =>
+    Array.from({ length: episodes }, (_, index) => ({
+      season: number,
+      episode: index + 1,
+      key: getUnitKey(number, index + 1),
+    })),
+  );
+}
+
+function isWatched(key) {
+  return Boolean(getEntry(release)?.units?.[key]?.watched);
+}
+
+function getEpisodeName({ season: seasonNumber, episode }, seasons) {
+  return seasons.length > 1 ? `S${seasonNumber} E${episode}` : `episode ${countFormat.format(episode)}`;
+}
+
+function getRangeStart(episode) {
+  return Math.floor((episode - 1) / EPISODES_PER_RANGE) * EPISODES_PER_RANGE + 1;
+}
+
+// Shows the season and range an episode is in, so a change made from the buttons is visible.
+function showEpisode({ season: seasonNumber, episode }) {
+  season = seasonNumber;
+  rangeStart = getRangeStart(episode);
 }
 
 function renderSeasonTabs(seasons) {
@@ -166,13 +204,47 @@ function renderSeasonTabs(seasons) {
       tab.tabIndex = number === season ? 0 : -1;
       tab.addEventListener('click', () => {
         season = number;
-        episodePage = 0;
+        rangeStart = 1;
         renderProgress();
         progressSeasons.querySelector('[aria-selected="true"]')?.focus();
       });
       return tab;
     }),
   );
+}
+
+// Seasons over 100 episodes are split into ranges (1–100, 101–200…), each marked once it's all watched.
+function renderRanges(current) {
+  progressRanges.hidden = current.episodes <= EPISODES_PER_RANGE;
+  if (progressRanges.hidden) return;
+  const ranges = [];
+  for (let first = 1; first <= current.episodes; first += EPISODES_PER_RANGE) {
+    const last = Math.min(current.episodes, first + EPISODES_PER_RANGE - 1);
+    const complete = listRange(first, last).every(isWatched);
+    const button = createElement('button', 'progress__range', `${first}–${last}`);
+    button.type = 'button';
+    button.classList.toggle('progress__range--complete', complete);
+    button.setAttribute('aria-pressed', String(first === rangeStart));
+    button.setAttribute('aria-label', `Episodes ${first} to ${last}${complete ? ', all watched' : ''}`);
+    button.addEventListener('click', () => {
+      rangeStart = first;
+      renderProgress();
+      progressRanges.querySelector('[aria-pressed="true"]')?.focus();
+    });
+    ranges.push(button);
+  }
+  progressRanges.replaceChildren(...ranges);
+}
+
+function listRange(first, last) {
+  return Array.from({ length: last - first + 1 }, (_, index) => getUnitKey(season, first + index));
+}
+
+function getViewName(current, seasons, first, last) {
+  const parts = [];
+  if (seasons.length > 1) parts.push(`season ${season}`);
+  if (current.episodes > EPISODES_PER_RANGE) parts.push(`episodes ${first}–${last}`);
+  return parts.join(', ') || 'all episodes';
 }
 
 function renderProgress() {
@@ -182,28 +254,49 @@ function renderProgress() {
 
   const current = seasons.find(({ number }) => number === season) ?? seasons[0];
   season = current.number;
+  if (rangeStart > current.episodes) rangeStart = 1;
+
+  const episodes = listEpisodes(seasons);
+  const watched = episodes.filter(({ key }) => isWatched(key)).length;
+  progressCount.textContent = `${countFormat.format(watched)} of ${countFormat.format(episodes.length)} watched`;
+  progressFill.style.transform = `scaleX(${watched / episodes.length})`;
+
+  const next = episodes.find(({ key }) => !isWatched(key));
+  nextButton.hidden = !next;
+  doneNote.hidden = Boolean(next);
+  if (next) nextButton.textContent = `Mark ${getEpisodeName(next, seasons)} watched`;
+  upToLabel.textContent = seasons.length > 1 ? `Watched up to season ${season}, episode` : 'Watched up to episode';
+  upToInput.max = current.episodes;
+
   renderSeasonTabs(seasons);
+  renderRanges(current);
 
-  const units = getEntry(release)?.units ?? {};
-  const first = episodePage * EPISODES_PER_PAGE + 1;
-  const last = Math.min(current.episodes, first + EPISODES_PER_PAGE - 1);
-  const tiles = [];
-  for (let episode = first; episode <= last; episode += 1) {
-    const watched = Boolean(units[getUnitKey(episode)]?.watched);
-    const tile = createElement('button', 'progress__episode', String(episode));
-    tile.type = 'button';
-    tile.dataset.episode = episode;
-    tile.setAttribute('aria-pressed', String(watched));
-    tile.setAttribute('aria-label', `Episode ${episode}${release.type === 'tv' ? `, season ${season}` : ''}`);
-    tiles.push(createListItem(tile));
-  }
-  if (current.episodes > last) tiles.push(createMoreButton(`Episodes ${last + 1}–${Math.min(current.episodes, last + EPISODES_PER_PAGE)}`, 1));
-  if (episodePage > 0) tiles.unshift(createMoreButton(`Episodes ${Math.max(1, first - EPISODES_PER_PAGE)}–${first - 1}`, -1));
-  progressGrid.replaceChildren(...tiles);
+  const first = rangeStart;
+  const last = Math.min(current.episodes, first + EPISODES_PER_RANGE - 1);
+  const keys = listRange(first, last);
+  const watchedHere = keys.filter(isWatched).length;
+  const allWatched = watchedHere === keys.length;
+  const viewName = getViewName(current, seasons, first, last);
+  viewCount.hidden = episodes.length === keys.length;
+  viewCount.textContent = `${watchedHere} of ${keys.length} watched in ${viewName}`;
+  bulkButton.textContent = allWatched ? `Unmark ${viewName}` : `Mark ${viewName} watched`;
+  bulkButton.dataset.watched = String(!allWatched);
 
-  const prefix = release.type === 'tv' ? `s${season}e` : 'e';
-  const label = release.type === 'tv' && seasons.length > 1 ? ` in season ${season}` : '';
-  progressCount.textContent = `${countWatched(prefix)} of ${current.episodes} watched${label}`;
+  // Redrawing replaces the tiles, so keyboard focus goes back to the one that was pressed.
+  const focused = progressGrid.contains(document.activeElement) ? document.activeElement.dataset.episode : null;
+  progressGrid.replaceChildren(
+    ...keys.map((key, index) => {
+      const episode = first + index;
+      const tile = createElement('button', 'progress__episode', String(episode));
+      tile.classList.toggle('progress__episode--long', episode >= 1000);
+      tile.type = 'button';
+      tile.dataset.episode = episode;
+      tile.setAttribute('aria-pressed', String(isWatched(key)));
+      tile.setAttribute('aria-label', `Episode ${episode}${seasons.length > 1 ? `, season ${season}` : ''}`);
+      return createListItem(tile);
+    }),
+  );
+  if (focused) progressGrid.querySelector(`[data-episode="${focused}"]`)?.focus();
 }
 
 function createListItem(content) {
@@ -212,21 +305,77 @@ function createListItem(content) {
   return item;
 }
 
-function createMoreButton(text, step) {
-  const button = createElement('button', 'text-button progress__more', text);
-  button.type = 'button';
-  button.addEventListener('click', () => {
-    episodePage += step;
-    renderProgress();
+// Saves a batch of episodes. Bulk changes get a toast with Undo; single taps don't, to stay quiet.
+function markEpisodes(keys, watched, message) {
+  const changed = keys.filter((key) => isWatched(key) !== watched);
+  if (!changed.length) return;
+  const result = setUnits(release, changed, { watched });
+  if (!result.ok) {
+    showToast({ type: 'error', message: "Couldn't save your progress. Your browser storage may be full." });
+    return;
+  }
+  if (!message) return;
+  showToast({
+    message: message(changed.length),
+    onUndo: () => {
+      if (!undo(result).ok) showToast({ type: 'error', message: "Couldn't undo. Please try again." });
+    },
   });
-  return createListItem(button);
 }
 
-function toggleEpisode(episode) {
-  const key = getUnitKey(episode);
-  const watched = !getEntry(release)?.units?.[key]?.watched;
-  const result = setUnit(release, key, { watched });
-  if (!result.ok) showToast({ type: 'error', message: "Couldn't save your progress. Your browser storage may be full." });
+const plural = (count) => `${countFormat.format(count)} episode${count === 1 ? '' : 's'}`;
+
+function markNext() {
+  const seasons = getSeasons();
+  const next = listEpisodes(seasons).find(({ key }) => !isWatched(key));
+  if (!next) return;
+  showEpisode(next);
+  markEpisodes([next.key], true);
+}
+
+// Marks every episode before this point watched, earlier seasons included. Later ones are left alone.
+function markUpTo(event) {
+  event.preventDefault();
+  const seasons = getSeasons();
+  const current = seasons.find(({ number }) => number === season);
+  const episode = Math.min(Math.max(1, Math.round(Number(upToInput.value))), current.episodes);
+  if (!episode) return;
+  const keys = listEpisodes(seasons)
+    .filter((item) => item.season < season || (item.season === season && item.episode <= episode))
+    .map(({ key }) => key);
+  const name = getEpisodeName({ season, episode }, seasons);
+  showEpisode({ season, episode });
+  upToForm.reset();
+  if (keys.every(isWatched)) {
+    showToast({ message: `Already watched up to ${name}` });
+    renderProgress();
+    return;
+  }
+  markEpisodes(keys, true, (count) => `Marked ${plural(count)} watched, up to ${name}`);
+}
+
+function markView() {
+  const current = getSeasons().find(({ number }) => number === season);
+  const last = Math.min(current.episodes, rangeStart + EPISODES_PER_RANGE - 1);
+  const watched = bulkButton.dataset.watched === 'true';
+  markEpisodes(listRange(rangeStart, last), watched, (count) => `${watched ? 'Marked' : 'Unmarked'} ${plural(count)}`);
+}
+
+function onEpisodeClick(event) {
+  const tile = event.target.closest('.progress__episode');
+  if (!tile) return;
+  const episode = Number(tile.dataset.episode);
+  const watched = tile.getAttribute('aria-pressed') !== 'true';
+
+  if (event.shiftKey && anchor?.season === season && anchor.episode !== episode) {
+    const first = Math.min(anchor.episode, episode);
+    const last = Math.max(anchor.episode, episode);
+    const verb = watched ? 'Marked' : 'Unmarked';
+    markEpisodes(listRange(first, last), watched, (count) => `${verb} ${plural(count)}, ${first} to ${last}`);
+  } else {
+    markEpisodes([getUnitKey(season, episode)], watched);
+  }
+  anchor = { season, episode };
 }
 
 /* Main details */
@@ -405,10 +554,10 @@ statusButtons.forEach((button) => {
   });
 });
 
-progressGrid.addEventListener('click', (event) => {
-  const tile = event.target.closest('.progress__episode');
-  if (tile) toggleEpisode(Number(tile.dataset.episode));
-});
+progressGrid.addEventListener('click', onEpisodeClick);
+nextButton.addEventListener('click', markNext);
+upToForm.addEventListener('submit', markUpTo);
+bulkButton.addEventListener('click', markView);
 
 progressSeasons.addEventListener('keydown', (event) => {
   const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
