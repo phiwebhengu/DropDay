@@ -63,7 +63,7 @@ I restarted the repo from scratch on 19 October, to start the build cleanly from
 
 - A keyboard, screen reader and contrast audit with fixes ([#73](https://github.com/phiwebhengu/DropDay/pull/73)).
 - Released to the live site and tagged **`v1-prd-build`**: the build exactly as the PRD planned it, before any testing feedback ([#74](https://github.com/phiwebhengu/DropDay/pull/74), [#75](https://github.com/phiwebhengu/DropDay/pull/75)).
-- **User testing:** a Google Form on the live site went to friends, tutors and lecturers, with over 21 responses by 28 October. Friends also sent feedback on WhatsApp ([#34](https://github.com/phiwebhengu/DropDay/issues/34)).
+- **User testing:** a Google Form on the live site went to friends, tutors and lecturers, with over 22 responses by 28 October. Friends also sent feedback on WhatsApp ([#34](https://github.com/phiwebhengu/DropDay/issues/34)).
 
 ## Phase 5: Design v2 and more media (29–30 October)
 
