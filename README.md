@@ -1,10 +1,10 @@
 # Drop Day
 
-**Every release worth waiting for, in one place.** Drop Day is a release radar for games, films, TV, anime and manga: see what's dropping, follow it, and log what you've played, watched or read.
+Drop Day is a release radar for games, films, TV, anime and manga: see what's dropping, follow it, and log what you've played, watched or read.
 
 **Live site:** https://phiwebhengu.github.io/DropDay/
 
-Built for DIGA3009A Interactive Media IIIB at Wits University (2026) from my approved PRD and Figma design.
+Built for DIGA3009A Interactive Media IIIB at Wits University (2026).
 
 ## What you can do
 
@@ -94,4 +94,4 @@ Work is planned as GitHub issues and built on its own branch (`feature/…`, `fi
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. Game data is from IGDB, and anime and manga data from AniList. Fonts: Figtree and Big Shoulders Display (Google Fonts).
 
-Design, build and documentation by **Phiwe Bhengu** ([GitHub](https://github.com/phiwebhengu), [LinkedIn](https://www.linkedin.com/in/phiwebhengu)). AI assistance (Claude, by Anthropic) was used during the build. How it was used is set out in my AI declaration.
+Design, build and documentation by **Phiwe Bhengu** ([GitHub](https://github.com/phiwebhengu), [LinkedIn](https://www.linkedin.com/in/phiwebhengu)).
