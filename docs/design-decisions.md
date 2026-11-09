@@ -156,8 +156,8 @@ Every deliberate difference between the live build and the approved PRD, with th
 
 - **Type:** Added (shelf), Cut (booking links)
 - **Now:** a Home shelf of films showing in South African cinemas (TMDB, region ZA).
-- **Cut:** links to book at Ster-Kinekor and Nu Metro. They were removed after tutor feedback.
-- **Evidence:** [#77](https://github.com/phiwebhengu/DropDay/issues/77)
+- **Cut:** links to book at Ster-Kinekor and Nu Metro. The tutor advised against promising booking links without a real source for them. TMDB only says which films are showing in a region, not where or when, and I found no public source for Ster-Kinekor or Nu Metro showtimes, so the links could only have gone to a homepage.
+- **Evidence:** [#77](https://github.com/phiwebhengu/DropDay/issues/77), tutor feedback (November 2026)
 
 ## D13 Release reminders, saved on this device
 
