@@ -824,7 +824,8 @@ html:not(.has-motion) .release-card__save:active {
    raised out of it, like iOS. The raised, outlined shape marks the choice without relying on colour. */
 
 .category-tabs,
-.quick-range__options {
+.quick-range__options,
+.progress__ranges {
   display: flex;
   gap: 2px;
   width: fit-content;
@@ -838,7 +839,8 @@ html:not(.has-motion) .release-card__save:active {
 }
 
 .category-tab,
-.quick-range__option {
+.quick-range__option,
+.progress__range {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -859,7 +861,8 @@ html:not(.has-motion) .release-card__save:active {
 }
 
 .category-tab[aria-selected="true"],
-.quick-range__option[aria-pressed="true"] {
+.quick-range__option[aria-pressed="true"],
+.progress__range[aria-pressed="true"] {
   border-color: var(--color-border-strong);
   background: var(--color-segment-selected);
   color: var(--color-text-primary);
@@ -867,13 +870,15 @@ html:not(.has-motion) .release-card__save:active {
 }
 
 .category-tab:active,
-.quick-range__option:active {
+.quick-range__option:active,
+.progress__range:active {
   transform: scale(0.97);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .category-tab[aria-selected="false"]:hover,
-  .quick-range__option[aria-pressed="false"]:hover {
+  .quick-range__option[aria-pressed="false"]:hover,
+  .progress__range[aria-pressed="false"]:hover {
     color: var(--color-text-primary);
   }
 }
