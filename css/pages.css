@@ -1,5 +1,8 @@
+/* Main always fills the screen, so the footer starts below it instead of being pushed down in view as
+   the page's content arrives (that jump was most of the layout shift Lighthouse measured). */
 .site-main {
   flex: 1;
+  min-height: 100svh;
   padding-block: var(--space-8) var(--space-16);
 }
 
@@ -36,6 +39,8 @@
 }
 
 .discover__summary {
+  /* Holds its line before the summary is written, so the filters and results don't drop down. */
+  min-height: 1lh;
   color: var(--color-text-secondary);
   font: var(--text-body-l);
 }
@@ -250,6 +255,20 @@
   display: grid;
   align-items: end;
   gap: var(--space-6);
+}
+
+/* On phones the cover and details stack and run taller than the hero, so they hang from the top: the
+   details arriving then only grow downwards, instead of pushing the cover up past the back link. */
+@media (max-width: 767px) {
+  .detail-hero__body {
+    align-content: start;
+  }
+}
+
+/* The details wait for the page's data and appear once, laid out, instead of growing line by line under
+   the cover (which shifted the layout). The cover and backdrop shimmer while it loads. */
+.detail-hero[aria-busy="true"] .game__info {
+  visibility: hidden;
 }
 
 .game__cover {
@@ -887,6 +906,12 @@
   width: 100%;
   max-width: none;
   padding: var(--space-6) var(--space-4);
+}
+
+/* The words wait until the first slide is ready and appear once, laid out, instead of growing line by
+   line as each API answers (which shifted the layout). The art's shimmer shows it's loading meanwhile. */
+.billboard:not(.is-ready, .hero--message) .billboard__body {
+  visibility: hidden;
 }
 
 .hero__content {
