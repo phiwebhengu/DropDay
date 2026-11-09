@@ -42,6 +42,7 @@ const heroTitle = document.getElementById('hero-title');
 const heroMeta = document.getElementById('hero-meta');
 const heroSave = document.getElementById('hero-save');
 const heroDetails = document.getElementById('hero-details');
+const heroDetailsName = document.getElementById('hero-details-name');
 const heroTrailer = document.getElementById('hero-trailer');
 const heroSound = document.getElementById('hero-sound');
 const heroControls = document.getElementById('hero-controls');
@@ -153,21 +154,36 @@ function lightPage(art) {
 }
 const CATEGORY_NAMES = { game: 'games', movie: 'movies' };
 
-// Every slide's art is built (and starts downloading) as soon as the billboard loads, stacked under the
-// trailer. A slide only switches once its picture is ready, so the title and art always change together.
+// A slide's art and logo start downloading when it's prepared. The first slide goes first and alone, so
+// it isn't competing for the connection; the rest follow once it's showing. A slide only switches once
+// its picture is ready, so the title and art always change together.
+const ART_SIZES = '(max-width: 1440px) 100vw, 1440px';
+
+function prepareSlide(slide) {
+  if (slide.ready) return;
+  const image = document.createElement('img');
+  image.className = 'hero__image';
+  image.alt = '';
+  image.decoding = 'async';
+  image.fetchPriority = slide === slides[0] ? 'high' : 'low';
+  if (slide.release.coverSrcset) {
+    image.srcset = slide.release.coverSrcset;
+    image.sizes = ART_SIZES;
+  }
+  image.src = slide.release.cover;
+  slide.image = image;
+  // The trailer is looked up with the art, so the Watch trailer button is settled before the slide shows
+  // instead of popping in afterwards and pushing the buttons onto another line.
+  slide.ready = Promise.all([image.decode().catch(() => image.remove()), loadLogo(slide), findTrailer(slide.release)]);
+  heroArt.prepend(image);
+}
+
 function createArt() {
   heroArt.classList.remove('skeleton');
-  slides.forEach((slide, index) => {
-    const image = document.createElement('img');
-    image.className = 'hero__image';
-    image.alt = '';
-    image.decoding = 'async';
-    if (index > 0) image.fetchPriority = 'low';
-    image.src = slide.release.cover;
-    slide.image = image;
-    slide.ready = Promise.all([image.decode().catch(() => image.remove()), loadLogo(slide)]);
-    heroArt.prepend(image);
-  });
+  prepareSlide(slides[0]);
+  // The first slide's words appear once, in their real fonts, so they don't reflow when the fonts land.
+  slides[0].ready = Promise.all([slides[0].ready, document.fonts.ready]);
+  slides[0].ready.then(() => slides.forEach(prepareSlide));
 }
 
 // Films and shows: the logo is fetched and decoded with the art, so the title never swaps from text to
@@ -210,6 +226,7 @@ let switchId = 0;
 async function showSlide(index) {
   if (index === current) return;
   const id = ++switchId;
+  prepareSlide(slides[index]);
   await whenReady(slides[index]);
   // A newer choice (a quick second dot click) wins.
   if (id !== switchId) return;
@@ -223,11 +240,13 @@ async function showSlide(index) {
   const category = `var(--color-category-${CATEGORY_NAMES[release.type] ?? release.type})`;
   heroEyebrow.textContent = `${label} · ${getTypeLabel(release)}`;
   heroEyebrow.style.setProperty('--eyebrow-accent', category);
-  lightPage(release.cover);
+  // The glow reuses whichever size of the art the browser downloaded.
+  lightPage(image.currentSrc || release.cover);
   heroTitle.replaceChildren(renderTitle(release, logo));
   heroTitle.classList.toggle('hero__title--logo', Boolean(logo));
   heroMeta.textContent = getMeta(release);
   heroDetails.href = getDetailUrl(release);
+  heroDetailsName.textContent = ` about ${release.title}`;
   renderHeroSave();
   startCountdown(release);
 
@@ -237,7 +256,10 @@ async function showSlide(index) {
     dot.setAttribute('aria-current', String(dotIndex === index));
   });
 
-  if (first) playHeroIntro(hero);
+  if (first) {
+    hero.classList.add('is-ready');
+    playHeroIntro(hero);
+  }
   else swapBillboard(image, heroSlide);
   startSlideTrailer(index);
 }

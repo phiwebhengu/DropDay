@@ -87,6 +87,10 @@ export function normaliseIgdbGame(game) {
     poster: getIgdbImage(game.cover?.image_id, "cover_big_2x"),
     image: getIgdbImage(wideArt, "screenshot_big"),
     cover: getIgdbImage(wideArt, "1080p"),
+    // The same art in two widths, so phones download the smaller one.
+    coverSrcset: wideArt
+      ? `${getIgdbImage(wideArt, "screenshot_big")} 889w, ${getIgdbImage(wideArt, "1080p")} 1920w`
+      : null,
     season: null,
     platforms: (game.platforms ?? []).map(({ name }) => IGDB_PLATFORM_NAMES[name] ?? name),
     platformIds: (game.platforms ?? []).map(({ id }) => id),
@@ -124,6 +128,9 @@ export function normaliseTmdbItem(item, type) {
     tba: !date,
     image: getTmdbImage(item.poster_path),
     cover: getTmdbImage(item.backdrop_path, "w1280"),
+    coverSrcset: item.backdrop_path
+      ? `${getTmdbImage(item.backdrop_path, "w780")} 780w, ${getTmdbImage(item.backdrop_path, "w1280")} 1280w`
+      : null,
     season: null,
     platforms: [],
     genres: (item.genre_ids ?? []).map((id) => TMDB_GENRES[id]).filter(Boolean),

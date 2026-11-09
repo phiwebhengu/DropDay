@@ -292,6 +292,18 @@ function fetchPage(state, page) {
   return category.load({ ...getDates(state), platforms: state.platform, genres: state.genre, page });
 }
 
+// The first row is what's on screen first, so its posters load straight away instead of lazily.
+const FIRST_ROW = 4;
+
+function prioritiseFirstRow(cards) {
+  cards.slice(0, FIRST_ROW).forEach((card) => {
+    const image = card.querySelector('.release-card__image');
+    if (!image) return;
+    image.loading = 'eager';
+    image.fetchPriority = 'high';
+  });
+}
+
 function appendCards(results) {
   const cards = results.map((release) => createReleaseCard(release, { entry: getEntry(release) }));
   grid.append(...cards.map(wrapInListItem));
@@ -357,7 +369,9 @@ async function loadReleases(state) {
     if (id !== requestId) return;
     clearTimeout(skeletonTimer);
     grid.replaceChildren();
-    animateGrid(appendCards(response.results), flipState);
+    const cards = appendCards(response.results);
+    prioritiseFirstRow(cards);
+    animateGrid(cards, flipState);
     pagesLoaded = 1;
     resultCount = response.count ?? (response.hasMore ? null : response.results.length);
     setNextPage(response);
