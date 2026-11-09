@@ -194,18 +194,23 @@ export function saveLog(release, log) {
   return result.ok ? { ...result, entry, previous } : result;
 }
 
-// One episode or chapter: "s1e3" for an episode, "c42" for a chapter. Ticking the first one off
-// moves a Want to entry to In progress, the way Simkl does.
-export function setUnit(release, unitKey, changes) {
+// Episodes or chapters: "s1e3" for an episode, "c42" for a chapter. Ticking the first one off moves a
+// Want to entry to In progress, the way Simkl does. Many can change in one save ("watched up to 312",
+// a whole season), so a single Undo puts them all back.
+export function setUnits(release, unitKeys, changes) {
   const previous = getEntry(release);
+  if (!previous && !changes.watched) return { ok: true, unchanged: true };
   const base = previous ?? createEntry(release, 'doing');
   const units = { ...base.units };
-  const unit = { ...units[unitKey], ...changes, at: new Date().toISOString() };
-  if (!unit.watched && unit.rating == null) delete units[unitKey];
-  else units[unitKey] = unit;
+  const at = new Date().toISOString();
+  unitKeys.forEach((key) => {
+    const unit = { ...units[key], ...changes, at };
+    if (!unit.watched && unit.rating == null) delete units[key];
+    else units[key] = unit;
+  });
 
-  const status = base.status === 'want' && unit.watched ? 'doing' : base.status;
-  const entry = { ...base, status, units, updatedAt: unit.at };
+  const status = base.status === 'want' && changes.watched ? 'doing' : base.status;
+  const entry = { ...base, status, units, updatedAt: at };
   const result = save(withChange(entry, previous ? null : 'added'));
   return result.ok ? { ...result, entry, previous } : result;
 }

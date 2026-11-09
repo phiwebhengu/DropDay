@@ -13,6 +13,8 @@ import '../ui/theme.js';
 import '../ui/site-header.js';
 
 const VIEWS = ['list', 'grid'];
+// Activity keeps the last 20 changes; only the latest few show until "Show more" is pressed.
+const ACTIVITY_SHOWN = 5;
 
 const EMPTY_TEXT = {
   want: 'Save anything you want to play, watch or read. Upcoming titles get a 🔔 so you know when they drop.',
@@ -26,6 +28,7 @@ const viewButtons = [...document.querySelectorAll('.view-toggle__option')];
 const panel = document.getElementById('library-panel');
 const activityList = document.getElementById('activity-list');
 const activityEmpty = document.getElementById('activity-empty');
+const activityMore = document.getElementById('activity-more');
 const exportButton = document.getElementById('export-button');
 
 function readState() {
@@ -127,8 +130,11 @@ function renderActivity() {
   activityEmpty.textContent = problem
     ? 'Activity is unavailable until your Library is fixed.'
     : 'Nothing yet. Save or log something and it shows up here.';
+  const expanded = activityMore.getAttribute('aria-expanded') === 'true';
+  activityMore.hidden = activity.length <= ACTIVITY_SHOWN;
+  activityMore.textContent = expanded ? 'Show less' : 'Show more';
   activityList.replaceChildren(
-    ...activity.map((item) => {
+    ...activity.slice(0, expanded ? activity.length : ACTIVITY_SHOWN).map((item) => {
       const row = document.createElement('li');
       row.className = 'activity__item';
       const time = document.createElement('time');
@@ -149,7 +155,7 @@ function exportLibrary() {
   link.click();
   // Firefox needs the link to live a moment longer before the file URL is released.
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-  showToast({ message: 'Library exported. Check your downloads.' });
+  showToast({ message: 'Backup downloaded. Keep it somewhere safe.' });
 }
 
 // Damaged data is never wiped quietly: the user can export what's there first, then choose to start fresh.
@@ -250,6 +256,10 @@ tabs.forEach((tab, index) => {
 
 viewButtons.forEach((button) => button.addEventListener('click', () => update({ view: button.dataset.view })));
 exportButton.addEventListener('click', exportLibrary);
+activityMore.addEventListener('click', () => {
+  activityMore.setAttribute('aria-expanded', String(activityMore.getAttribute('aria-expanded') !== 'true'));
+  renderActivity();
+});
 
 panel.addEventListener('release:save', (event) => toggleSave(event.detail.release));
 panel.addEventListener('release:quickview', (event) => {
