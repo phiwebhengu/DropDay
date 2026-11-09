@@ -164,6 +164,8 @@ function renderImage(container, src, alt) {
   container.classList.remove('skeleton');
   if (!src) return;
   const image = document.createElement('img');
+  // The cover and backdrop are the first things on screen, so they're asked for before anything else.
+  image.fetchPriority = 'high';
   image.src = src;
   image.alt = alt;
   image.addEventListener('error', () => image.remove(), { once: true });
