@@ -183,8 +183,11 @@ function createArt() {
   prepareSlide(slides[0]);
   // The first slide's words appear once, in their real fonts, so they don't reflow when the fonts land.
   slides[0].ready = Promise.all([slides[0].ready, document.fonts.ready]);
-  slides[0].ready.then(() => slides.forEach(prepareSlide));
 }
+
+// The other slides start downloading a moment after the first one is showing, so their art doesn't
+// compete with it on a slow connection. They're still ready long before the billboard moves on.
+const OTHER_SLIDES_DELAY = 1000;
 
 // Films and shows: the logo is fetched and decoded with the art, so the title never swaps from text to
 // logo in front of anyone. If it isn't ready in time, the slide keeps its text title.
@@ -259,6 +262,7 @@ async function showSlide(index) {
   if (first) {
     hero.classList.add('is-ready');
     playHeroIntro(hero);
+    setTimeout(() => slides.forEach(prepareSlide), OTHER_SLIDES_DELAY);
   }
   else swapBillboard(image, heroSlide);
   startSlideTrailer(index);
