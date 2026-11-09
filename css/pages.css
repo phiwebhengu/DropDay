@@ -510,6 +510,22 @@
   font: var(--text-body-l);
 }
 
+.library__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-4);
+}
+
+.library__backup {
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.library__backup:hover {
+  color: var(--color-text-primary);
+}
+
 .library__controls {
   display: flex;
   flex-wrap: wrap;
@@ -553,18 +569,18 @@
   margin-top: calc(var(--space-2) * -1);
 }
 
+/* Activity sits quietly beside the list: the latest few changes, the rest behind "Show more". */
 .activity {
   display: grid;
   justify-items: start;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border-default);
 }
 
 .activity__title {
-  font: var(--text-h3);
+  color: var(--color-text-secondary);
+  font: var(--text-label-m);
 }
 
 .activity__list {
@@ -583,15 +599,20 @@
   white-space: nowrap;
 }
 
-.activity__empty,
-.activity__note {
+.activity__empty {
   color: var(--color-text-secondary);
   font: var(--text-caption);
 }
 
 @media (min-width: 1024px) {
   .library__layout {
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .activity {
+    padding: 0 0 0 var(--space-6);
+    border-top: 0;
+    border-left: 1px solid var(--color-border-default);
   }
 }
 
@@ -1293,16 +1314,147 @@
   font-variant-numeric: tabular-nums;
 }
 
-.progress__seasons {
-  margin-block: var(--space-4);
+.progress__bar {
+  height: 4px;
+  margin-top: var(--space-3);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-raised);
+}
+
+.progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-action-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+/* The quick ways to mark a lot at once: the next episode, or everything up to one. */
+.progress__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-5);
+}
+
+.progress__done {
+  margin: 0;
+  color: var(--color-status-success);
+  font: var(--text-label-m);
+}
+
+/* Label above on phones, beside on wider screens; the field and its button always stay together. */
+.progress__upto {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: start;
+  gap: var(--space-2);
+}
+
+.progress__upto-label {
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+}
+
+.progress__upto-input {
+  width: 6.5rem;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: var(--text-body-m);
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+}
+
+.progress__upto-input::-webkit-inner-spin-button,
+.progress__upto-input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.progress__upto-input:hover {
+  border-color: var(--color-text-secondary);
+}
+
+@media (min-width: 640px) {
+  .progress__upto {
+    grid-template-columns: auto auto auto;
+    gap: var(--space-3);
+  }
+
+  .progress__upto-label {
+    grid-column: auto;
+  }
+}
+
+.progress__seasons,
+.progress__ranges {
+  margin-top: var(--space-5);
+}
+
+.progress__seasons + .progress__ranges {
+  margin-top: var(--space-2);
+}
+
+.progress__range {
+  min-height: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones scroll the ranges sideways; wider screens show them all, wrapping if One Piece needs two rows. */
+@media (min-width: 768px) {
+  .progress__ranges {
+    flex-wrap: wrap;
+  }
+}
+
+/* A small tick once every episode in the range is watched. */
+.progress__range--complete::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-action-primary);
+}
+
+.progress__view {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.progress__view-count {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress__bulk {
+  margin-left: auto;
 }
 
 .progress__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
   gap: var(--space-2);
-  margin: var(--space-4) 0 0;
+  margin: var(--space-3) 0 0;
   padding: 0;
+  /* Shift-click marks a run of episodes, which would otherwise select the numbers as text. */
+  user-select: none;
 }
 
 /* Each episode is a 48px square target with its number in the display face, like the date stubs. */
@@ -1339,13 +1491,26 @@
   color: var(--color-action-on-primary);
 }
 
-.progress__more {
-  grid-column: 1 / -1;
-  justify-self: start;
+/* Four-digit episodes (One Piece) get a slightly smaller number so they fit the square. */
+.progress__episode--long {
+  font-size: 0.9375rem;
 }
 
 .progress__hint {
   margin: var(--space-3) 0 0;
   color: var(--color-text-secondary);
   font: var(--text-caption);
+}
+
+/* Shift-click needs a keyboard, so the tip is only for mouse and trackpad. */
+@media not ((hover: hover) and (pointer: fine)) {
+  .progress__hint-shift {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress__fill {
+    transition: none;
+  }
 }
