@@ -775,6 +775,16 @@ html:not(.has-motion) .release-card__save:active {
   }
 }
 
+/* On phones the card buttons use a solid tint instead of frosted glass. Every card has one, and dozens
+   of small blurs redrawn while scrolling made long shelves stutter on mid-range phones. */
+@media (max-width: 767px), (pointer: coarse) {
+  .release-card__save,
+  .release-card__stub--rating {
+    background: rgb(14 13 11 / 0.78);
+    backdrop-filter: none;
+  }
+}
+
 /* Skeleton */
 
 .skeleton {
