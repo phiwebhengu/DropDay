@@ -10,6 +10,7 @@ import { createReview } from '../ui/review.js';
 import { createShelfItem, setupShelf, updateShelfArrows } from '../ui/shelf.js';
 import { createStateMessage } from '../ui/states.js';
 import { showToast } from '../ui/toast.js';
+import { openImageViewer } from '../ui/image-viewer.js';
 import { openTrailerDialog } from '../ui/trailer-dialog.js';
 import { formatReleaseDate, formatShortDate } from '../utils/dates.js';
 import { getStatusLabel, isReleased } from '../utils/media.js';
@@ -232,13 +233,23 @@ function renderScreenshots(urls) {
       const image = document.createElement('img');
       image.className = 'screenshots__image';
       image.src = url;
-      image.alt = `Screenshot ${index + 1} of ${game.title}`;
+      // The button around it carries the name.
+      image.alt = '';
       image.width = 600;
       image.height = 338;
       image.loading = 'lazy';
       image.decoding = 'async';
+      // Each screenshot opens full size.
+      const button = document.createElement('button');
+      button.className = 'screenshots__button';
+      button.type = 'button';
+      button.setAttribute('aria-label', `Open screenshot ${index + 1} of ${game.title} full size`);
+      button.append(image);
+      button.addEventListener('click', () =>
+        openImageViewer({ title: game.title, images: game.screenshotsLarge ?? urls, start: index }, button),
+      );
       // If every screenshot fails, the section goes too, rather than leaving a heading over nothing.
-      const item = createShelfItem(image);
+      const item = createShelfItem(button);
       image.addEventListener(
         'error',
         () => {
