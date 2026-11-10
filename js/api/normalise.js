@@ -111,6 +111,8 @@ export function normaliseIgdbGameDetail(game) {
     developers: companies.filter((company) => company.developer).map(({ company }) => company.name),
     publishers: companies.filter((company) => company.publisher).map(({ company }) => company.name),
     screenshots: (game.screenshots ?? []).map(({ image_id }) => getIgdbImage(image_id, "screenshot_big")),
+    // Full size, for opening a screenshot bigger.
+    screenshotsLarge: (game.screenshots ?? []).map(({ image_id }) => getIgdbImage(image_id, "1080p")),
     trailerKey: trailer?.video_id ?? null,
     editions: [...(game.expansions ?? []), ...(game.dlcs ?? [])].map(({ name }) => name),
     similar: (game.similar_games ?? []).map(normaliseIgdbGame),
