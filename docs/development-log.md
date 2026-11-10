@@ -19,6 +19,8 @@ How Drop Day went from the approved PRD to the exam build: what was built when, 
 | 7 Nov     | RAWG outage: all game data moved to IGDB                                         | [#106](https://github.com/phiwebhengu/DropDay/pull/106)                                                          |
 | 8 Nov     | Title logo fixes; repo clean-up                                                  | [#111](https://github.com/phiwebhengu/DropDay/pull/111), [#116](https://github.com/phiwebhengu/DropDay/pull/116) |
 | 9 Nov     | Bulk episode marking; quieter Library activity                                   | [#121](https://github.com/phiwebhengu/DropDay/pull/121)                                                          |
+| 9 Nov     | Lighthouse: layout shift and loading fixes on every page                         | [#135](https://github.com/phiwebhengu/DropDay/pull/135), [#139](https://github.com/phiwebhengu/DropDay/pull/139) |
+| 10 Nov    | iPhone layout fix, screenshot viewer, smoother phones                            | [#144](https://github.com/phiwebhengu/DropDay/pull/144), [#149](https://github.com/phiwebhengu/DropDay/pull/149) |
 
 ## How the work was run
 
@@ -103,19 +105,26 @@ From about 6 November, RAWG went down: Cloudflare error 522 on both its API and 
 - **Repo clean-up:** Wrangler's local cache file, with the Cloudflare account ID and email, had been committed with #104. It's removed and ignored now. It held no key ([#113](https://github.com/phiwebhengu/DropDay/issues/113), [#114](https://github.com/phiwebhengu/DropDay/pull/114)).
 - **Bulk episode marking:** next episode, "watched up to", whole seasons or ranges, Shift-click runs, and Undo. The Library's Activity panel and export were made quieter ([#118](https://github.com/phiwebhengu/DropDay/issues/118), [#119](https://github.com/phiwebhengu/DropDay/pull/119)).
 
+## Phase 9: Lighthouse and phones (9–10 November)
+
+- **Lighthouse** on mobile, on the live site, for Home, Discover, My Library, a film page and a game page. Accessibility already met its target everywhere, but performance didn't: Home 70, Discover 66, the game page 74 ([#33](https://github.com/phiwebhengu/DropDay/issues/33)).
+  - The big cost was **layout shift**: the footer pushed down as content arrived, and detail pages and the billboard grew line by line. A test that slowed the APIs down like a phone showed which element jumped and by how much.
+  - The other cost was **the main picture arriving late**: phones downloaded the full-size billboard art, and all five slides at once.
+  - After two fix PRs, every page met the target: Home 86–90 on most runs, Discover 85, Library 94, film 92, game 91, with accessibility 97–100 ([#133](https://github.com/phiwebhengu/DropDay/pull/133), [#137](https://github.com/phiwebhengu/DropDay/pull/137)). Details in D22.
+- **iPhone layout:** testers on iPhone found every page ran off the right edge. Safari let the one-column page grids grow to fit the category tabs. Every column is limited to the screen now, and the iPhone tester confirmed the fix ([#141](https://github.com/phiwebhengu/DropDay/issues/141), [#142](https://github.com/phiwebhengu/DropDay/pull/142)).
+- **Screenshot viewer:** a tester asked why screenshots couldn't be opened bigger, so they open full size now ([#142](https://github.com/phiwebhengu/DropDay/pull/142)).
+- **Smoother phones:** the billboard rests when scrolled past, and on phones the card buttons and the film grain stop redrawing on every scroll frame. The Top 10 row lines up with the others ([#146](https://github.com/phiwebhengu/DropDay/issues/146), [#147](https://github.com/phiwebhengu/DropDay/pull/147)).
+
 ## What went wrong, and what I learnt
 
-| Problem                                   | What I learnt                                                                             |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| RAWG went down for days                   | Have a backup source, and keep API code behind one normalised shape so it can be swapped. |
-| TMDB returned decades-old "upcoming" TV   | Test against real responses, not the docs (#15).                                          |
-| An SVG logo drew at zero width            | One bad asset can break a layout silently; always have a fallback.                        |
-| Explicit games in the feed                | Filter on the server where possible, and treat what an API returns as untrusted.          |
-| The pinned strip trapped scrolling        | Motion that takes control from people fails user testing, even when it looks good.        |
-| A local tool file was committed           | Check `git status` before committing, and ignore tool folders from day one.               |
-| PRs opened the wrong way round (#86, #87) | Read base and compare before creating a PR.                                               |
-
-## Still to do
-
-- Lighthouse on mobile: performance 85+, accessibility 95+ ([#33](https://github.com/phiwebhengu/DropDay/issues/33))
-- Final release and submission ([#35](https://github.com/phiwebhengu/DropDay/issues/35))
+| Problem                                        | What I learnt                                                                             |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| RAWG went down for days                        | Have a backup source, and keep API code behind one normalised shape so it can be swapped. |
+| TMDB returned decades-old "upcoming" TV        | Test against real responses, not the docs (#15).                                          |
+| An SVG logo drew at zero width                 | One bad asset can break a layout silently; always have a fallback.                        |
+| Explicit games in the feed                     | Filter on the server where possible, and treat what an API returns as untrusted.          |
+| The pinned strip trapped scrolling             | Motion that takes control from people fails user testing, even when it looks good.        |
+| A local tool file was committed                | Check `git status` before committing, and ignore tool folders from day one.               |
+| PRs opened the wrong way round (#86, #87)      | Read base and compare before creating a PR.                                               |
+| The site overflowed only on iPhones            | Test on real devices across browsers; an emulator in one browser isn't enough.            |
+| Lighthouse found layout shift I hadn't noticed | Measure on a throttled phone, not just look on a fast desktop.                            |
