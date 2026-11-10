@@ -14,29 +14,32 @@ Every deliberate difference between the live build and the approved PRD, with th
 
 ## Index
 
-| ID                                                             | Decision                                           | Type       | Area              | Evidence                                                                                                       |
-| -------------------------------------------------------------- | -------------------------------------------------- | ---------- | ----------------- | -------------------------------------------------------------------------------------------------------------- |
-| [D01](#d01-game-data-moved-from-rawg-to-igdb)                  | Game data moved from RAWG to IGDB                  | Changed    | API               | [#104](https://github.com/phiwebhengu/DropDay/pull/104)                                                        |
-| [D02](#d02-anime-and-manga-from-anilist)                       | Anime and manga from AniList                       | Added      | API               | [#82](https://github.com/phiwebhengu/DropDay/pull/82)                                                          |
-| [D03](#d03-trailers-from-the-youtube-data-api)                 | Trailers from the YouTube Data API                 | Added      | API               | [#72](https://github.com/phiwebhengu/DropDay/pull/72)                                                          |
-| [D04](#d04-one-set-of-library-lists-for-every-medium)          | One set of Library lists for every medium          | Changed    | Library           | [#81](https://github.com/phiwebhengu/DropDay/pull/81)                                                          |
-| [D05](#d05-visual-design-v1-then-v2)                           | Visual design v1, then v2                          | Improved   | Global            | [#72](https://github.com/phiwebhengu/DropDay/pull/72), [#79](https://github.com/phiwebhengu/DropDay/pull/79)   |
-| [D06](#d06-light-theme-that-follows-the-system)                | Light theme that follows the system                | Added      | Global            | [#72](https://github.com/phiwebhengu/DropDay/pull/72), [#79](https://github.com/phiwebhengu/DropDay/pull/79)   |
-| [D07](#d07-home-hero-became-a-billboard-with-trailer-previews) | Home hero became a billboard with trailer previews | Changed    | Home              | [#84](https://github.com/phiwebhengu/DropDay/pull/84), [#93](https://github.com/phiwebhengu/DropDay/pull/93)   |
-| [D08](#d08-motion-m2-pinned-strip-replaced)                    | Motion M2: pinned strip replaced                   | Changed    | Motion            | [#76](https://github.com/phiwebhengu/DropDay/issues/76)                                                        |
-| [D09](#d09-floating-glass-header-and-bottom-nav)               | Floating glass header and bottom nav               | Improved   | Global            | [#95](https://github.com/phiwebhengu/DropDay/pull/95)                                                          |
-| [D10](#d10-detail-pages-for-films-tv-anime-and-manga)          | Detail pages for films, TV, anime and manga        | Added      | Pages             | [#97](https://github.com/phiwebhengu/DropDay/pull/97)                                                          |
-| [D11](#d11-cards-open-the-full-page)                           | Cards open the full page                           | Changed    | Flow              | [#98](https://github.com/phiwebhengu/DropDay/pull/98)                                                          |
-| [D12](#d12-in-cinemas-now-without-booking-links)               | In cinemas now, without booking links              | Added, Cut | Home              | [#77](https://github.com/phiwebhengu/DropDay/issues/77)                                                        |
-| [D13](#d13-release-reminders-saved-on-this-device)             | Release reminders, saved on this device            | Added      | Library           | [#81](https://github.com/phiwebhengu/DropDay/pull/81)                                                          |
-| [D14](#d14-adult-titles-hidden)                                | Adult titles hidden                                | Added      | Global            | [#80](https://github.com/phiwebhengu/DropDay/pull/80), [#104](https://github.com/phiwebhengu/DropDay/pull/104) |
-| [D15](#d15-episode-tracking-and-bulk-marking)                  | Episode tracking and bulk marking                  | Added      | Title pages       | [#97](https://github.com/phiwebhengu/DropDay/pull/97), [#119](https://github.com/phiwebhengu/DropDay/pull/119) |
-| [D16](#d16-quieter-activity-panel-and-backup-link)             | Quieter Activity panel and backup link             | Improved   | Library           | [#119](https://github.com/phiwebhengu/DropDay/pull/119)                                                        |
-| [D17](#d17-official-title-logos)                               | Official title logos                               | Improved   | Home, title pages | [#109](https://github.com/phiwebhengu/DropDay/pull/109)                                                        |
-| [D18](#d18-phone-layouts-and-touch-targets)                    | Phone layouts and touch targets                    | Improved   | Global            | [#71](https://github.com/phiwebhengu/DropDay/pull/71), [#99](https://github.com/phiwebhengu/DropDay/pull/99)   |
-| [D19](#d19-accessibility-fixes)                                | Accessibility fixes                                | Improved   | Global            | [#73](https://github.com/phiwebhengu/DropDay/pull/73)                                                          |
-| [D20](#d20-custom-lists-and-steam-data)                        | Custom lists and Steam data                        | Cut        | Scope             | Planning, 21 Oct                                                                                               |
-| [D21](#d21-saved-for-after-the-exam)                           | Saved for after the exam                           | Deferred   | Scope             | User feedback                                                                                                  |
+| ID                                                             | Decision                                           | Type       | Area              | Evidence                                                                                                         |
+| -------------------------------------------------------------- | -------------------------------------------------- | ---------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| [D01](#d01-game-data-moved-from-rawg-to-igdb)                  | Game data moved from RAWG to IGDB                  | Changed    | API               | [#104](https://github.com/phiwebhengu/DropDay/pull/104)                                                          |
+| [D02](#d02-anime-and-manga-from-anilist)                       | Anime and manga from AniList                       | Added      | API               | [#82](https://github.com/phiwebhengu/DropDay/pull/82)                                                            |
+| [D03](#d03-trailers-from-the-youtube-data-api)                 | Trailers from the YouTube Data API                 | Added      | API               | [#72](https://github.com/phiwebhengu/DropDay/pull/72)                                                            |
+| [D04](#d04-one-set-of-library-lists-for-every-medium)          | One set of Library lists for every medium          | Changed    | Library           | [#81](https://github.com/phiwebhengu/DropDay/pull/81)                                                            |
+| [D05](#d05-visual-design-v1-then-v2)                           | Visual design v1, then v2                          | Improved   | Global            | [#72](https://github.com/phiwebhengu/DropDay/pull/72), [#79](https://github.com/phiwebhengu/DropDay/pull/79)     |
+| [D06](#d06-light-theme-that-follows-the-system)                | Light theme that follows the system                | Added      | Global            | [#72](https://github.com/phiwebhengu/DropDay/pull/72), [#79](https://github.com/phiwebhengu/DropDay/pull/79)     |
+| [D07](#d07-home-hero-became-a-billboard-with-trailer-previews) | Home hero became a billboard with trailer previews | Changed    | Home              | [#84](https://github.com/phiwebhengu/DropDay/pull/84), [#93](https://github.com/phiwebhengu/DropDay/pull/93)     |
+| [D08](#d08-motion-m2-pinned-strip-replaced)                    | Motion M2: pinned strip replaced                   | Changed    | Motion            | [#76](https://github.com/phiwebhengu/DropDay/issues/76)                                                          |
+| [D09](#d09-floating-glass-header-and-bottom-nav)               | Floating glass header and bottom nav               | Improved   | Global            | [#95](https://github.com/phiwebhengu/DropDay/pull/95)                                                            |
+| [D10](#d10-detail-pages-for-films-tv-anime-and-manga)          | Detail pages for films, TV, anime and manga        | Added      | Pages             | [#97](https://github.com/phiwebhengu/DropDay/pull/97)                                                            |
+| [D11](#d11-cards-open-the-full-page)                           | Cards open the full page                           | Changed    | Flow              | [#98](https://github.com/phiwebhengu/DropDay/pull/98)                                                            |
+| [D12](#d12-in-cinemas-now-without-booking-links)               | In cinemas now, without booking links              | Added, Cut | Home              | [#77](https://github.com/phiwebhengu/DropDay/issues/77)                                                          |
+| [D13](#d13-release-reminders-saved-on-this-device)             | Release reminders, saved on this device            | Added      | Library           | [#81](https://github.com/phiwebhengu/DropDay/pull/81)                                                            |
+| [D14](#d14-adult-titles-hidden)                                | Adult titles hidden                                | Added      | Global            | [#80](https://github.com/phiwebhengu/DropDay/pull/80), [#104](https://github.com/phiwebhengu/DropDay/pull/104)   |
+| [D15](#d15-episode-tracking-and-bulk-marking)                  | Episode tracking and bulk marking                  | Added      | Title pages       | [#97](https://github.com/phiwebhengu/DropDay/pull/97), [#119](https://github.com/phiwebhengu/DropDay/pull/119)   |
+| [D16](#d16-quieter-activity-panel-and-backup-link)             | Quieter Activity panel and backup link             | Improved   | Library           | [#119](https://github.com/phiwebhengu/DropDay/pull/119)                                                          |
+| [D17](#d17-official-title-logos)                               | Official title logos                               | Improved   | Home, title pages | [#109](https://github.com/phiwebhengu/DropDay/pull/109)                                                          |
+| [D18](#d18-phone-layouts-and-touch-targets)                    | Phone layouts and touch targets                    | Improved   | Global            | [#71](https://github.com/phiwebhengu/DropDay/pull/71), [#99](https://github.com/phiwebhengu/DropDay/pull/99)     |
+| [D19](#d19-accessibility-fixes)                                | Accessibility fixes                                | Improved   | Global            | [#73](https://github.com/phiwebhengu/DropDay/pull/73)                                                            |
+| [D20](#d20-custom-lists-and-steam-data)                        | Custom lists and Steam data                        | Cut        | Scope             | Planning, 21 Oct                                                                                                 |
+| [D21](#d21-saved-for-after-the-exam)                           | Saved for after the exam                           | Deferred   | Scope             | User feedback                                                                                                    |
+| [D22](#d22-performance-pass-from-lighthouse)                   | Performance pass from Lighthouse                   | Improved   | Global            | [#133](https://github.com/phiwebhengu/DropDay/pull/133), [#137](https://github.com/phiwebhengu/DropDay/pull/137) |
+| [D23](#d23-screenshots-open-full-size)                         | Screenshots open full size                         | Added      | Game page         | [#142](https://github.com/phiwebhengu/DropDay/pull/142)                                                          |
+| [D24](#d24-iphone-layout-and-smoother-phones)                  | iPhone layout and smoother phones                  | Improved   | Global            | [#142](https://github.com/phiwebhengu/DropDay/pull/142), [#147](https://github.com/phiwebhengu/DropDay/pull/147) |
 
 ## Feedback that shaped these decisions
 
@@ -233,3 +236,38 @@ Every deliberate difference between the live build and the approved PRD, with th
 - **Accounts and sign-in** (a tester suggested Supabase or Vercel), a **shared database for friends' reviews**, and **a phone app**: these need a backend, and the brief is a front-end build. The Library stays on the device, and its backup file is the bridge until then.
 - **Separate month and year filters** on Discover: the month filter and quick ranges cover the current flows.
 - **A "Show adult titles" setting:** hidden by default for now (D14).
+
+## D22 Performance pass from Lighthouse
+
+- **Type:** Improved, Global
+- **PRD target:** Lighthouse mobile, performance 85+ and accessibility 95+.
+- **Before** (9 November, mobile; Performance / Accessibility / Best Practices / SEO): Home 70 / 100 / 100 / 91, Discover 66 / 97 / 100 / 100, Library 85 / 100 / 100 / 100, film page 85 / 100 / 100 / 100, game page 74 / 100 / 100 / 100.
+- **Causes found:** layout shift (the footer pushed down as content arrived, details growing line by line, the billboard's text and trailer button settling late) and the main picture arriving late (full-size art on phones, all five billboard slides downloading at once).
+- **Now:**
+  - The footer starts below the screen, detail heroes and the billboard appear once laid out, and the Discover summary keeps its line. Layout shift is 0 on the pages tested.
+  - Phones get smaller billboard art. The first slide downloads alone at high priority, and the rest follow a second after it shows.
+  - Discover's first row and detail-page covers load first, and connections to the image servers open early.
+  - "More info" has a descriptive name for search engines and screen readers.
+- **After:** Home 90 at best (86+ in 3 of 5 runs, range 79–90) / 100 / 100 / 100, Discover 85 / 97 / 100 / 100, Library 94 / 100 / 100 / 100, film page 92 / 100 / 100 / 100, game page 91 / 100 / 100 / 100. Both targets met.
+- **Left as is:** Discover's 97 accessibility is one touch-target warning. On first load the floating bottom nav overlaps the ⋯ button on the first row of cards, and it clears once the page scrolls.
+- **Evidence:** [#33](https://github.com/phiwebhengu/DropDay/issues/33), [#133](https://github.com/phiwebhengu/DropDay/pull/133), [#137](https://github.com/phiwebhengu/DropDay/pull/137)
+
+## D23 Screenshots open full size
+
+- **Type:** Added, Game page
+- **Now:** tapping a screenshot opens it full size (1080p) in a viewer, one at a time. Arrows, swipe or the keyboard move between screenshots, a counter shows the position, and Escape, x or a tap outside closes it. Focus returns to the screenshot that opened it.
+- **Why:** a tester asked why screenshots couldn't be opened bigger. On a phone the thumbnails are too small to see much.
+- **Evidence:** [#141](https://github.com/phiwebhengu/DropDay/issues/141), [#142](https://github.com/phiwebhengu/DropDay/pull/142)
+
+## D24 iPhone layout and smoother phones
+
+- **Type:** Improved, Global
+- **Problem:** testers on iPhone found every page wider than the screen. Content ran off the right edge and Manga was cut off. Others found Home laggy on their phone, and the Top 10 row didn't line up with the other rows.
+- **Cause:** the page layouts are one-column grids. Safari let that column grow to fit its widest row (the category tabs), so the whole page overflowed. Chrome and Android browsers don't, which is why it only showed on iPhones.
+- **Now:**
+  - Every page column is limited to the screen, and pages can't scroll sideways on phones.
+  - All five categories share the width on phones, so Manga is always visible.
+  - The Top 10 numbers start at the page edge on phones, in line with the other rows.
+  - The billboard rests when scrolled past: no trailer playing and no slides changing behind the shelves.
+  - On phones, card buttons use a solid tint instead of frosted glass, and the film-grain texture is off, because both had to be redrawn on every scroll frame.
+- **Evidence:** [#141](https://github.com/phiwebhengu/DropDay/issues/141), [#142](https://github.com/phiwebhengu/DropDay/pull/142), [#146](https://github.com/phiwebhengu/DropDay/issues/146), [#147](https://github.com/phiwebhengu/DropDay/pull/147); confirmed fixed by the iPhone tester
