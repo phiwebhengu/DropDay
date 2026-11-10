@@ -50,6 +50,14 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Phones skip the grain: a layer over the whole screen has to be redrawn on every scroll frame, and at
+   phone sizes the grain is barely visible anyway. */
+@media (max-width: 767px), (pointer: coarse) {
+  body::after {
+    display: none;
+  }
+}
+
 /* Component display rules (e.g. .button { display: inline-flex }) would otherwise beat the hidden attribute. */
 [hidden] {
   display: none !important;

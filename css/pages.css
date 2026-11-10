@@ -1280,6 +1280,24 @@
   user-select: none;
 }
 
+/* On phones the number starts at the page edge, so the row lines up with the shelves above and below
+   it instead of starting in from a thin "1". */
+@media (max-width: 767px) {
+  .shelf--ranked .shelf__item {
+    grid-template-columns: 24% 1fr;
+  }
+
+  .shelf__rank {
+    text-align: start;
+  }
+
+  /* Two digits need to be a little tighter to stay readable beside the poster. */
+  .shelf--ranked .shelf__item:nth-child(n + 10) .shelf__rank {
+    font-size: clamp(4.25rem, 17vw, 6.5rem);
+    letter-spacing: -0.06em;
+  }
+}
+
 .shelf--ranked .release-card {
   z-index: 1;
 }
