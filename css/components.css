@@ -2129,6 +2129,120 @@ html:has(.log-modal[open]) {
   margin-left: 0;
 }
 
+/* Image viewer: a game's screenshots, full size, one at a time */
+
+.image-viewer {
+  width: min(100% - 2 * var(--space-4), 1280px);
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--grey-50);
+}
+
+.image-viewer::backdrop {
+  background: rgb(0 0 0 / 0.9);
+  backdrop-filter: blur(8px);
+}
+
+html:has(.image-viewer[open]) {
+  overflow: hidden;
+}
+
+.image-viewer__panel {
+  display: grid;
+  /* Without this the column grows to the full-size image's own width and runs off a phone screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.image-viewer__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.image-viewer__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: var(--text-h2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-viewer__count {
+  flex: none;
+  color: rgb(255 255 255 / 0.7);
+  font: var(--text-label-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.image-viewer__close,
+.image-viewer__step {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 50%;
+  background: rgb(40 40 44 / 0.8);
+  color: inherit;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.image-viewer__close:active,
+.image-viewer__step:active {
+  transform: scale(0.94);
+}
+
+.image-viewer__stage {
+  position: relative;
+  /* A sideways swipe changes the screenshot instead of scrolling the page. */
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.image-viewer__image {
+  display: block;
+  width: 100%;
+  max-height: calc(100dvh - 9rem);
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.06);
+  object-fit: contain;
+}
+
+.image-viewer__step {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.image-viewer__step--prev {
+  left: var(--space-3);
+}
+
+.image-viewer__step--next {
+  right: var(--space-3);
+}
+
+.image-viewer--single .image-viewer__step,
+.image-viewer--single .image-viewer__count {
+  display: none;
+}
+
+@media (hover: hover) {
+  .image-viewer__close:hover,
+  .image-viewer__step:hover {
+    background: rgb(60 60 66 / 0.9);
+  }
+}
+
 /* Trailer player: the full trailer, uncropped, with its own controls, over a dark scrim */
 
 .trailer-dialog {
