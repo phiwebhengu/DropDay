@@ -63,6 +63,7 @@ let countdownStarted = false;
 let slideTimer;
 let paused = reducedMotion.matches;
 let holding = false;
+let heroInView = true;
 
 /* Billboard: a few featured releases in turn, like the top of Apple TV */
 
@@ -307,7 +308,7 @@ function queueAdvance(delay = SLIDE_TIME) {
   clearTimeout(slideTimer);
   if (paused || slides.length < 2) return;
   slideTimer = setTimeout(() => {
-    if (document.hidden || holding) queueAdvance(2000);
+    if (document.hidden || holding || !heroInView) queueAdvance(2000);
     else showSlide(nextIndex());
   }, delay);
 }
@@ -511,8 +512,25 @@ heroTrailer.addEventListener('click', () => {
 // A hidden tab stops the preview; coming back starts this slide's again.
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) preview.stop();
-  else if (!paused && slides.length) startSlideTrailer(current);
+  else if (!paused && slides.length && heroInView) startSlideTrailer(current);
 });
+
+// Scrolled past, the billboard rests: no video playing and no slides changing behind the shelves, which
+// made scrolling stutter on phones. It picks up the same slide when it comes back into view.
+new IntersectionObserver(
+  ([entry]) => {
+    if (entry.isIntersecting === heroInView) return;
+    heroInView = entry.isIntersecting;
+    if (!slides.length || paused) return;
+    if (heroInView) {
+      startSlideTrailer(current);
+    } else {
+      clearTimeout(slideTimer);
+      preview.stop();
+    }
+  },
+  { threshold: 0.25 },
+).observe(hero);
 
 heroSave.addEventListener('click', () => toggleSave(featured));
 
