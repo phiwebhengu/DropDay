@@ -4,6 +4,69 @@
   flex: 1;
   min-height: 100svh;
   padding-block: var(--space-8) var(--space-16);
+  /* A safety net: nothing on a page can make it scroll sideways on a phone. */
+  overflow-x: clip;
+}
+
+/* The page layouts are one-column grids on phones. Their column is told it may shrink to the screen;
+   left to size itself, Safari (every iPhone browser) let it grow to fit the widest row, like the
+   category tabs, and the whole page ran off the right edge. Wider screens set their own columns below. */
+.discover,
+.discover__header,
+.home,
+.game,
+.game__section,
+.game__overview,
+.game__info,
+.detail-hero__body,
+.detail-hero__layout,
+.library,
+.library__layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* On phones the five categories share the width, so Manga is never hidden off the end. Their colour
+   dots come back on wider screens, where there's room. */
+@media (max-width: 599px) {
+  .discover .category-tabs {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    width: 100%;
+  }
+
+  .discover .category-tab {
+    justify-content: center;
+    padding-inline: var(--space-2);
+  }
+
+  .discover .category-tab__dot {
+    display: none;
+  }
+
+  /* The time ranges line up under the categories, edge to edge. */
+  .discover .quick-range {
+    width: 100%;
+  }
+
+  .discover .quick-range__options {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    width: 100%;
+  }
+
+  .discover .quick-range__option {
+    justify-content: center;
+  }
+}
+
+/* Small phones, or phones with bigger text set, need the labels a touch smaller to keep all five in. */
+@media (max-width: 399px) {
+  .discover .category-tab {
+    padding-inline: var(--space-1);
+    font-size: 0.875rem;
+  }
 }
 
 .page-intro {
@@ -485,7 +548,23 @@
   grid-auto-columns: clamp(260px, 78vw, 420px);
 }
 
+.screenshots__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  cursor: zoom-in;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.screenshots__button:active {
+  transform: scale(0.98);
+}
+
 .screenshots__image {
+  display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
